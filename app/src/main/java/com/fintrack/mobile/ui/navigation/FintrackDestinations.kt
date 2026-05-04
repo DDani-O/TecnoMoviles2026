@@ -1,0 +1,36 @@
+package com.fintrack.mobile.ui.navigation
+
+import androidx.annotation.StringRes
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AddCircle
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.ReceiptLong
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.ui.graphics.vector.ImageVector
+import com.fintrack.mobile.R
+
+sealed class FintrackDestination(
+    val route: String,
+    @param:StringRes val labelRes: Int,
+    val icon: ImageVector,
+) {
+    data object Home : FintrackDestination("home", R.string.nav_home, Icons.Filled.Home)
+    data object Explore : FintrackDestination("explore", R.string.nav_explore, Icons.Filled.Search)
+    data object NewPurchase : FintrackDestination("new_purchase", R.string.nav_new_purchase, Icons.Filled.AddCircle)
+    data object Records : FintrackDestination("records", R.string.nav_records, Icons.Filled.ReceiptLong)
+    data object Profile : FintrackDestination("profile", R.string.nav_profile, Icons.Filled.Person)
+
+    companion object {
+        val bottomItems = listOf(Home, Explore, NewPurchase, Records, Profile)
+    }
+}
+
+object Routes {
+    const val SPLASH = "splash"
+    const val WELCOME = "welcome"
+    const val LOGIN = "login"
+    const val REGISTER = "register"
+    const val ADD_PRODUCTS = "add_products"
+    const val ADJUST_TICKET = "adjust_ticket"
+}

@@ -1,0 +1,124 @@
+<resources>
+    <string name="app_name">FintrackMobile</string>
+    <string name="default_user_name">Invitado</string>
+
+    <string name="nav_home">Inicio</string>
+    <string name="nav_explore">Explorar</string>
+    <string name="nav_new_purchase">Nueva compra</string>
+    <string name="nav_records">Registros</string>
+    <string name="nav_profile">Yo</string>
+
+    <string name="splash_title">FintrackMobile</string>
+    <string name="splash_subtitle">Cargando tu resumen</string>
+
+    <string name="welcome_title">Controla tus gastos</string>
+    <string name="welcome_subtitle">Registra compras, analiza y ahorra</string>
+
+    <string name="login_title">Inicia sesion</string>
+    <string name="register_title">Crea tu cuenta</string>
+
+    <string name="label_name">Nombre</string>
+    <string name="placeholder_name">Escribe tu nombre</string>
+    <string name="label_email">Correo</string>
+    <string name="placeholder_email">tu@email.com</string>
+    <string name="label_supermarket">Supermercado</string>
+    <string name="placeholder_supermarket">Ej: Carrefour</string>
+    <string name="label_total">Total</string>
+    <string name="placeholder_total">Ej: 15230</string>
+    <string name="label_product_name">Producto</string>
+    <string name="placeholder_product_name">Ej: Leche</string>
+    <string name="label_product_quantity">Cantidad</string>
+    <string name="placeholder_product_quantity">Ej: 2</string>
+    <string name="label_product_price">Precio</string>
+    <string name="placeholder_product_price">Ej: 1200</string>
+
+    <string name="action_login">Iniciar sesion</string>
+    <string name="action_register">Crear cuenta</string>
+    <string name="action_done">Listo</string>
+    <string name="action_back">Volver</string>
+
+    <string name="home_greeting">Hola, %1$s</string>
+    <string name="home_welcome">Bienvenido de nuevo</string>
+    <string name="home_month_summary">Resumen del mes</string>
+    <string name="home_total_spent">Total gastado: %1$s</string>
+    <string name="home_recent_history">Historial reciente</string>
+    <string name="home_view_all">Ver todo</string>
+    <string name="home_purchase_date">Fecha: %1$s</string>
+    <string name="home_expenses_category">Gastos por categoria</string>
+    <string name="home_top_supermarkets">Top supermercados</string>
+    <string name="home_promos">Aprovecha las promos</string>
+    <string name="home_promos_hint">Revisa descuentos y productos destacados</string>
+    <string name="home_rank_value">#%1$d</string>
+
+    <string name="category_food">Alimentos</string>
+    <string name="category_cleaning">Limpieza</string>
+    <string name="category_home">Hogar</string>
+    <string name="category_other">Otros</string>
+
+    <string name="explore_title">Explorar</string>
+    <string name="explore_search_placeholder">Buscar supermercados o promos</string>
+    <string name="explore_exchange_title">Tasa de cambio</string>
+    <string name="explore_exchange_label">1 %1$s = %2$.2f %3$s</string>
+    <string name="explore_network_fallback">Sin conexion, usando datos locales</string>
+    <string name="explore_promos_title">Promos destacadas</string>
+    <string name="explore_open_promos">Abrir promociones</string>
+
+    <string name="promo_title_1">20% en lacteos</string>
+    <string name="promo_subtitle_1">Solo por hoy en supermercados seleccionados</string>
+    <string name="promo_title_2">3x2 en bebidas</string>
+    <string name="promo_subtitle_2">Acumula puntos y ahorra en tu proxima compra</string>
+    <string name="promo_title_3">Descuento en limpieza</string>
+    <string name="promo_subtitle_3">Productos de hogar con rebaja</string>
+
+    <string name="purchase_title">Nueva compra</string>
+    <string name="purchase_add_products">Agregar productos</string>
+    <string name="purchase_adjust_ticket">Ajustar ticket</string>
+    <string name="purchase_products_title">Productos agregados</string>
+    <string name="purchase_save">Guardar compra</string>
+    <string name="product_line_item">%1$d x %2$s</string>
+
+    <string name="add_products_title">Agregar productos</string>
+    <string name="add_products_button">Agregar</string>
+    <string name="add_products_empty">Sin productos aun</string>
+
+    <string name="adjust_ticket_title">Ajustar ticket</string>
+    <string name="adjust_ticket_discount">Descuento: %1$d%%</string>
+    <string name="adjust_ticket_apply">Aplicar ajuste</string>
+
+    <string name="records_title">Registros</string>
+    <string name="records_tab_history">Historial</string>
+    <string name="records_tab_stats">Estadisticas</string>
+    <string name="records_empty">Sin compras registradas</string>
+    <string name="records_stats_total">Total del mes</string>
+    <string name="records_stats_avg">Promedio por compra</string>
+    <string name="records_stats_count">Cantidad de compras</string>
+
+    <string name="profile_title">Yo</string>
+    <string name="profile_section_personal">Perfil</string>
+    <string name="profile_name_label">Nombre</string>
+    <string name="profile_section_prefs">Preferencias</string>
+    <string name="profile_currency_label">Moneda</string>
+    <string name="profile_theme_dark">Tema oscuro</string>
+    <string name="profile_save">Guardar cambios</string>
+    <string name="profile_open_settings">Abrir configuracion</string>
+    <string name="profile_logout">Cerrar sesion</string>
+
+    <string name="settings_title">Configuracion</string>
+    <string name="settings_about_title">Acerca de</string>
+    <string name="settings_about_text">FintrackMobile demo UI</string>
+    <string name="settings_version_label">Version %1$s</string>
+
+    <string name="currency_ars">ARS</string>
+    <string name="currency_usd">USD</string>
+
+    <string name="supermarket_carrefour">Carrefour</string>
+    <string name="supermarket_coto">Coto</string>
+    <string name="supermarket_jumbo">Jumbo</string>
+
+    <string name="product_leche">Leche</string>
+    <string name="product_pan">Pan</string>
+    <string name="product_queso">Queso</string>
+    <string name="product_verduras">Verduras</string>
+    <string name="product_carne">Carne</string>
+    <string name="product_bebidas">Bebidas</string>
+</resources>
