@@ -133,7 +133,7 @@ fun ExploreScreen(viewModel: ExploreViewModel) {
                     onClick = {
                         val intent = Intent(
                             Intent.ACTION_VIEW,
-                            Uri.parse("https://www.carrefour.com.ar")
+                            "https://www.carrefour.com.ar".toUri()
                         )
                         context.startActivity(intent)
                     },
