@@ -4,6 +4,7 @@ import androidx.annotation.StringRes
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -129,14 +130,14 @@ fun HomeScreen(
                 title = stringResource(R.string.home_news_habit_change_title),
                 subtitle = stringResource(R.string.home_news_habit_change_value, currentItems, percent),
                 icon = Icons.Filled.ShoppingCart,
-                accent = MaterialTheme.colorScheme.secondary,
+                accent = PastelGreenDeep,
             )
         } else {
             HomeInsight(
                 title = stringResource(R.string.home_news_habit_change_title),
                 subtitle = stringResource(R.string.home_news_habit_change_value, 12, 35),
                 icon = Icons.Filled.ShoppingCart,
-                accent = MaterialTheme.colorScheme.secondary,
+                accent = PastelGreenDeep,
             )
         }
     } else {
@@ -144,7 +145,7 @@ fun HomeScreen(
             title = stringResource(R.string.home_news_habit_change_title),
             subtitle = stringResource(R.string.home_news_habit_change_value, 12, 35),
             icon = Icons.Filled.ShoppingCart,
-            accent = MaterialTheme.colorScheme.secondary,
+            accent = PastelGreenDeep,
         )
     }
 
@@ -155,7 +156,7 @@ fun HomeScreen(
                 title = stringResource(R.string.home_news_spending_title),
                 subtitle = stringResource(R.string.home_news_spending_value, formatCurrency(monthlyTotal, currencyCode)),
                 icon = Icons.Filled.TrendingUp,
-                accent = MaterialTheme.colorScheme.primary,
+                accent = PastelGreenDeep,
             )
         } else null,
         if (purchases.isNotEmpty()) {
@@ -163,7 +164,7 @@ fun HomeScreen(
                 title = stringResource(R.string.home_news_recent_title),
                 subtitle = stringResource(R.string.home_news_recent_value, purchases.first().supermarketName),
                 icon = Icons.Filled.Storefront,
-                accent = MaterialTheme.colorScheme.tertiary,
+                accent = PastelGreenDeep,
             )
         } else null,
         if (purchases.size >= 2) {
@@ -176,7 +177,7 @@ fun HomeScreen(
                     title = stringResource(R.string.home_news_loyalty_title),
                     subtitle = stringResource(R.string.home_news_loyalty_value, storeCount, repeatedStore?.key ?: ""),
                     icon = Icons.Filled.ReceiptLong,
-                    accent = MaterialTheme.colorScheme.secondary,
+                    accent = PastelGreenDeep,
                 )
             } else null
         } else null,
@@ -186,19 +187,19 @@ fun HomeScreen(
             title = stringResource(R.string.home_offer_1_title),
             subtitle = stringResource(R.string.home_offer_1_subtitle),
             detail = stringResource(R.string.home_offer_1_detail),
-            accent = Color(0xFF1E5F3B),
+            accent = OfferPeach,
         ),
         OfferCardState(
             title = stringResource(R.string.home_offer_2_title),
             subtitle = stringResource(R.string.home_offer_2_subtitle),
             detail = stringResource(R.string.home_offer_2_detail),
-            accent = Color(0xFF3E7C59),
+            accent = OfferLavender,
         ),
         OfferCardState(
             title = stringResource(R.string.home_offer_3_title),
             subtitle = stringResource(R.string.home_offer_3_subtitle),
             detail = stringResource(R.string.home_offer_3_detail),
-            accent = Color(0xFF5B8F46),
+            accent = OfferSand,
         ),
     )
     val historyStats = listOf(
@@ -268,18 +269,6 @@ fun HomeScreen(
             }
 
             item {
-                SectionHeader(title = R.string.home_offers_title, subtitle = R.string.home_offers_subtitle)
-                Spacer(modifier = Modifier.height(12.dp))
-                OfferCarousel(items = offers, state = offerListState)
-            }
-
-            item {
-                SectionHeader(title = R.string.home_recent_history, subtitle = R.string.home_recent_history_subtitle)
-                Spacer(modifier = Modifier.height(12.dp))
-                TicketCarousel(purchases = purchasesWithProducts.take(4), currencyCode = currencyCode)
-            }
-
-            item {
                 SectionHeader(title = R.string.home_stats_history_title, subtitle = R.string.home_stats_history_subtitle)
                 Spacer(modifier = Modifier.height(12.dp))
                 LazyRow(
@@ -293,6 +282,18 @@ fun HomeScreen(
             }
 
             item {
+                SectionHeader(title = R.string.home_offers_title, subtitle = R.string.home_offers_subtitle)
+                Spacer(modifier = Modifier.height(12.dp))
+                OfferCarousel(items = offers, state = offerListState)
+            }
+
+            item {
+                SectionHeader(title = R.string.home_recent_history, subtitle = R.string.home_recent_history_subtitle)
+                Spacer(modifier = Modifier.height(12.dp))
+                TicketCarousel(purchases = purchasesWithProducts.take(4), currencyCode = currencyCode)
+            }
+
+            item {
                 SectionHeader(title = R.string.home_expenses_category, subtitle = null)
                 CategorySection()
             }
@@ -303,7 +304,7 @@ fun HomeScreen(
                 Spacer(modifier = Modifier.height(12.dp))
                 Card(
                     modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                    colors = CardDefaults.cardColors(containerColor = CelesteIce),
                     shape = RoundedCornerShape(24.dp),
                     elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
                 ) {
@@ -313,10 +314,6 @@ fun HomeScreen(
                 }
             }
 
-            item {
-                SectionHeader(title = R.string.home_top_supermarkets, subtitle = R.string.home_top_supermarkets_subtitle)
-                TopSupermarkets()
-            }
         }
     }
 
@@ -324,7 +321,7 @@ fun HomeScreen(
         ModalBottomSheet(
             onDismissRequest = { showNotificationsSheet = false },
             sheetState = sheetState,
-            containerColor = MaterialTheme.colorScheme.surface,
+            containerColor = CelesteMist,
         ) {
             Column(
                 modifier = Modifier
@@ -336,13 +333,16 @@ fun HomeScreen(
                 Text(
                     text = "Notificaciones",
                     style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+                    color = CelesteDeep
                 )
 
                 Card(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .border(1.dp, CelesteSoft, RoundedCornerShape(16.dp)),
                     colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)
+                        containerColor = CelestePastel
                     ),
                     shape = RoundedCornerShape(16.dp)
                 ) {
@@ -353,14 +353,14 @@ fun HomeScreen(
                     ) {
                         Surface(
                             shape = CircleShape,
-                            color = MaterialTheme.colorScheme.primary,
+                            color = CelestePale,
                             modifier = Modifier.size(40.dp)
                         ) {
                             Box(contentAlignment = Alignment.Center) {
                                 Icon(
                                     imageVector = Icons.Filled.CardGiftcard,
                                     contentDescription = null,
-                                    tint = Color.White,
+                                    tint = CelesteDeep,
                                     modifier = Modifier.size(24.dp)
                                 )
                             }
@@ -369,12 +369,13 @@ fun HomeScreen(
                             Text(
                                 text = "¡Regalo de bienvenida!",
                                 style = MaterialTheme.typography.titleSmall,
-                                fontWeight = FontWeight.Bold
+                                fontWeight = FontWeight.Bold,
+                                color = CelesteDeep
                             )
                             Text(
                                 text = "Tienes un 10% de descuento en tu próxima compra por crear tu cuenta.",
                                 style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                color = CelesteInk
                             )
                         }
                     }
@@ -424,23 +425,23 @@ private fun HeaderRow(
                 if (notificationCount > 0) {
                     Badge(
                         modifier = Modifier.padding(4.dp),
-                        containerColor = MaterialTheme.colorScheme.error
+                        containerColor = CelesteDeep
                     ) {
-                        Text(text = notificationCount.toString())
+                        Text(text = notificationCount.toString(), color = Color.White)
                     }
                 }
             }
         ) {
             Surface(
                 shape = CircleShape,
-                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+                color = CelestePale,
                 modifier = Modifier.size(48.dp)
             ) {
                 IconButton(onClick = onNotificationsClick) {
                     Icon(
                         imageVector = Icons.Filled.Notifications,
                         contentDescription = stringResource(R.string.home_notifications),
-                        tint = MaterialTheme.colorScheme.primary
+                        tint = CelesteDeep
                     )
                 }
             }
@@ -456,7 +457,7 @@ private fun ProfileAvatar(
     Surface(
         modifier = Modifier.size(56.dp),
         shape = CircleShape,
-        color = MaterialTheme.colorScheme.primaryContainer,
+        color = CelestePale,
     ) {
         if (profileImagePainter != null) {
             Image(
@@ -472,7 +473,7 @@ private fun ProfileAvatar(
                 Text(
                     text = initialsFor(displayName),
                     style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                    color = CelesteDeep,
                 )
             }
         }
@@ -489,7 +490,7 @@ private fun NewsFeedSection(
             TitleSubtitleCard(
                 title = stringResource(R.string.home_news_empty_title),
                 subtitle = stringResource(R.string.home_news_empty_subtitle),
-                containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                containerColor = PastelGreenPale,
                 contentPadding = 16.dp,
                 titleStyle = MaterialTheme.typography.titleMedium,
                 subtitleStyle = MaterialTheme.typography.bodyMedium,
@@ -507,7 +508,13 @@ private fun NewsFeedSection(
 @Composable
 private fun InsightCard(insight: HomeInsight) {
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .border(
+                width = 1.dp,
+                color = insight.accent.copy(alpha = 0.5f),
+                shape = RoundedCornerShape(16.dp)
+            ),
         colors = CardDefaults.cardColors(containerColor = insight.accent.copy(alpha = 0.12f)),
         shape = RoundedCornerShape(16.dp),
     ) {
@@ -571,7 +578,13 @@ private fun OfferCarousel(
 @Composable
 private fun OfferCard(offer: OfferCardState) {
     Card(
-        modifier = Modifier.fillMaxWidth(0.84f),
+        modifier = Modifier
+            .fillMaxWidth(0.84f)
+            .border(
+                width = 1.dp,
+                color = offer.accent.copy(alpha = 0.5f),
+                shape = RoundedCornerShape(22.dp)
+            ),
         colors = CardDefaults.cardColors(containerColor = offer.accent.copy(alpha = 0.16f)),
         shape = RoundedCornerShape(22.dp),
     ) {
@@ -610,13 +623,13 @@ private fun TicketCard(
     // 1. Configuración de colores y logos (Sección 5 .md)
     val (bgColor, accentColor, logoRes) = when {
         purchase.purchase.supermarketName.contains("Carrefour", ignoreCase = true) ->
-            Triple(Color(0xFFE3F2FD), Color(0xFF1565C0), R.drawable.logo_carrefour)
+            Triple(Color(0xFFEEF6FF), Color(0xFF5FA8E6), R.drawable.logo_carrefour)
         purchase.purchase.supermarketName.contains("Coto", ignoreCase = true) ->
-            Triple(Color(0xFFFFEBEE), Color(0xFFC62828), R.drawable.logo_coto)
+            Triple(Color(0xFFFFF1F1), Color(0xFFEB8A8A), R.drawable.logo_coto)
         purchase.purchase.supermarketName.contains("Jumbo", ignoreCase = true) ->
-            Triple(Color(0xFFE8F5E9), Color(0xFF2E7D32), R.drawable.logo_jumbo)
+            Triple(Color(0xFFEDF8EF), Color(0xFF7BCB85), R.drawable.logo_jumbo)
         else ->
-            Triple(Color(0xFFF5F5F5), Color(0xFF424242), null)
+            Triple(Color(0xFFF6FAFB), Color(0xFF7A8C93), null)
     }
 
     Card(
@@ -738,8 +751,14 @@ private fun initialsFor(name: String): String {
 @Composable
 private fun HistoryStatCard(stat: HistoryStat) {
     Card(
-        modifier = Modifier.fillMaxWidth(0.72f),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+        modifier = Modifier
+            .fillMaxWidth(0.72f)
+            .border(
+                width = 1.dp,
+                color = IndicatorBorder,
+                shape = RoundedCornerShape(20.dp)
+            ),
+        colors = CardDefaults.cardColors(containerColor = IndicatorBg),
         shape = RoundedCornerShape(20.dp),
     ) {
         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -775,6 +794,24 @@ private data class HistoryStat(
     val subtitle: String,
 )
 
+private val CelesteBase = Color(0xFF33B2C3)
+private val CelesteSoft = Color(0xFF54BDCA)
+private val CelesteDeep = Color(0xFF1E8D9B)
+private val CelestePastel = Color(0xFF9FE2EA)
+private val CelestePale = Color(0xFFD8F4F7)
+private val CelesteIce = Color(0xFFE2F7F9)
+private val CelesteMist = Color(0xFFF0FBFC)
+private val CelesteInk = Color(0xFF1B4B52)
+private val PastelGreenDeep = Color(0xFF5FAF9C)
+private val PastelGreenPale = Color(0xFFE6F6F1)
+private val OrangePastel = Color(0xFFFFE3C7)
+private val IndicatorBg = Color(0xFFFCDABF)
+private val IndicatorBorder = Color(0xFFE5A885)
+private val OrangePale = Color(0xFFFFF4E8)
+private val OfferPeach = Color(0xFFF1B591)
+private val OfferLavender = Color(0xFFC7B6E8)
+private val OfferSand = Color(0xFFE2C892)
+
 @Composable
 private fun SummaryCard(
     totalFormatted: String,
@@ -784,7 +821,7 @@ private fun SummaryCard(
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
+        colors = CardDefaults.cardColors(containerColor = CelesteMist),
         shape = RoundedCornerShape(24.dp),
     ) {
         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
@@ -831,7 +868,7 @@ private fun ColumnScope.SummaryMetric(
     value: String,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-        Text(text = label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f))
+        Text(text = label, style = MaterialTheme.typography.labelSmall, color = CelesteDeep.copy(alpha = 0.75f))
         Text(text = value, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
     }
 }
@@ -863,7 +900,7 @@ private fun BarChart(
                     Text(
                         text = amounts[index],
                         style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.primary,
+                        color = CelesteBase,
                         fontSize = 8.sp,
                         fontWeight = FontWeight.Bold,
                         maxLines = 1
@@ -874,7 +911,7 @@ private fun BarChart(
                             .fillMaxWidth()
                             .height((ratio * 80).dp)
                             .clip(RoundedCornerShape(topStart = 6.dp, topEnd = 6.dp))
-                            .background(MaterialTheme.colorScheme.primary),
+                            .background(CelesteBase),
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
@@ -898,10 +935,10 @@ private fun SupermarketMonthlySpendingSection(
         stats.forEach { (name, total) ->
             val ratio = total.toFloat() / maxSpent
             val barColor = when {
-                name.contains("Carrefour", ignoreCase = true) -> Color(0xFF1565C0)
-                name.contains("Coto", ignoreCase = true) -> Color(0xFFC62828)
-                name.contains("Jumbo", ignoreCase = true) -> Color(0xFF2E7D32)
-                else -> MaterialTheme.colorScheme.primary
+                name.contains("Carrefour", ignoreCase = true) -> Color(0xFF5FA8E6)
+                name.contains("Coto", ignoreCase = true) -> Color(0xFFEB8A8A)
+                name.contains("Jumbo", ignoreCase = true) -> Color(0xFF7BCB85)
+                else -> CelesteDeep
             }
             
             Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -927,7 +964,7 @@ private fun SupermarketMonthlySpendingSection(
                         .fillMaxWidth()
                         .height(14.dp)
                         .clip(CircleShape)
-                        .background(barColor.copy(alpha = 0.1f))
+                        .background(barColor.copy(alpha = 0.18f))
                 ) {
                     Box(
                         modifier = Modifier
@@ -951,46 +988,21 @@ private data class CategoryStat(
 @Composable
 private fun CategorySection() {
     val categories = listOf(
-        CategoryStat(R.string.category_food, 0.45f, Color(0xFF1E88E5)),
-        CategoryStat(R.string.category_cleaning, 0.2f, Color(0xFFFFB300)),
-        CategoryStat(R.string.category_home, 0.15f, Color(0xFFE53935)),
-        CategoryStat(R.string.category_other, 0.2f, Color(0xFF8E24AA)),
+        CategoryStat(R.string.category_food, 0.45f, Color(0xFF7BB9F1)),
+        CategoryStat(R.string.category_cleaning, 0.2f, Color(0xFFFFD48A)),
+        CategoryStat(R.string.category_home, 0.15f, Color(0xFFF3A1A1)),
+        CategoryStat(R.string.category_other, 0.2f, Color(0xFFD1A6E8)),
     )
-    
-    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-        // Pie Chart
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(200.dp),
-            contentAlignment = Alignment.Center,
+
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Column(
+            modifier = Modifier.weight(0.55f),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Canvas(modifier = Modifier.fillMaxSize()) {
-                val radius = size.minDimension / 2.5f
-                val centerX = size.width / 2
-                val centerY = size.height / 2
-                var startAngle = -90f
-
-                categories.forEach { stat ->
-                    val sweepAngle = stat.percent * 360f
-                    drawArc(
-                        color = stat.color,
-                        startAngle = startAngle,
-                        sweepAngle = sweepAngle,
-                        useCenter = true,
-                        size = androidx.compose.ui.geometry.Size(radius * 2, radius * 2),
-                        topLeft = androidx.compose.ui.geometry.Offset(
-                            centerX - radius,
-                            centerY - radius,
-                        ),
-                    )
-                    startAngle += sweepAngle
-                }
-            }
-        }
-
-        // Legend
-        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             categories.forEach { stat ->
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -1016,97 +1028,38 @@ private fun CategorySection() {
                 }
             }
         }
-    }
-}
+        Box(
+            modifier = Modifier
+                .weight(0.45f)
+                .height(180.dp),
+            contentAlignment = Alignment.Center,
+        ) {
+            Canvas(modifier = Modifier.fillMaxSize()) {
+                val radius = size.minDimension / 2.4f
+                val centerX = size.width / 2
+                val centerY = size.height / 2
+                var startAngle = -90f
 
-@Composable
-private fun TopSupermarkets() {
-    val supermarkets = listOf(
-        SupermarketRank(nameRes = R.string.supermarket_carrefour, visits = 12, totalSpent = 45850),
-        SupermarketRank(nameRes = R.string.supermarket_coto, visits = 8, totalSpent = 28300),
-        SupermarketRank(nameRes = R.string.supermarket_jumbo, visits = 5, totalSpent = 15200),
-    )
-    
-    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        supermarkets.forEachIndexed { index, market ->
-            val rankColor = when (index) {
-                0 -> Color(0xFFFFD700) // Gold
-                1 -> Color(0xFFC0C0C0) // Silver
-                2 -> Color(0xFFCD7F32) // Bronze
-                else -> MaterialTheme.colorScheme.surfaceVariant
-            }
-            val rankLabel = (index + 1).toString()
-
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(
-                    containerColor = rankColor.copy(alpha = 0.15f)
-                ),
-                shape = RoundedCornerShape(16.dp),
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(14.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                ) {
-                    // Medallon de posicion
-                    Surface(
-                        shape = CircleShape,
-                        color = rankColor,
-                        modifier = Modifier.size(44.dp),
-                    ) {
-                        Box(contentAlignment = Alignment.Center) {
-                            Text(
-                                text = rankLabel,
-                                style = MaterialTheme.typography.titleMedium,
-                                color = Color.White,
-                            )
-                        }
-                    }
-
-                    // Info del supermercado
-                    Column(
-                        modifier = Modifier.weight(1f),
-                        verticalArrangement = Arrangement.spacedBy(2.dp),
-                    ) {
-                        Text(
-                            text = stringResource(market.nameRes),
-                            style = MaterialTheme.typography.titleSmall,
-                            fontWeight = FontWeight.Bold,
-                        )
-                        Text(
-                            text = "${market.visits} visitas",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-
-                    // Monto total gastado
-                    Surface(
-                        shape = RoundedCornerShape(12.dp),
-                        color = rankColor.copy(alpha = 0.3f),
-                    ) {
-                        Text(
-                            text = formatCurrency(market.totalSpent.toLong() * 100, "ARS"),
-                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
-                            style = MaterialTheme.typography.labelMedium,
-                            fontWeight = FontWeight.SemiBold,
-                            color = MaterialTheme.colorScheme.onSurface,
-                        )
-                    }
+                categories.forEach { stat ->
+                    val sweepAngle = stat.percent * 360f
+                    drawArc(
+                        color = stat.color,
+                        startAngle = startAngle,
+                        sweepAngle = sweepAngle,
+                        useCenter = true,
+                        size = androidx.compose.ui.geometry.Size(radius * 2, radius * 2),
+                        topLeft = androidx.compose.ui.geometry.Offset(
+                            centerX - radius,
+                            centerY - radius,
+                        ),
+                    )
+                    startAngle += sweepAngle
                 }
             }
         }
     }
 }
 
-private data class SupermarketRank(
-    @StringRes val nameRes: Int,
-    val visits: Int,
-    val totalSpent: Int,
-)
 
 @Composable
 private fun SectionHeader(

@@ -3,8 +3,10 @@ package com.fintrack.mobile.ui.components
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
@@ -15,7 +17,12 @@ fun FintrackBottomBar(
     navController: NavHostController,
     currentRoute: String?,
 ) {
-    NavigationBar {
+    val barColor = Color(0xFFE7F7F9)
+    val selectedColor = Color(0xFF33B2C3)
+    val unselectedColor = Color(0xFF6FA8B0)
+    val indicatorColor = Color(0xFFCDEFF3)
+
+    NavigationBar(containerColor = barColor) {
         FintrackDestination.bottomItems.forEach { destination ->
             val selected = currentRoute == destination.route
             NavigationBarItem(
@@ -37,7 +44,14 @@ fun FintrackBottomBar(
                 },
                 label = {
                     Text(text = stringResource(destination.labelRes))
-                }
+                },
+                colors = NavigationBarItemDefaults.colors(
+                    selectedIconColor = selectedColor,
+                    selectedTextColor = selectedColor,
+                    indicatorColor = indicatorColor,
+                    unselectedIconColor = unselectedColor,
+                    unselectedTextColor = unselectedColor
+                )
             )
         }
     }
