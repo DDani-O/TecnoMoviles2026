@@ -14,6 +14,6 @@ fun RegisterScreen(
         primaryLabelRes = R.string.action_register,
         secondaryLabelRes = R.string.action_login,
         onPrimary = onRegister,
-        onSecondary = onLogin
+        onSecondary = onLogin,
     )
 }

@@ -6,6 +6,7 @@ import com.fintrack.mobile.R
 import com.fintrack.mobile.data.local.dao.PurchaseDao
 import com.fintrack.mobile.data.local.entity.ProductEntity
 import com.fintrack.mobile.data.local.entity.PurchaseEntity
+import com.fintrack.mobile.data.local.entity.PurchaseWithProducts
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
@@ -25,6 +26,8 @@ class PurchaseRepository(
     private val seedMutex = Mutex()
 
     fun observePurchases(): Flow<List<PurchaseEntity>> = purchaseDao.observePurchases()
+
+    fun observePurchasesWithProducts(): Flow<List<PurchaseWithProducts>> = purchaseDao.observePurchasesWithProducts()
 
     suspend fun addPurchase(
         supermarketName: String,
@@ -87,7 +90,10 @@ class PurchaseRepository(
                 totalCents = 45230,
                 products = listOf(
                     SeedProduct(R.string.product_leche, 2, 3200),
-                    SeedProduct(R.string.product_pan, 1, 1800)
+                    SeedProduct(R.string.product_pan, 1, 1800),
+                    SeedProduct(R.string.product_queso, 1, 2500),
+                    SeedProduct(R.string.product_verduras, 2, 1200),
+                    SeedProduct(R.string.product_bebidas, 3, 800)
                 )
             ),
             SeedPurchase(
@@ -96,7 +102,11 @@ class PurchaseRepository(
                 totalCents = 28900,
                 products = listOf(
                     SeedProduct(R.string.product_queso, 1, 4200),
-                    SeedProduct(R.string.product_verduras, 3, 2100)
+                    SeedProduct(R.string.product_verduras, 3, 2100),
+                    SeedProduct(R.string.product_carne, 1, 8500),
+                    SeedProduct(R.string.product_pan, 2, 1500),
+                    SeedProduct(R.string.product_leche, 1, 3200),
+                    SeedProduct(R.string.product_bebidas, 2, 2000)
                 )
             ),
             SeedPurchase(
@@ -105,7 +115,11 @@ class PurchaseRepository(
                 totalCents = 31200,
                 products = listOf(
                     SeedProduct(R.string.product_carne, 1, 12500),
-                    SeedProduct(R.string.product_bebidas, 2, 3800)
+                    SeedProduct(R.string.product_bebidas, 2, 3800),
+                    SeedProduct(R.string.product_verduras, 2, 1800),
+                    SeedProduct(R.string.product_leche, 3, 3000),
+                    SeedProduct(R.string.product_pan, 1, 1800),
+                    SeedProduct(R.string.product_queso, 1, 2500)
                 )
             )
         )

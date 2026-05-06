@@ -17,7 +17,7 @@ import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -33,12 +33,13 @@ import com.fintrack.mobile.ui.viewmodel.RecordsViewModel
 @Composable
 fun RecordsScreen(
     currencyCode: String,
-    viewModel: RecordsViewModel
+    viewModel: RecordsViewModel,
+    modifier: Modifier = Modifier,
 ) {
     val purchases by viewModel.purchases.collectAsStateWithLifecycle()
-    var selectedTab by rememberSaveable { mutableStateOf(0) }
+    var selectedTab by rememberSaveable { mutableIntStateOf(0) }
 
-    Surface(modifier = Modifier.fillMaxSize()) {
+    Surface(modifier = modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
             Text(
                 text = stringResource(R.string.records_title),
@@ -74,12 +75,12 @@ private fun HistoryTab(purchases: List<PurchaseEntity>, currencyCode: String) {
         return
     }
     LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        items(purchases) { purchase ->
+        items(purchases, key = { it.id }) { purchase ->
             Card(modifier = Modifier.fillMaxWidth()) {
                 Column(modifier = Modifier.padding(12.dp)) {
                     Text(text = purchase.supermarketName, style = MaterialTheme.typography.titleMedium)
                     Spacer(modifier = Modifier.height(4.dp))
-                    Text(text = stringResource(R.string.home_purchase_date, formatDate(purchase.dateMillis)))
+                    Text(text = stringResource(R.string.home_ticket_date, formatDate(purchase.dateMillis)))
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(text = formatCurrency(purchase.totalCents, currencyCode))
                 }

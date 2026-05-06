@@ -8,7 +8,7 @@ import com.fintrack.mobile.data.local.entity.PurchaseEntity
 
 @Database(
     entities = [PurchaseEntity::class, ProductEntity::class],
-    version = 1,
+    version = 2,
     exportSchema = false,
 )
 abstract class AppDatabase : RoomDatabase() {

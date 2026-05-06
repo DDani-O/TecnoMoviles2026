@@ -17,7 +17,7 @@ class AppContainer(context: Context) {
         appContext,
         AppDatabase::class.java,
         "fintrack.db",
-    ).build()
+    ).fallbackToDestructiveMigration().build()
 
     val purchaseRepository = PurchaseRepository(database.purchaseDao(), appContext)
     val exploreRepository = ExploreRepository(NetworkModule.apiService)

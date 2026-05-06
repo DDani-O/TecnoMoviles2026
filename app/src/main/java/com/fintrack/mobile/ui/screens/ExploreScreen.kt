@@ -23,6 +23,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -36,28 +37,34 @@ import com.fintrack.mobile.ui.components.TitleSubtitleCard
 import com.fintrack.mobile.ui.viewmodel.ExploreUiState
 import com.fintrack.mobile.ui.viewmodel.ExploreViewModel
 
+private const val DEFAULT_BASE_CODE = "USD"
+private const val DEFAULT_TARGET_CODE = "ARS"
+
 @Composable
-fun ExploreScreen(viewModel: ExploreViewModel) {
+fun ExploreScreen(
+    viewModel: ExploreViewModel,
+    modifier: Modifier = Modifier,
+) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     var query by rememberSaveable { mutableStateOf("") }
     val context = LocalContext.current
 
-    val baseCode = "USD"
-    val targetCode = "ARS"
     val baseLabel = stringResource(R.string.currency_usd)
     val targetLabel = stringResource(R.string.currency_ars)
 
-    LaunchedEffect(Unit) {
-        viewModel.loadRate(base = baseCode, target = targetCode)
+    LaunchedEffect(DEFAULT_BASE_CODE, DEFAULT_TARGET_CODE) {
+        viewModel.loadRate(base = DEFAULT_BASE_CODE, target = DEFAULT_TARGET_CODE)
     }
 
-    val promos = listOf(
-        PromoItem(R.string.promo_title_1, R.string.promo_subtitle_1),
-        PromoItem(R.string.promo_title_2, R.string.promo_subtitle_2),
-        PromoItem(R.string.promo_title_3, R.string.promo_subtitle_3)
-    )
+    val promos = remember {
+        listOf(
+            PromoItem(R.string.promo_title_1, R.string.promo_subtitle_1),
+            PromoItem(R.string.promo_title_2, R.string.promo_subtitle_2),
+            PromoItem(R.string.promo_title_3, R.string.promo_subtitle_3)
+        )
+    }
 
-    Surface(modifier = Modifier.fillMaxSize()) {
+    Surface(modifier = modifier.fillMaxSize()) {
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
@@ -121,7 +128,7 @@ fun ExploreScreen(viewModel: ExploreViewModel) {
                 )
             }
 
-            items(promos) { promo ->
+            items(promos, key = { it.titleRes }) { promo ->
                 TitleSubtitleCard(
                     title = stringResource(promo.titleRes),
                     subtitle = stringResource(promo.subtitleRes)
@@ -133,7 +140,7 @@ fun ExploreScreen(viewModel: ExploreViewModel) {
                     onClick = {
                         val intent = Intent(
                             Intent.ACTION_VIEW,
-                            Uri.parse("https://www.carrefour.com.ar")
+                            "https://www.carrefour.com.ar".toUri()
                         )
                         context.startActivity(intent)
                     },
@@ -147,6 +154,6 @@ fun ExploreScreen(viewModel: ExploreViewModel) {
 }
 
 private data class PromoItem(
-    @param:StringRes val titleRes: Int,
-    @param:StringRes val subtitleRes: Int,
+    @get:StringRes val titleRes: Int,
+    @get:StringRes val subtitleRes: Int,
 )

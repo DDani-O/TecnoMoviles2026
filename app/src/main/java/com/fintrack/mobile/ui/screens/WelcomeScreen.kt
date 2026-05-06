@@ -27,30 +27,31 @@ import com.fintrack.mobile.ui.components.PrimarySecondaryActions
 fun WelcomeScreen(
     onLogin: () -> Unit,
     onRegister: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
-    Surface(modifier = Modifier.fillMaxSize()) {
+    Surface(modifier = modifier.fillMaxSize()) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(32.dp),
             verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
+            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Image(
                 imageVector = Icons.Default.Savings,
                 contentDescription = null,
                 modifier = Modifier.size(120.dp),
-                colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary)
+                colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary),
             )
             Spacer(modifier = Modifier.height(32.dp))
             Text(
                 text = stringResource(R.string.welcome_title),
-                style = MaterialTheme.typography.headlineMedium
+                style = MaterialTheme.typography.headlineMedium,
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = stringResource(R.string.welcome_subtitle),
-                style = MaterialTheme.typography.bodyLarge
+                style = MaterialTheme.typography.bodyLarge,
             )
             Spacer(modifier = Modifier.height(48.dp))
             PrimarySecondaryActions(
@@ -59,7 +60,7 @@ fun WelcomeScreen(
                 onPrimary = onLogin,
                 onSecondary = onRegister,
                 modifier = Modifier.fillMaxWidth(),
-                buttonModifier = Modifier.fillMaxWidth()
+                buttonModifier = Modifier.fillMaxWidth(),
             )
         }
     }

@@ -3,6 +3,7 @@ package com.fintrack.mobile.ui.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.fintrack.mobile.data.local.entity.PurchaseEntity
+import com.fintrack.mobile.data.local.entity.PurchaseWithProducts
 import com.fintrack.mobile.data.repository.PurchaseRepository
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -14,6 +15,9 @@ class HomeViewModel(
     private val repository: PurchaseRepository
 ) : ViewModel() {
     val recentPurchases: StateFlow<List<PurchaseEntity>> = repository.observePurchases()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+
+    val recentPurchasesWithProducts: StateFlow<List<PurchaseWithProducts>> = repository.observePurchasesWithProducts()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
     val monthlyTotalCents: StateFlow<Long> = repository.observePurchases()

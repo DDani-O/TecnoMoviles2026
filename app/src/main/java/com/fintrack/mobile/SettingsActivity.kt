@@ -6,8 +6,10 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.fintrack.mobile.data.preferences.UserPreferences
 import com.fintrack.mobile.data.preferences.UserPreferencesRepository
@@ -24,7 +26,11 @@ class SettingsActivity : ComponentActivity() {
                 initialValue = UserPreferences.DEFAULT,
             )
             FintrackMobileTheme(darkTheme = preferences.darkTheme, dynamicColor = false) {
-                SettingsScreen { finish() }
+                // Usamos el nombre del parámetro para evitar confusiones
+                SettingsScreen(
+                    onBack = { finish() },
+                    modifier = Modifier.fillMaxSize() // Opcional: añade el modificador aquí
+                )
             }
         }
     }

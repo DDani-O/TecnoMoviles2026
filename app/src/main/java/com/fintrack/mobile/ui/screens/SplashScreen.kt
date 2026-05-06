@@ -23,7 +23,8 @@ import kotlinx.coroutines.delay
 @Composable
 fun SplashScreen(
     isLoggedIn: Boolean,
-    onFinished: (String) -> Unit
+    onFinished: (String) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     LaunchedEffect(isLoggedIn) {
         delay(900)
@@ -35,20 +36,20 @@ fun SplashScreen(
         onFinished(destination)
     }
 
-    Surface(modifier = Modifier.fillMaxSize()) {
+    Surface(modifier = modifier.fillMaxSize()) {
         Column(
             modifier = Modifier.fillMaxSize(),
             verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
+            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Text(
                 text = stringResource(R.string.splash_title),
-                style = MaterialTheme.typography.headlineMedium
+                style = MaterialTheme.typography.headlineMedium,
             )
             Spacer(modifier = Modifier.height(12.dp))
             Text(
                 text = stringResource(R.string.splash_subtitle),
-                style = MaterialTheme.typography.bodyMedium
+                style = MaterialTheme.typography.bodyMedium,
             )
             Spacer(modifier = Modifier.height(24.dp))
             CircularProgressIndicator()

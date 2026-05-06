@@ -105,7 +105,8 @@ fun FintrackApp(container: AppContainer) {
                     HomeScreen(
                         displayName = preferences.displayName,
                         currencyCode = preferences.currencyCode,
-                        viewModel = viewModel
+                        viewModel = viewModel,
+                        onProfileClick = { navController.navigate(FintrackDestination.Profile.route) }
                     )
                 }
                 composable(FintrackDestination.Explore.route) {

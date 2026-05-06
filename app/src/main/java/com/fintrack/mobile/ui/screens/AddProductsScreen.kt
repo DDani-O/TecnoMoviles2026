@@ -33,13 +33,14 @@ fun AddProductsScreen(
     viewModel: PurchaseViewModel,
     currencyCode: String,
     onDone: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     var name by rememberSaveable { mutableStateOf("") }
     var quantityInput by rememberSaveable { mutableStateOf("") }
     var priceInput by rememberSaveable { mutableStateOf("") }
     val products by viewModel.products.collectAsStateWithLifecycle()
 
-    Surface(modifier = Modifier.fillMaxSize()) {
+    Surface(modifier = modifier.fillMaxSize()) {
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
@@ -93,13 +94,13 @@ fun AddProductsScreen(
                             priceInput = ""
                         }
                     },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
                 ) {
                     Text(text = stringResource(R.string.add_products_button))
                 }
             }
             if (products.isNotEmpty()) {
-                items(products) { product ->
+                items(products, key = { it.name + it.priceCents }) { product ->
                     ProductLineItemCard(
                         name = product.name,
                         lineItemText = stringResource(

@@ -1,12 +1,9 @@
 package com.fintrack.mobile.ui.screens
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -39,23 +36,24 @@ fun NewPurchaseScreen(
     currencyCode: String,
     viewModel: PurchaseViewModel,
     onAddProducts: () -> Unit,
-    onAdjustTicket: () -> Unit
+    onAdjustTicket: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     var supermarket by rememberSaveable { mutableStateOf("") }
     var totalInput by rememberSaveable { mutableStateOf("") }
     val products by viewModel.products.collectAsStateWithLifecycle()
 
-    Surface(modifier = Modifier.fillMaxSize()) {
+    Surface(modifier = modifier.fillMaxSize()) {
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             item {
                 Text(
                     text = stringResource(R.string.purchase_title),
-                    style = MaterialTheme.typography.headlineSmall
+                    style = MaterialTheme.typography.headlineSmall,
                 )
             }
             item {
@@ -113,7 +111,7 @@ fun NewPurchaseScreen(
                 Button(
                     onClick = {
                         val totalCents = parseCents(totalInput)
-                        if (totalCents > 0L && supermarket.isNotBlank()) {
+                        if ((totalCents > 0L) && supermarket.isNotBlank()) {
                             viewModel.savePurchase(supermarket, totalCents)
                             totalInput = ""
                             supermarket = ""
