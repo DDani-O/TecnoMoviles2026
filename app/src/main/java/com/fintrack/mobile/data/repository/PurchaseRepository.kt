@@ -15,8 +15,11 @@ import kotlinx.coroutines.sync.withLock
 
 data class NewProduct(
     val name: String,
+    val code: String = "",
+    val description: String = "",
     val quantity: Int,
-    val priceCents: Long
+    val priceCents: Long,
+    val discountCents: Long = 0
 )
 
 class PurchaseRepository(
@@ -34,8 +37,10 @@ class PurchaseRepository(
         products: List<ProductEntity>
     ) = withContext(Dispatchers.IO) {
         purchaseDao.updatePurchase(purchase)
+        // Eliminar todos los productos antiguos y insertar los nuevos/modificados
+        purchaseDao.deleteProductsByPurchaseId(purchase.id)
         if (products.isNotEmpty()) {
-            purchaseDao.updateProducts(products)
+            purchaseDao.insertProducts(products)
         }
     }
 
@@ -60,8 +65,11 @@ class PurchaseRepository(
                 ProductEntity(
                     purchaseId = purchaseId,
                     name = product.name,
+                    code = product.code,
+                    description = product.description,
                     quantity = product.quantity,
-                    priceCents = product.priceCents
+                    priceCents = product.priceCents,
+                    discountCents = product.discountCents
                 )
             }
             purchaseDao.insertProducts(entities)
@@ -89,8 +97,11 @@ class PurchaseRepository(
                             ProductEntity(
                                 purchaseId = purchaseId,
                                 name = context.getString(product.nameRes),
+                                code = "",
+                                description = "",
                                 quantity = product.quantity,
-                                priceCents = product.priceCents
+                                priceCents = product.priceCents,
+                                discountCents = 0
                             )
                         }
                     )

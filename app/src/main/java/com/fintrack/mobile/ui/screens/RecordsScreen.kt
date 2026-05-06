@@ -3,10 +3,11 @@ package com.fintrack.mobile.ui.screens
 import androidx.annotation.StringRes
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
+import androidx.compose.foundation.border 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -15,8 +16,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -26,16 +25,13 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowForward
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.automirrored.filled.ReceiptLong
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.ReceiptLong
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.Storefront
-import java.util.Calendar
-import java.util.Date
-import java.util.Locale
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -47,16 +43,14 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
+import androidx.compose.material3.PrimaryTabRow
 import androidx.compose.material3.Tab
-import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
@@ -81,11 +75,21 @@ import com.fintrack.mobile.data.local.entity.PurchaseWithProducts
 import com.fintrack.mobile.ui.util.formatCurrency
 import com.fintrack.mobile.ui.util.formatDate
 import com.fintrack.mobile.ui.util.parseCents
+import com.fintrack.mobile.ui.viewmodel.PeriodFilter
+import com.fintrack.mobile.ui.viewmodel.ProductRank
+import com.fintrack.mobile.ui.viewmodel.RecordsUiState
 import com.fintrack.mobile.ui.viewmodel.RecordsViewModel
+import com.fintrack.mobile.ui.viewmodel.StatsData
 import java.text.DateFormat
+import java.util.Date
+import java.util.Locale
 
-private enum class PeriodFilter { WEEK, MONTH, YEAR }
+// Removido PeriodFilter local para usar el del ViewModel
 
+/**
+ * RecordsScreen: Pantalla que gestiona el historial de compras y estadísticas detalladas.
+ * Utiliza un sistema de pestañas (Tabs) para alternar entre la lista de registros y el análisis gráfico.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RecordsScreen(
@@ -93,86 +97,98 @@ fun RecordsScreen(
     viewModel: RecordsViewModel,
     modifier: Modifier = Modifier,
 ) {
-    val purchases by viewModel.purchases.collectAsStateWithLifecycle()
-    val purchasesWithProducts by viewModel.purchasesWithProducts.collectAsStateWithLifecycle()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    
+    // Estado local para navegación y diálogos
     var selectedTab by rememberSaveable { mutableIntStateOf(0) }
     var editingPurchase by remember { mutableStateOf<PurchaseWithProducts?>(null) }
     var deleteTarget by remember { mutableStateOf<PurchaseEntity?>(null) }
 
+    val onDismissEdit = remember { { editingPurchase = null } }
+    val onDismissDelete = remember { { deleteTarget = null } }
+
     Surface(modifier = modifier.fillMaxSize()) {
-        Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
-            Text(
-                text = stringResource(R.string.records_title),
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold
-            )
-            Spacer(modifier = Modifier.height(12.dp))
-            TabRow(selectedTabIndex = selectedTab) {
-                Tab(
-                    selected = selectedTab == 0,
-                    onClick = { selectedTab = 0 },
-                    text = { Text(stringResource(R.string.records_tab_history)) }
-                )
-                Tab(
-                    selected = selectedTab == 1,
-                    onClick = { selectedTab = 1 },
-                    text = { Text(stringResource(R.string.records_tab_stats)) }
-                )
+        when (val state = uiState) {
+            is RecordsUiState.Loading -> {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Text("Cargando registros...")
+                }
             }
-            Spacer(modifier = Modifier.height(12.dp))
-            if (selectedTab == 0) {
-                HistoryTab(
-                    purchases = purchasesWithProducts,
-                    currencyCode = currencyCode,
-                    onEdit = { editingPurchase = it },
-                    onDelete = { deleteTarget = it.purchase }
-                )
-            } else {
-                StatsTab(
-                    purchases = purchases,
-                    purchasesWithProducts = purchasesWithProducts,
-                    currencyCode = currencyCode
-                )
+            is RecordsUiState.Error -> {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Text("Error: ${state.message}", color = Color.Red)
+                }
+            }
+            is RecordsUiState.Success -> {
+                Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
+                    Text(
+                        text = stringResource(R.string.records_title),
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                    
+                    PrimaryTabRow(selectedTabIndex = selectedTab) {
+                        Tab(
+                            selected = selectedTab == 0,
+                            onClick = { selectedTab = 0 },
+                            text = { Text(stringResource(R.string.records_tab_history)) }
+                        )
+                        Tab(
+                            selected = selectedTab == 1,
+                            onClick = { selectedTab = 1 },
+                            text = { Text(stringResource(R.string.records_tab_stats)) }
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(12.dp))
+                    
+                    if (selectedTab == 0) {
+                        HistoryTab(
+                            purchases = state.purchases,
+                            currencyCode = currencyCode,
+                            onEdit = { editingPurchase = it },
+                            onDelete = { deleteTarget = it.purchase }
+                        )
+                    } else {
+                        StatsTab(
+                            statsData = state.filteredStats,
+                            currencyCode = currencyCode,
+                            viewModel = viewModel
+                        )
+                    }
+                }
             }
         }
     }
 
-    if (editingPurchase != null) {
+    // Hoja modal para edición de compras.
+    editingPurchase?.let { purchase ->
         EditPurchaseSheet(
-            purchase = editingPurchase!!,
+            purchase = purchase,
             currencyCode = currencyCode,
-            onDismiss = { editingPurchase = null },
+            onDismiss = onDismissEdit,
             onSave = { updatedPurchase, updatedProducts ->
                 viewModel.updatePurchase(updatedPurchase, updatedProducts)
-                editingPurchase = null
+                onDismissEdit()
             }
         )
     }
 
-    if (deleteTarget != null) {
-        AlertDialog(
-            onDismissRequest = { deleteTarget = null },
-            title = { Text(stringResource(R.string.records_action_delete)) },
-            text = { Text(stringResource(R.string.records_delete_confirm)) },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        viewModel.deletePurchase(deleteTarget!!)
-                        deleteTarget = null
-                    }
-                ) {
-                    Text(stringResource(R.string.records_action_delete))
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { deleteTarget = null }) {
-                    Text(stringResource(R.string.records_cancel))
-                }
+    // Diálogo de confirmación para eliminación.
+    deleteTarget?.let { target ->
+        DeleteConfirmationDialog(
+            onDismiss = onDismissDelete,
+            onConfirm = {
+                viewModel.deletePurchase(target)
+                onDismissDelete()
             }
         )
     }
 }
 
+/**
+ * HistoryTab: Muestra una lista desplazable de todos los registros de compra.
+ */
 @Composable
 private fun HistoryTab(
     purchases: List<PurchaseWithProducts>,
@@ -181,16 +197,7 @@ private fun HistoryTab(
     onDelete: (PurchaseWithProducts) -> Unit,
 ) {
     if (purchases.isEmpty()) {
-        Card(
-            colors = CardDefaults.cardColors(containerColor = CelesteMist),
-            shape = RoundedCornerShape(16.dp),
-        ) {
-            Text(
-                text = stringResource(R.string.records_empty),
-                modifier = Modifier.padding(16.dp),
-                style = MaterialTheme.typography.bodyMedium
-            )
-        }
+        EmptyHistoryCard()
         return
     }
 
@@ -206,6 +213,10 @@ private fun HistoryTab(
     }
 }
 
+/**
+ * HistoryRecordCard: Tarjeta que representa una compra individual con detalles expandibles.
+ * Rediseñada con fondo blanco y bordes definidos para mejor contraste.
+ */
 @Composable
 private fun HistoryRecordCard(
     purchase: PurchaseWithProducts,
@@ -213,6 +224,7 @@ private fun HistoryRecordCard(
     onEdit: () -> Unit,
     onDelete: () -> Unit,
 ) {
+    // Estado local para controlar si el detalle de productos está visible.
     var expanded by rememberSaveable(purchase.purchase.id) { mutableStateOf(false) }
     val subtitleColor = MaterialTheme.colorScheme.onSurfaceVariant
     val reason = remember(purchase) { inferReason(purchase) }
@@ -223,12 +235,19 @@ private fun HistoryRecordCard(
     val accent = pastelForSupermarket(purchase.purchase.supermarketName)
 
     Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = CelestePale),
+        modifier = Modifier
+            .fillMaxWidth()
+            .border(
+                width = 1.dp,
+                color = CelesteDeep.copy(alpha = 0.3f),
+                shape = RoundedCornerShape(20.dp)
+            ),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
         shape = RoundedCornerShape(20.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            // Cabecera de la tarjeta: Nombre del local y fecha.
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -268,6 +287,8 @@ private fun HistoryRecordCard(
                             color = subtitleColor
                         )
                     }
+                    
+                    // Etiqueta de "Motivo" o tipo de compra.
                     Surface(
                         color = PastelGreenPale,
                         shape = RoundedCornerShape(12.dp)
@@ -278,7 +299,7 @@ private fun HistoryRecordCard(
                             horizontalArrangement = Arrangement.spacedBy(6.dp)
                         ) {
                             Icon(
-                                imageVector = Icons.Filled.ReceiptLong,
+                                imageVector = Icons.AutoMirrored.Filled.ReceiptLong,
                                 contentDescription = null,
                                 tint = PastelGreenDeep,
                                 modifier = Modifier.size(16.dp)
@@ -291,6 +312,8 @@ private fun HistoryRecordCard(
                         }
                     }
                 }
+                
+                // Botones de acción (Editar / Eliminar).
                 Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                     IconButton(onClick = onEdit) {
                         Icon(
@@ -309,55 +332,103 @@ private fun HistoryRecordCard(
                 }
             }
 
-            TextButton(onClick = { expanded = !expanded }) {
-                Text(
-                    text = stringResource(
-                        if (expanded) R.string.records_action_hide_detail else R.string.records_action_view_detail
-                    ),
-                    color = CelesteDeep
-                )
-            }
-
-            if (expanded) {
-                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            // Botón para expandir/contraer el detalle de productos y monto total visible.
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                TextButton(onClick = { expanded = !expanded }) {
                     Text(
-                        text = stringResource(R.string.records_products_title),
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.Bold
-                    )
-                    purchase.products.forEach { product ->
-                        ProductDetailRow(product = product, currencyCode = currencyCode)
-                    }
-
-                    Text(
-                        text = stringResource(R.string.records_breakdown_title),
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.Bold
-                    )
-                    BreakdownRow(
-                        label = R.string.records_breakdown_subtotal,
-                        value = formatCurrency(subtotalCents, currencyCode)
-                    )
-                    BreakdownRow(
-                        label = R.string.records_breakdown_discount,
-                        value = "- ${formatCurrency(discountCents, currencyCode)}"
-                    )
-                    BreakdownRow(
-                        label = R.string.records_breakdown_taxes,
-                        value = formatCurrency(taxesCents, currencyCode)
-                    )
-                    HorizontalDivider(color = CelesteSoft.copy(alpha = 0.4f))
-                    BreakdownRow(
-                        label = R.string.records_breakdown_total,
-                        value = formatCurrency(totalFinalCents, currencyCode),
-                        emphasized = true
+                        text = stringResource(
+                            if (expanded) R.string.records_action_hide_detail else R.string.records_action_view_detail
+                        ),
+                        color = CelesteDeep
                     )
                 }
+
+                // Mostramos el monto total directamente en la tarjeta (mejora UI solicitada)
+                Column(horizontalAlignment = Alignment.End) {
+                    Text(
+                        text = stringResource(R.string.records_breakdown_total),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = subtitleColor
+                    )
+                    Text(
+                        text = formatCurrency(totalFinalCents, currencyCode),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = CelesteDeep
+                    )
+                }
+            }
+
+            // Sección de detalle expandible.
+            if (expanded) {
+                PurchaseDetailSection(
+                    products = purchase.products,
+                    currencyCode = currencyCode,
+                    subtotalCents = subtotalCents,
+                    discountCents = discountCents,
+                    taxesCents = taxesCents,
+                    totalFinalCents = totalFinalCents
+                )
             }
         }
     }
 }
 
+/**
+ * PurchaseDetailSection: Desglose de productos y cálculos finales de una compra.
+ */
+@Composable
+private fun PurchaseDetailSection(
+    products: List<ProductEntity>,
+    currencyCode: String,
+    subtotalCents: Long,
+    discountCents: Long,
+    taxesCents: Long,
+    totalFinalCents: Long
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Text(
+            text = stringResource(R.string.records_products_title),
+            style = MaterialTheme.typography.titleSmall,
+            fontWeight = FontWeight.Bold
+        )
+        products.forEach { product ->
+            ProductDetailRow(product = product, currencyCode = currencyCode)
+        }
+
+        Text(
+            text = stringResource(R.string.records_breakdown_title),
+            style = MaterialTheme.typography.titleSmall,
+            fontWeight = FontWeight.Bold
+        )
+        BreakdownRow(
+            label = R.string.records_breakdown_subtotal,
+            value = formatCurrency(subtotalCents, currencyCode)
+        )
+        BreakdownRow(
+            label = R.string.records_breakdown_discount,
+            value = "- ${formatCurrency(discountCents, currencyCode)}"
+        )
+        BreakdownRow(
+            label = R.string.records_breakdown_taxes,
+            value = formatCurrency(taxesCents, currencyCode)
+        )
+        HorizontalDivider(color = CelesteSoft.copy(alpha = 0.4f))
+        BreakdownRow(
+            label = R.string.records_breakdown_total,
+            value = formatCurrency(totalFinalCents, currencyCode),
+            emphasized = true
+        )
+    }
+}
+
+/**
+ * ProductDetailRow: Fila que muestra la información de un producto individual.
+ */
 @Composable
 private fun ProductDetailRow(product: ProductEntity, currencyCode: String) {
     val lineTotal = product.priceCents * product.quantity.toLong()
@@ -410,6 +481,51 @@ private fun ProductDetailRow(product: ProductEntity, currencyCode: String) {
     }
 }
 
+/**
+ * EmptyHistoryCard: Se muestra cuando no hay compras registradas.
+ */
+@Composable
+private fun EmptyHistoryCard() {
+    Card(
+        colors = CardDefaults.cardColors(containerColor = CelesteMist),
+        shape = RoundedCornerShape(16.dp),
+    ) {
+        Text(
+            text = stringResource(R.string.records_empty),
+            modifier = Modifier.padding(16.dp),
+            style = MaterialTheme.typography.bodyMedium
+        )
+    }
+}
+
+/**
+ * DeleteConfirmationDialog: Diálogo de alerta para confirmar la eliminación de un registro.
+ */
+@Composable
+private fun DeleteConfirmationDialog(
+    onDismiss: () -> Unit,
+    onConfirm: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.records_action_delete)) },
+        text = { Text(stringResource(R.string.records_delete_confirm)) },
+        confirmButton = {
+            TextButton(onClick = onConfirm) {
+                Text(stringResource(R.string.records_action_delete))
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.records_cancel))
+            }
+        }
+    )
+}
+
+/**
+ * BreakdownRow: Fila de resumen de costos (subtotal, impuestos, total).
+ */
 @Composable
 private fun BreakdownRow(@StringRes label: Int, value: String, emphasized: Boolean = false) {
     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
@@ -426,6 +542,9 @@ private fun BreakdownRow(@StringRes label: Int, value: String, emphasized: Boole
     }
 }
 
+/**
+ * EditPurchaseSheet: Hoja modal para modificar los datos de una compra y sus productos.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun EditPurchaseSheet(
@@ -436,6 +555,11 @@ private fun EditPurchaseSheet(
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var supermarket by rememberSaveable(purchase.purchase.id) { mutableStateOf(purchase.purchase.supermarketName) }
+    
+    // Estado para fecha y hora
+    var editDate by rememberSaveable { mutableStateOf(formatDate(purchase.purchase.dateMillis)) }
+    var editTime by rememberSaveable { mutableStateOf(formatTime(purchase.purchase.dateMillis)) }
+    
     val defaultProductDesc = stringResource(R.string.records_product_desc_placeholder)
     val productStates = remember(purchase) {
         mutableStateListOf<EditableProduct>().apply {
@@ -445,8 +569,11 @@ private fun EditPurchaseSheet(
                         id = product.id,
                         purchaseId = product.purchaseId,
                         name = product.name,
+                        code = product.code,
+                        description = product.description,
                         quantity = product.quantity.toString(),
-                        price = formatRawPrice(product.priceCents)
+                        price = formatRawPrice(product.priceCents),
+                        discount = formatRawPrice(product.discountCents)
                     )
                 )
             }
@@ -458,7 +585,10 @@ private fun EditPurchaseSheet(
         val price = parseCents(editable.price)
         price * qty.toLong()
     }
-    val discountCents = (subtotalCents * 0.06f).toLong()
+    val productDiscountCents = productStates.sumOf { editable ->
+        parseCents(editable.discount) * (editable.quantity.toIntOrNull() ?: 0).toLong()
+    }
+    val discountCents = productDiscountCents.coerceAtLeast(0)
     val taxesCents = ((subtotalCents - discountCents) * 0.21f).toLong()
     val totalFinalCents = subtotalCents - discountCents + taxesCents
 
@@ -479,48 +609,188 @@ private fun EditPurchaseSheet(
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold
             )
-            OutlinedTextField(
-                value = supermarket,
-                onValueChange = { supermarket = it },
-                label = { Text(stringResource(R.string.records_label_store_title)) },
-                modifier = Modifier.fillMaxWidth()
-            )
 
+            // Sección: Datos Generales de la Compra
             Text(
-                text = stringResource(R.string.records_products_title),
+                text = "Datos de la Compra",
                 style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.Bold
             )
-            productStates.forEachIndexed { index, editable ->
-                Card(
-                    colors = CardDefaults.cardColors(containerColor = CelestePale),
-                    shape = RoundedCornerShape(16.dp)
-                ) {
-                    Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Card(
+                colors = CardDefaults.cardColors(containerColor = Color.White),
+                shape = RoundedCornerShape(12.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .border(1.dp, CelesteSoft, RoundedCornerShape(12.dp))
+            ) {
+                Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    OutlinedTextField(
+                        value = supermarket,
+                        onValueChange = { supermarket = it },
+                        label = { Text("Supermercado") },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true
+                    )
+                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                         OutlinedTextField(
-                            value = editable.name,
-                            onValueChange = { productStates[index] = editable.copy(name = it) },
-                            label = { Text(stringResource(R.string.records_product_name)) },
-                            modifier = Modifier.fillMaxWidth()
+                            value = editDate,
+                            onValueChange = { editDate = it },
+                            label = { Text("Fecha") },
+                            modifier = Modifier.weight(1f),
+                            readOnly = true
                         )
-                        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                            OutlinedTextField(
-                                value = editable.quantity,
-                                onValueChange = { productStates[index] = editable.copy(quantity = it) },
-                                label = { Text(stringResource(R.string.records_product_qty_title)) },
-                                modifier = Modifier.weight(1f)
+                        OutlinedTextField(
+                            value = editTime,
+                            onValueChange = { editTime = it },
+                            label = { Text("Hora") },
+                            modifier = Modifier.weight(1f),
+                            readOnly = true
+                        )
+                    }
+                }
+            }
+
+            // Sección: Productos
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 8.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = stringResource(R.string.records_products_title),
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold
+                )
+                Button(
+                    onClick = {
+                        productStates.add(
+                            EditableProduct(
+                                id = 0,
+                                purchaseId = purchase.purchase.id,
+                                name = "",
+                                code = "",
+                                description = "",
+                                quantity = "1",
+                                price = "0.00",
+                                discount = "0.00"
                             )
+                        )
+                    },
+                    modifier = Modifier
+                        .height(32.dp)
+                        .padding(0.dp),
+                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = CelesteBase, contentColor = Color.White)
+                ) {
+                    Text("+ Agregar", style = MaterialTheme.typography.labelSmall)
+                }
+            }
+
+            // Lista de productos editables
+            if (productStates.isEmpty()) {
+                Text(
+                    text = "No hay productos. Haz clic en '+ Agregar' para añadir uno.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(vertical = 8.dp)
+                )
+            } else {
+                productStates.forEachIndexed { index, editable ->
+                    Card(
+                        colors = CardDefaults.cardColors(containerColor = Color.White),
+                        shape = RoundedCornerShape(12.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .border(1.dp, CelesteSoft, RoundedCornerShape(12.dp))
+                    ) {
+                        Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            // Encabezado con número de producto y botón de eliminar
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = "Producto ${index + 1}",
+                                    style = MaterialTheme.typography.labelMedium,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = CelesteDeep
+                                )
+                                IconButton(
+                                    onClick = { productStates.removeAt(index) },
+                                    modifier = Modifier.size(32.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Filled.Delete,
+                                        contentDescription = "Eliminar producto",
+                                        tint = PastelRed,
+                                        modifier = Modifier.size(20.dp)
+                                    )
+                                }
+                            }
+
+                            // Campos de ID y Código
+                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                OutlinedTextField(
+                                    value = editable.id.toString(),
+                                    onValueChange = {},
+                                    label = { Text("ID") },
+                                    modifier = Modifier.weight(0.4f),
+                                    readOnly = true
+                                )
+                                OutlinedTextField(
+                                    value = editable.code,
+                                    onValueChange = { productStates[index] = editable.copy(code = it) },
+                                    label = { Text("Código (opcional)") },
+                                    modifier = Modifier.weight(0.6f)
+                                )
+                            }
+
+                            // Nombre
                             OutlinedTextField(
-                                value = editable.price,
-                                onValueChange = { productStates[index] = editable.copy(price = it) },
-                                label = { Text(stringResource(R.string.records_product_unit_price_title)) },
-                                modifier = Modifier.weight(1f)
+                                value = editable.name,
+                                onValueChange = { productStates[index] = editable.copy(name = it) },
+                                label = { Text("Nombre del producto") },
+                                modifier = Modifier.fillMaxWidth()
                             )
+
+                            // Descripción
+                            OutlinedTextField(
+                                value = editable.description,
+                                onValueChange = { productStates[index] = editable.copy(description = it) },
+                                label = { Text("Descripción (opcional)") },
+                                modifier = Modifier.fillMaxWidth()
+                            )
+
+                            // Cantidad, Precio, Descuento
+                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                OutlinedTextField(
+                                    value = editable.quantity,
+                                    onValueChange = { productStates[index] = editable.copy(quantity = it) },
+                                    label = { Text("Cant.") },
+                                    modifier = Modifier.weight(0.3f)
+                                )
+                                OutlinedTextField(
+                                    value = editable.price,
+                                    onValueChange = { productStates[index] = editable.copy(price = it) },
+                                    label = { Text("Precio") },
+                                    modifier = Modifier.weight(0.35f)
+                                )
+                                OutlinedTextField(
+                                    value = editable.discount,
+                                    onValueChange = { productStates[index] = editable.copy(discount = it) },
+                                    label = { Text("Desc.") },
+                                    modifier = Modifier.weight(0.35f)
+                                )
+                            }
                         }
                     }
                 }
             }
 
+            // Resumen de cálculos
             Card(
                 colors = CardDefaults.cardColors(containerColor = CelestePale),
                 shape = RoundedCornerShape(16.dp)
@@ -547,82 +817,55 @@ private fun EditPurchaseSheet(
                 }
             }
 
+            // Botón de guardar
             Button(
                 onClick = {
                     val updatedProducts = productStates.map { editable ->
                         val qty = editable.quantity.toIntOrNull() ?: 0
                         val price = parseCents(editable.price)
+                        val discount = parseCents(editable.discount)
                         ProductEntity(
                             id = editable.id,
                             purchaseId = editable.purchaseId,
                             name = editable.name.ifBlank { defaultProductDesc },
+                            code = editable.code,
+                            description = editable.description,
                             quantity = qty,
-                            priceCents = price
+                            priceCents = price,
+                            discountCents = discount
                         )
                     }
-                    onSave(
-                        purchase.purchase.copy(
-                            supermarketName = supermarket.ifBlank { purchase.purchase.supermarketName },
-                            totalCents = totalFinalCents
-                        ),
-                        updatedProducts
+                    
+                    // Recalcular fecha/hora (por ahora, mantenemos la original)
+                    val updatedPurchase = purchase.purchase.copy(
+                        supermarketName = supermarket.ifBlank { purchase.purchase.supermarketName },
+                        totalCents = totalFinalCents
                     )
+                    
+                    onSave(updatedPurchase, updatedProducts)
                 },
                 modifier = Modifier.fillMaxWidth(),
                 colors = ButtonDefaults.buttonColors(containerColor = CelesteBase, contentColor = Color.White)
             ) {
                 Text(stringResource(R.string.records_action_save))
             }
+
+            Spacer(modifier = Modifier.height(16.dp))
         }
     }
 }
 
 @Composable
 private fun StatsTab(
-    purchases: List<PurchaseEntity>,
-    purchasesWithProducts: List<PurchaseWithProducts>,
+    statsData: StatsData,
     currencyCode: String,
+    viewModel: RecordsViewModel
 ) {
     var selectedPeriod by rememberSaveable { mutableStateOf(PeriodFilter.MONTH) }
     
-    // State for specific month selection (when MONTH is selected)
     val calendar = java.util.Calendar.getInstance()
     var selectedMonthIndex by rememberSaveable { mutableIntStateOf(calendar.get(java.util.Calendar.MONTH)) }
-    
-    // State for specific year selection (when MONTH or YEAR is selected)
     var selectedYear by rememberSaveable { mutableIntStateOf(calendar.get(java.util.Calendar.YEAR)) }
-
-    val now = System.currentTimeMillis()
-    
-    val filteredPurchases = remember(purchases, selectedPeriod, selectedMonthIndex, selectedYear) {
-        when (selectedPeriod) {
-            PeriodFilter.WEEK -> {
-                val range = 7L * 24 * 60 * 60 * 1000
-                purchases.filter { it.dateMillis >= now - range }
-            }
-            PeriodFilter.MONTH -> {
-                purchases.filter { purchase ->
-                    val pCal = java.util.Calendar.getInstance().apply { timeInMillis = purchase.dateMillis }
-                    pCal.get(java.util.Calendar.MONTH) == selectedMonthIndex && 
-                    pCal.get(java.util.Calendar.YEAR) == selectedYear
-                }
-            }
-            PeriodFilter.YEAR -> {
-                purchases.filter { purchase ->
-                    val pCal = java.util.Calendar.getInstance().apply { timeInMillis = purchase.dateMillis }
-                    pCal.get(java.util.Calendar.YEAR) == selectedYear
-                }
-            }
-        }
-    }
-    
-    val filteredWithProducts = remember(purchasesWithProducts, filteredPurchases) {
-        val ids = filteredPurchases.map { it.id }.toSet()
-        purchasesWithProducts.filter { it.purchase.id in ids }
-    }
-    
-    val totalSpent = filteredPurchases.sumOf { it.totalCents }
-    val average = if (filteredPurchases.isNotEmpty()) totalSpent / filteredPurchases.size else 0L
 
     Column(
         modifier = Modifier.verticalScroll(rememberScrollState()),
@@ -639,9 +882,14 @@ private fun StatsTab(
             )
             
             Column(verticalArrangement = Arrangement.spacedBy(12.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                PeriodFilterRow(selectedPeriod = selectedPeriod, onSelected = { selectedPeriod = it })
+                PeriodFilterRow(
+                    selectedPeriod = selectedPeriod, 
+                    onSelected = { 
+                        selectedPeriod = it
+                        viewModel.setPeriod(it)
+                    }
+                )
                 
-                // Show selectors based on the main period chosen
                 if (selectedPeriod == PeriodFilter.MONTH) {
                     SpecificMonthSelector(
                         selectedMonth = selectedMonthIndex,
@@ -649,102 +897,103 @@ private fun StatsTab(
                         onMonthYearSelected = { month, year ->
                             selectedMonthIndex = month
                             selectedYear = year
+                            viewModel.setMonthYear(month, year)
                         }
                     )
                 } else if (selectedPeriod == PeriodFilter.YEAR) {
                     SpecificYearSelector(
                         selectedYear = selectedYear,
-                        onYearSelected = { selectedYear = it }
+                        onYearSelected = { 
+                            selectedYear = it
+                            viewModel.setMonthYear(selectedMonthIndex, it)
+                        }
                     )
                 }
             }
         }
 
-        Card(
-            colors = CardDefaults.cardColors(containerColor = CelestePale),
-            shape = RoundedCornerShape(28.dp),
-            modifier = Modifier.fillMaxWidth(),
-            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-        ) {
-            Column(
-                modifier = Modifier
-                    .padding(24.dp)
-                    .fillMaxWidth(),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                Text(
-                    text = when(selectedPeriod) {
-                        PeriodFilter.WEEK -> "Total de la semana"
-                        PeriodFilter.MONTH -> {
-                            val months = listOf("Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre")
-                            "Total de ${months[selectedMonthIndex]} $selectedYear"
-                        }
-                        PeriodFilter.YEAR -> "Total del año $selectedYear"
-                    },
-                    style = MaterialTheme.typography.titleMedium.copy(fontSize = 18.sp),
-                    color = CelesteInk
-                )
-                Text(
-                    text = formatCurrency(totalSpent, currencyCode),
-                    style = MaterialTheme.typography.displayMedium.copy(
-                        fontWeight = FontWeight.ExtraBold,
-                        fontSize = 36.sp
-                    ),
-                    color = CelesteDeep
-                )
-                HorizontalDivider(color = CelesteSoft.copy(alpha = 0.3f), modifier = Modifier.padding(vertical = 8.dp))
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceEvenly
-                ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text(
-                            text = formatCurrency(average, currencyCode),
-                            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-                            color = CelesteInk
-                        )
-                        Text(
-                            text = "Promedio",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = CelesteInk.copy(alpha = 0.7f)
-                        )
-                    }
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text(
-                            text = filteredPurchases.size.toString(),
-                            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-                            color = CelesteInk
-                        )
-                        Text(
-                            text = "Tickets",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = CelesteInk.copy(alpha = 0.7f)
-                        )
-                    }
-                }
-            }
-        }
+        StatsSummaryCard(
+            selectedPeriod = selectedPeriod,
+            selectedMonthIndex = selectedMonthIndex,
+            selectedYear = selectedYear,
+            totalSpent = statsData.totalSpentCents,
+            average = statsData.averageSpentCents,
+            ticketCount = statsData.ticketCount,
+            currencyCode = currencyCode
+        )
 
         RecordsSectionHeader(
             title = R.string.records_stats_distribution_title, 
             subtitle = "Dónde gastaste más en este periodo"
         )
-        SupermarketPieChartCard(stats = filteredPurchases, currencyCode = currencyCode)
-
-        RecordsSectionHeader(
-            title = R.string.records_stats_trend_title, 
-            subtitle = "Comparativa de gastos mes a mes"
-        )
-        MonthlyTrendBarCard(purchases = purchases, currencyCode = currencyCode)
+        SupermarketPieChartCard(distribution = statsData.supermarketDistribution, currencyCode = currencyCode)
 
         RecordsSectionHeader(
             title = R.string.records_stats_ranking_title, 
             subtitle = "Los productos que más compraste"
         )
-        ProductPodiumCard(purchases = filteredWithProducts, currencyCode = currencyCode)
+        ProductPodiumCard(ranking = statsData.productRanking)
         
         Spacer(modifier = Modifier.height(24.dp))
+    }
+}
+
+/**
+ * StatsSummaryCard: Muestra el total gastado, promedio y cantidad de tickets del periodo.
+ */
+@Composable
+private fun StatsSummaryCard(
+    selectedPeriod: PeriodFilter,
+    selectedMonthIndex: Int,
+    selectedYear: Int,
+    totalSpent: Long,
+    average: Long,
+    ticketCount: Int,
+    currencyCode: String
+) {
+    Card(
+        colors = CardDefaults.cardColors(containerColor = CelestePale),
+        shape = RoundedCornerShape(28.dp),
+        modifier = Modifier.fillMaxWidth(),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Column(
+            modifier = Modifier.padding(24.dp).fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Text(
+                text = when(selectedPeriod) {
+                    PeriodFilter.WEEK -> "Total de la semana"
+                    PeriodFilter.MONTH -> {
+                        val months = listOf("Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre")
+                        "Total de ${months[selectedMonthIndex]} $selectedYear"
+                    }
+                    PeriodFilter.YEAR -> "Total del año $selectedYear"
+                },
+                style = MaterialTheme.typography.titleMedium.copy(fontSize = 18.sp),
+                color = CelesteInk
+            )
+            Text(
+                text = formatCurrency(totalSpent, currencyCode),
+                style = MaterialTheme.typography.displayMedium.copy(
+                    fontWeight = FontWeight.ExtraBold,
+                    fontSize = 36.sp
+                ),
+                color = CelesteDeep
+            )
+            HorizontalDivider(color = CelesteSoft.copy(alpha = 0.3f), modifier = Modifier.padding(vertical = 8.dp))
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(text = formatCurrency(average, currencyCode), style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold), color = CelesteInk)
+                    Text(text = "Promedio", style = MaterialTheme.typography.bodyMedium, color = CelesteInk.copy(alpha = 0.7f))
+                }
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(text = ticketCount.toString(), style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold), color = CelesteInk)
+                    Text(text = "Tickets", style = MaterialTheme.typography.bodyMedium, color = CelesteInk.copy(alpha = 0.7f))
+                }
+            }
+        }
     }
 }
 
@@ -757,21 +1006,9 @@ private fun PeriodFilterRow(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceEvenly
     ) {
-        PeriodFilterButton(
-            label = "Semana",
-            selected = selectedPeriod == PeriodFilter.WEEK,
-            onClick = { onSelected(PeriodFilter.WEEK) }
-        )
-        PeriodFilterButton(
-            label = "Mes",
-            selected = selectedPeriod == PeriodFilter.MONTH,
-            onClick = { onSelected(PeriodFilter.MONTH) }
-        )
-        PeriodFilterButton(
-            label = "Año",
-            selected = selectedPeriod == PeriodFilter.YEAR,
-            onClick = { onSelected(PeriodFilter.YEAR) }
-        )
+        PeriodFilterButton(label = "Semana", selected = selectedPeriod == PeriodFilter.WEEK, onClick = { onSelected(PeriodFilter.WEEK) })
+        PeriodFilterButton(label = "Mes", selected = selectedPeriod == PeriodFilter.MONTH, onClick = { onSelected(PeriodFilter.MONTH) })
+        PeriodFilterButton(label = "Año", selected = selectedPeriod == PeriodFilter.YEAR, onClick = { onSelected(PeriodFilter.YEAR) })
     }
 }
 
@@ -798,23 +1035,15 @@ private fun SpecificMonthSelector(
             verticalAlignment = Alignment.CenterVertically
         ) {
             IconButton(onClick = { onMonthYearSelected(selectedMonth, selectedYear - 1) }) {
-                Icon(Icons.Default.ArrowBack, contentDescription = "Año anterior", tint = CelesteDeep)
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Año anterior", tint = CelesteDeep)
             }
-            Text(
-                text = selectedYear.toString(),
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
-                color = CelesteDeep
-            )
+            Text(text = selectedYear.toString(), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = CelesteDeep)
             IconButton(onClick = { onMonthYearSelected(selectedMonth, selectedYear + 1) }) {
-                Icon(Icons.Default.ArrowForward, contentDescription = "Año siguiente", tint = CelesteDeep)
+                Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = "Año siguiente", tint = CelesteDeep)
             }
         }
         
-        LazyRow(
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            contentPadding = PaddingValues(horizontal = 4.dp)
-        ) {
+        LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp), contentPadding = PaddingValues(horizontal = 4.dp)) {
             itemsIndexed(months) { index, month ->
                 val isSelected = index == selectedMonth
                 Surface(
@@ -824,12 +1053,7 @@ private fun SpecificMonthSelector(
                     modifier = Modifier.width(60.dp)
                 ) {
                     Box(modifier = Modifier.padding(vertical = 8.dp), contentAlignment = Alignment.Center) {
-                        Text(
-                            text = month,
-                            style = MaterialTheme.typography.labelLarge,
-                            color = if (isSelected) Color.White else CelesteInk,
-                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
-                        )
+                        Text(text = month, style = MaterialTheme.typography.labelLarge, color = if (isSelected) Color.White else CelesteInk, fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal)
                     }
                 }
             }
@@ -852,16 +1076,11 @@ private fun SpecificYearSelector(
         verticalAlignment = Alignment.CenterVertically
     ) {
         IconButton(onClick = { onYearSelected(selectedYear - 1) }) {
-            Icon(Icons.Default.ArrowBack, contentDescription = "Año anterior", tint = CelesteDeep)
+            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Año anterior", tint = CelesteDeep)
         }
-        Text(
-            text = "Año $selectedYear",
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold,
-            color = CelesteDeep
-        )
+        Text(text = "Año $selectedYear", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = CelesteDeep)
         IconButton(onClick = { onYearSelected(selectedYear + 1) }) {
-            Icon(Icons.Default.ArrowForward, contentDescription = "Año siguiente", tint = CelesteDeep)
+            Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = "Año siguiente", tint = CelesteDeep)
         }
     }
 }
@@ -874,87 +1093,50 @@ private fun PeriodFilterButton(
 ) {
     Button(
         onClick = onClick,
-        modifier = Modifier
-            .height(44.dp)
-            .padding(horizontal = 2.dp),
-        colors = ButtonDefaults.buttonColors(
-            containerColor = if (selected) CelesteDeep else CelestePale,
-            contentColor = if (selected) Color.White else CelesteInk
-        ),
+        modifier = Modifier.height(44.dp).padding(horizontal = 2.dp),
+        colors = ButtonDefaults.buttonColors(containerColor = if (selected) CelesteDeep else CelestePale, contentColor = if (selected) Color.White else CelesteInk),
         contentPadding = PaddingValues(horizontal = 12.dp),
         shape = RoundedCornerShape(12.dp),
         elevation = ButtonDefaults.buttonElevation(defaultElevation = if (selected) 2.dp else 0.dp)
     ) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold, fontSize = 12.sp)
-        )
+        Text(text = label, style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold, fontSize = 12.sp))
     }
 }
 
 @Composable
 private fun SupermarketPieChartCard(
-    stats: List<PurchaseEntity>,
+    distribution: List<Pair<String, Long>>,
     currencyCode: String,
 ) {
-    val grouped = stats.groupBy { it.supermarketName }
-        .mapValues { entry -> entry.value.sumOf { it.totalCents } }
-        .toList()
-        .sortedByDescending { it.second }
-    
-    val totalSpent = grouped.sumOf { it.second }.toFloat().coerceAtLeast(1f)
+    val totalSpent = distribution.sumOf { it.second }.toFloat().coerceAtLeast(1f)
 
     Card(
         colors = CardDefaults.cardColors(containerColor = CelesteMist),
         shape = RoundedCornerShape(24.dp)
     ) {
         Row(
-            modifier = Modifier
-                .padding(20.dp)
-                .fillMaxWidth(),
+            modifier = Modifier.padding(20.dp).fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Box(
-                modifier = Modifier
-                    .size(140.dp)
-                    .weight(1f),
-                contentAlignment = Alignment.Center
-            ) {
+            Box(modifier = Modifier.size(140.dp).weight(1f), contentAlignment = Alignment.Center) {
                 Canvas(modifier = Modifier.fillMaxSize()) {
                     var startAngle = -90f
-                    grouped.forEach { (name, amount) ->
+                    distribution.forEach { (name, amount) ->
                         val sweepAngle = (amount.toFloat() / totalSpent) * 360f
-                        drawArc(
-                            color = pastelForSupermarket(name),
-                            startAngle = startAngle,
-                            sweepAngle = sweepAngle,
-                            useCenter = true
-                        )
+                        drawArc(color = pastelForSupermarket(name), startAngle = startAngle, sweepAngle = sweepAngle, useCenter = true)
                         startAngle += sweepAngle
                     }
                 }
             }
 
-            Column(
-                modifier = Modifier.weight(1.2f),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                grouped.take(4).forEach { (name, amount) ->
+            Column(modifier = Modifier.weight(1.2f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                distribution.take(4).forEach { (name, amount) ->
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Box(
-                            modifier = Modifier
-                                .size(12.dp)
-                                .clip(CircleShape)
-                                .background(pastelForSupermarket(name))
-                        )
+                        Box(modifier = Modifier.size(12.dp).clip(CircleShape).background(pastelForSupermarket(name)))
                         Column {
                             Text(text = name, style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold))
-                            Text(
-                                text = formatCurrency(amount, currencyCode),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
+                            Text(text = formatCurrency(amount, currencyCode), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                     }
                 }
@@ -964,118 +1146,26 @@ private fun SupermarketPieChartCard(
 }
 
 @Composable
-private fun MonthlyTrendBarCard(
-    purchases: List<PurchaseEntity>,
-    currencyCode: String,
-) {
-    val now = System.currentTimeMillis()
-    val monthMillis = 30L * 24 * 60 * 60 * 1000
-    val monthData = (0..4).map { index ->
-        val end = now - index * monthMillis
-        val start = end - monthMillis
-        val amount = purchases.filter { it.dateMillis in start until end }.sumOf { it.totalCents }
-        // Format month name (simple version)
-        val date = java.util.Date(start)
-        val label = java.text.SimpleDateFormat("MMM", java.util.Locale("es", "AR")).format(date)
-        label to amount
-    }.reversed()
-
-    val maxVal = monthData.maxOfOrNull { it.second }?.toFloat()?.coerceAtLeast(1f) ?: 1f
-
-    Card(
-        colors = CardDefaults.cardColors(containerColor = CelesteMist),
-        shape = RoundedCornerShape(24.dp)
-    ) {
-        Column(modifier = Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(160.dp),
-                verticalAlignment = Alignment.Bottom,
-                horizontalArrangement = Arrangement.SpaceEvenly
-            ) {
-                monthData.forEach { (label, amount) ->
-                    val ratio = amount.toFloat() / maxVal
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Bottom,
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        Text(
-                            text = if (amount > 0) formatCurrency(amount, currencyCode).replace("$", "").take(4) else "",
-                            style = MaterialTheme.typography.labelSmall,
-                            fontSize = 10.sp
-                        )
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth(0.6f)
-                                .height((ratio * 120).dp)
-                                .clip(RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp))
-                                .background(CelesteSoft)
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text(text = label, style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold))
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
 private fun ProductPodiumCard(
-    purchases: List<PurchaseWithProducts>,
-    currencyCode: String,
+    ranking: List<ProductRank>
 ) {
-    val grouped = purchases.flatMap { it.products }
-        .groupBy { it.name }
-        .map { (name, items) ->
-            val qty = items.sumOf { it.quantity }
-            val total = items.sumOf { it.priceCents * it.quantity.toLong() }
-            ProductRank(name, qty, total)
-        }
-        .sortedByDescending { it.quantity }
-        .take(5)
-
-    if (grouped.isEmpty()) return
+    if (ranking.isEmpty()) return
 
     Card(
         colors = CardDefaults.cardColors(containerColor = CelestePale),
         shape = RoundedCornerShape(24.dp)
     ) {
         Column(modifier = Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(20.dp)) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly,
-                verticalAlignment = Alignment.Bottom
-            ) {
-                // 2nd Place
-                if (grouped.size >= 2) {
-                    PodiumStep(rank = grouped[1], position = 2, height = 80.dp, color = Color(0xFFC0C0C0))
-                }
-                // 1st Place
-                if (grouped.size >= 1) {
-                    PodiumStep(rank = grouped[0], position = 1, height = 120.dp, color = Color(0xFFFFD700))
-                }
-                // 3rd Place
-                if (grouped.size >= 3) {
-                    PodiumStep(rank = grouped[2], position = 3, height = 60.dp, color = Color(0xFFCD7F32))
-                }
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly, verticalAlignment = Alignment.Bottom) {
+                if (ranking.size >= 2) PodiumStep(rank = ranking[1], position = 2, height = 80.dp, color = Color(0xFFC0C0C0))
+                if (ranking.isNotEmpty()) PodiumStep(rank = ranking[0], position = 1, height = 120.dp, color = Color(0xFFFFD700))
+                if (ranking.size >= 3) PodiumStep(rank = ranking[2], position = 3, height = 60.dp, color = Color(0xFFCD7F32))
             }
             
-            if (grouped.size > 3) {
+            if (ranking.size > 3) {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    grouped.drop(3).forEachIndexed { index, item ->
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clip(RoundedCornerShape(12.dp))
-                                .background(Color.White.copy(alpha = 0.5f))
-                                .padding(12.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
+                    ranking.drop(3).forEachIndexed { index, item ->
+                        Row(modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(Color.White.copy(alpha = 0.5f)).padding(12.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                                 Text(text = "${index + 4}", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                                 Text(text = item.name, style = MaterialTheme.typography.bodyLarge)
@@ -1092,26 +1182,9 @@ private fun ProductPodiumCard(
 @Composable
 private fun PodiumStep(rank: ProductRank, position: Int, height: androidx.compose.ui.unit.Dp, color: Color) {
     Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Text(
-            text = rank.name,
-            style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold),
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.width(80.dp)
-        )
-        Box(
-            modifier = Modifier
-                .width(70.dp)
-                .height(height)
-                .clip(RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp))
-                .background(color),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = position.toString(),
-                style = MaterialTheme.typography.displaySmall.copy(fontWeight = FontWeight.ExtraBold),
-                color = Color.White.copy(alpha = 0.8f)
-            )
+        Text(text = rank.name, style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold), maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.width(80.dp))
+        Box(modifier = Modifier.width(70.dp).height(height).clip(RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)).background(color), contentAlignment = Alignment.Center) {
+            Text(text = position.toString(), style = MaterialTheme.typography.displaySmall.copy(fontWeight = FontWeight.ExtraBold), color = Color.White.copy(alpha = 0.8f))
         }
         Text(text = "x${rank.quantity}", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold)
     }
@@ -1125,18 +1198,9 @@ private fun RecordsSectionHeader(title: Any, subtitle: String?) {
             is String -> title
             else -> ""
         }
-        Text(
-            text = titleText,
-            style = MaterialTheme.typography.titleLarge.copy(fontSize = 18.sp),
-            fontWeight = FontWeight.Bold,
-            color = CelesteInk
-        )
+        Text(text = titleText, style = MaterialTheme.typography.titleLarge.copy(fontSize = 18.sp), fontWeight = FontWeight.Bold, color = CelesteInk)
         subtitle?.let {
-            Text(
-                text = it,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+            Text(text = it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
 }
@@ -1145,15 +1209,14 @@ private data class EditableProduct(
     val id: Long,
     val purchaseId: Long,
     val name: String,
+    val code: String,
+    val description: String,
     val quantity: String,
     val price: String,
+    val discount: String,
 )
 
-private data class ProductRank(
-    val name: String,
-    val quantity: Int,
-    val totalCents: Long,
-)
+// Removido ProductRank local para usar el del ViewModel
 
 private fun formatTime(dateMillis: Long): String {
     val locale = Locale.Builder().setLanguage("es").setRegion("AR").build()
@@ -1192,8 +1255,6 @@ private val CelesteMist = Color(0xFFF0FBFC)
 private val CelesteInk = Color(0xFF1B4B52)
 private val PastelGreenDeep = Color(0xFF5FAF9C)
 private val PastelGreenPale = Color(0xFFE6F6F1)
-private val OrangePastel = Color(0xFFFFE3C7)
-private val OfferPeach = Color(0xFFF1B591)
 private val PastelBlue = Color(0xFF7BB9F1)
 private val PastelRed = Color(0xFFF3A1A1)
 private val PastelGreen = Color(0xFF7BCB85)

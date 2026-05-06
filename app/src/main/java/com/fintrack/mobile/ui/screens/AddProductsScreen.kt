@@ -88,7 +88,13 @@ fun AddProductsScreen(
                         val qty = quantityInput.toIntOrNull() ?: 0
                         val cents = parseCents(priceInput)
                         if (name.isNotBlank() && (qty > 0) && (cents > 0L)) {
-                            viewModel.addProduct(NewProduct(name, qty, cents))
+                            viewModel.addProduct(
+                                NewProduct(
+                                    name = name,
+                                    quantity = qty,
+                                    priceCents = cents,
+                                ),
+                            )
                             name = ""
                             quantityInput = ""
                             priceInput = ""

@@ -13,7 +13,9 @@ private val Context.dataStore by preferencesDataStore(name = "fintrack_prefs")
 class UserPreferencesRepository(private val context: Context) {
     private object Keys {
         val displayName = stringPreferencesKey("display_name")
+        val lastName = stringPreferencesKey("last_name")
         val email = stringPreferencesKey("email")
+        val birthDate = stringPreferencesKey("birth_date")
         val currencyCode = stringPreferencesKey("currency_code")
         val darkTheme = booleanPreferencesKey("dark_theme")
         val isLoggedIn = booleanPreferencesKey("is_logged_in")
@@ -22,7 +24,9 @@ class UserPreferencesRepository(private val context: Context) {
     val preferencesFlow: Flow<UserPreferences> = context.dataStore.data.map { prefs ->
         UserPreferences(
             displayName = prefs[Keys.displayName] ?: "",
+            lastName = prefs[Keys.lastName] ?: "",
             email = prefs[Keys.email] ?: "",
+            birthDate = prefs[Keys.birthDate] ?: "",
             currencyCode = prefs[Keys.currencyCode] ?: UserPreferences.DEFAULT.currencyCode,
             darkTheme = prefs[Keys.darkTheme] ?: UserPreferences.DEFAULT.darkTheme,
             isLoggedIn = prefs[Keys.isLoggedIn] ?: UserPreferences.DEFAULT.isLoggedIn
@@ -35,9 +39,21 @@ class UserPreferencesRepository(private val context: Context) {
         }
     }
 
+    suspend fun updateLastName(value: String) {
+        context.dataStore.edit { prefs ->
+            prefs[Keys.lastName] = value
+        }
+    }
+
     suspend fun updateEmail(value: String) {
         context.dataStore.edit { prefs ->
             prefs[Keys.email] = value
+        }
+    }
+
+    suspend fun updateBirthDate(value: String) {
+        context.dataStore.edit { prefs ->
+            prefs[Keys.birthDate] = value
         }
     }
 

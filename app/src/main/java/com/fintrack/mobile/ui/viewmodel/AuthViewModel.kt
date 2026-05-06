@@ -20,13 +20,19 @@ class AuthViewModel(
         }
     }
 
-    fun register(displayName: String, email: String) {
+    fun register(displayName: String, email: String, lastName: String? = null, birthDate: String? = null) {
         viewModelScope.launch {
             if (displayName.isNotBlank()) {
                 repository.updateDisplayName(displayName)
             }
             if (email.isNotBlank()) {
                 repository.updateEmail(email)
+            }
+            lastName?.let {
+                if (it.isNotBlank()) repository.updateLastName(it)
+            }
+            birthDate?.let {
+                if (it.isNotBlank()) repository.updateBirthDate(it)
             }
             repository.setLoggedIn(value = true)
         }

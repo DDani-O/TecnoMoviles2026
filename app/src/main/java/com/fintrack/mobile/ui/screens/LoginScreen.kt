@@ -13,7 +13,8 @@ fun LoginScreen(
         titleRes = R.string.login_title,
         primaryLabelRes = R.string.action_login,
         secondaryLabelRes = R.string.action_register,
-        onPrimary = onLogin,
+        isRegister = false,
+        onPrimary = { name, email, _, _ -> onLogin(name, email) },
         onSecondary = onRegister,
     )
 }

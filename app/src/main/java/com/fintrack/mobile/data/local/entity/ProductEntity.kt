@@ -22,6 +22,9 @@ data class ProductEntity(
     val id: Long = 0,
     val purchaseId: Long,
     val name: String,
+    val code: String = "",
+    val description: String = "",
     val quantity: Int,
     val priceCents: Long,
+    val discountCents: Long = 0,
 )

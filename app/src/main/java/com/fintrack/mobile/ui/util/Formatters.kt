@@ -35,3 +35,38 @@ fun parseCents(input: String): Long {
         0L
     }
 }
+
+data class SupermarketColors(
+    val bgColor: androidx.compose.ui.graphics.Color,
+    val accentColor: androidx.compose.ui.graphics.Color,
+    val logoRes: Int?
+)
+
+fun getSupermarketColors(supermarketName: String): SupermarketColors {
+    return when {
+        supermarketName.contains("Carrefour", ignoreCase = true) ->
+            SupermarketColors(
+                bgColor = androidx.compose.ui.graphics.Color(0xFFEEF6FF),
+                accentColor = androidx.compose.ui.graphics.Color(0xFF5FA8E6),
+                logoRes = com.fintrack.mobile.R.drawable.logo_carrefour
+            )
+        supermarketName.contains("Coto", ignoreCase = true) ->
+            SupermarketColors(
+                bgColor = androidx.compose.ui.graphics.Color(0xFFFFF1F1),
+                accentColor = androidx.compose.ui.graphics.Color(0xFFEB8A8A),
+                logoRes = com.fintrack.mobile.R.drawable.logo_coto
+            )
+        supermarketName.contains("Jumbo", ignoreCase = true) ->
+            SupermarketColors(
+                bgColor = androidx.compose.ui.graphics.Color(0xFFEDF8EF),
+                accentColor = androidx.compose.ui.graphics.Color(0xFF7BCB85),
+                logoRes = com.fintrack.mobile.R.drawable.logo_jumbo
+            )
+        else ->
+            SupermarketColors(
+                bgColor = androidx.compose.ui.graphics.Color(0xFFF6FAFB),
+                accentColor = androidx.compose.ui.graphics.Color(0xFF7A8C93),
+                logoRes = null
+            )
+    }
+}

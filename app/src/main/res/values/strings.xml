@@ -11,16 +11,20 @@
     <string name="splash_title">FintrackMobile</string>
     <string name="splash_subtitle">Cargando tu resumen</string>
 
-    <string name="welcome_title">Controla tus gastos</string>
-    <string name="welcome_subtitle">Registra compras, analiza y ahorra</string>
+    <string name="welcome_title">¡Tu billetera te lo va a agradecer! 🚀</string>
+    <string name="welcome_subtitle">Dominá tus gastos, encontrá las mejores ofertas y hacé que cada centavo rinda más.</string>
 
     <string name="login_title">Inicia sesion</string>
     <string name="register_title">Crea tu cuenta</string>
 
     <string name="label_name">Nombre</string>
     <string name="placeholder_name">Escribe tu nombre</string>
+    <string name="label_last_name">Apellido</string>
+    <string name="placeholder_last_name">Escribe tu apellido</string>
     <string name="label_email">Correo</string>
     <string name="placeholder_email">tu@email.com</string>
+    <string name="label_birth_date">Fecha de nacimiento</string>
+    <string name="placeholder_birth_date">DD/MM/AAAA</string>
     <string name="label_supermarket">Supermercado</string>
     <string name="placeholder_supermarket">Ej: Carrefour</string>
     <string name="label_total">Total</string>

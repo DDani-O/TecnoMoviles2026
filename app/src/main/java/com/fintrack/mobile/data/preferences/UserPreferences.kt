@@ -2,7 +2,9 @@ package com.fintrack.mobile.data.preferences
 
 data class UserPreferences(
     val displayName: String,
+    val lastName: String = "",
     val email: String,
+    val birthDate: String = "",
     val currencyCode: String,
     val darkTheme: Boolean,
     val isLoggedIn: Boolean

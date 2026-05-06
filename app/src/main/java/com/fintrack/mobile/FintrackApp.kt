@@ -91,8 +91,8 @@ fun FintrackApp(container: AppContainer) {
                 composable(Routes.REGISTER) {
                     val viewModel: AuthViewModel = viewModel(factory = viewModelFactory)
                     RegisterScreen(
-                        onRegister = { name, email ->
-                            viewModel.register(name, email)
+                        onRegister = { name, email, lastName, birthDate ->
+                            viewModel.register(name, email, lastName, birthDate)
                             navController.navigate(FintrackDestination.Home.route) {
                                 popUpTo(Routes.WELCOME) { inclusive = true }
                             }
@@ -122,8 +122,8 @@ fun FintrackApp(container: AppContainer) {
                         onAdjustTicket = { navController.navigate(Routes.ADJUST_TICKET) }
                     )
                 }
-                composable(Routes.ADD_PRODUCTS) {
-                    val parentEntry = remember(navController) {
+                composable(Routes.ADD_PRODUCTS) { entry ->
+                    val parentEntry = remember(entry) {
                         navController.getBackStackEntry(FintrackDestination.NewPurchase.route)
                     }
                     val viewModel: PurchaseViewModel = viewModel(parentEntry, factory = viewModelFactory)
