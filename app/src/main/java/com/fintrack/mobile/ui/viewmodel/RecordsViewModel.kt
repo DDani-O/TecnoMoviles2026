@@ -22,7 +22,7 @@ class RecordsViewModel(
 
     init {
         viewModelScope.launch {
-            repository.seedIfEmpty()
+            repository.seedIfEmpty(force = true)
         }
     }
 

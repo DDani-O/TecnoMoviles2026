@@ -647,21 +647,36 @@ private fun TicketCard(
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center,
+                horizontalArrangement = Arrangement.SpaceBetween,
             ) {
-                if (logoRes != null) {
-                    Image(
-                        painter = painterResource(id = logoRes),
-                        contentDescription = null,
-                        modifier = Modifier.size(36.dp)
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    if (logoRes != null) {
+                        Image(
+                            painter = painterResource(id = logoRes),
+                            contentDescription = null,
+                            modifier = Modifier.size(32.dp)
+                        )
+                    }
+                    Text(
+                        text = purchase.purchase.supermarketName,
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = accentColor
                     )
                 }
-                Text(
-                    text = purchase.purchase.supermarketName,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.ExtraBold,
-                    color = accentColor
-                )
+                
+                Surface(
+                    color = accentColor.copy(alpha = 0.1f),
+                    shape = RoundedCornerShape(8.dp)
+                ) {
+                    Text(
+                        text = formatDate(purchase.purchase.dateMillis),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = accentColor,
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                        fontWeight = FontWeight.Bold
+                    )
+                }
             }
 
             HorizontalDivider(
@@ -805,8 +820,8 @@ private val CelesteInk = Color(0xFF1B4B52)
 private val PastelGreenDeep = Color(0xFF5FAF9C)
 private val PastelGreenPale = Color(0xFFE6F6F1)
 private val OrangePastel = Color(0xFFFFE3C7)
-private val IndicatorBg = Color(0xFFFCDABF)
-private val IndicatorBorder = Color(0xFFE5A885)
+private val IndicatorBg = Color(0xFFEEF9FA)
+private val IndicatorBorder = Color(0xFFD8F1F3)
 private val OrangePale = Color(0xFFFFF4E8)
 private val OfferPeach = Color(0xFFF1B591)
 private val OfferLavender = Color(0xFFC7B6E8)
@@ -820,19 +835,24 @@ private fun SummaryCard(
     currencyCode: String,
 ) {
     Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = CelesteMist),
+        modifier = Modifier
+            .fillMaxWidth()
+            .border(2.dp, CelesteDeep.copy(alpha = 0.15f), RoundedCornerShape(24.dp)),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
         shape = RoundedCornerShape(24.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
-        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        Column(modifier = Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Text(
                     text = stringResource(R.string.home_month_summary),
-                    style = MaterialTheme.typography.titleMedium,
+                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.ExtraBold),
+                    color = CelesteDeep
                 )
                 Text(
                     text = stringResource(R.string.home_month_summary_subtitle),
                     style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
             Row(
@@ -844,6 +864,7 @@ private fun SummaryCard(
                     SummaryMetric(
                         label = stringResource(R.string.home_month_total_label),
                         value = totalFormatted,
+                        emphasized = true
                     )
                     SummaryMetric(
                         label = stringResource(R.string.home_month_average_label),
@@ -863,13 +884,19 @@ private fun SummaryCard(
 }
 
 @Composable
-private fun ColumnScope.SummaryMetric(
+private fun SummaryMetric(
     label: String,
     value: String,
+    emphasized: Boolean = false
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
         Text(text = label, style = MaterialTheme.typography.labelSmall, color = CelesteDeep.copy(alpha = 0.75f))
-        Text(text = value, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+        Text(
+            text = value,
+            style = if (emphasized) MaterialTheme.typography.headlineSmall else MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.ExtraBold,
+            color = if (emphasized) CelesteDeep else MaterialTheme.colorScheme.onSurface
+        )
     }
 }
 

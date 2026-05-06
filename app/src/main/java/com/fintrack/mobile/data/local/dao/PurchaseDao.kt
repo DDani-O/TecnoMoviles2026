@@ -37,4 +37,10 @@ interface PurchaseDao {
 
     @Delete
     suspend fun deletePurchase(purchase: PurchaseEntity)
+
+    @Query("DELETE FROM purchases")
+    suspend fun deleteAllPurchases()
+
+    @Query("DELETE FROM products")
+    suspend fun deleteAllProducts()
 }

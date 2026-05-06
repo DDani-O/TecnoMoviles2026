@@ -68,9 +68,13 @@ class PurchaseRepository(
         }
     }
 
-    suspend fun seedIfEmpty() = withContext(Dispatchers.IO) {
+    suspend fun seedIfEmpty(force: Boolean = false) = withContext(Dispatchers.IO) {
         seedMutex.withLock {
-            if (purchaseDao.countPurchases() > 0) return@withLock
+            if (!force && purchaseDao.countPurchases() > 0) return@withLock
+            if (force) {
+                purchaseDao.deleteAllPurchases()
+                purchaseDao.deleteAllProducts()
+            }
             seedPurchases().forEach { seed ->
                 val purchaseId = purchaseDao.insertPurchase(
                     PurchaseEntity(
@@ -97,44 +101,94 @@ class PurchaseRepository(
 
     private fun seedPurchases(): List<SeedPurchase> {
         val now = System.currentTimeMillis()
+        val day = 86_400_000L
+        val month = 30 * day
+
         return listOf(
+            // Mes Actual
             SeedPurchase(
                 nameRes = R.string.supermarket_carrefour,
-                dateMillis = now - 86_400_000L,
+                dateMillis = now - 1 * day,
                 totalCents = 45230,
                 products = listOf(
                     SeedProduct(R.string.product_leche, 2, 3200),
                     SeedProduct(R.string.product_pan, 1, 1800),
-                    SeedProduct(R.string.product_queso, 1, 2500),
-                    SeedProduct(R.string.product_verduras, 2, 1200),
-                    SeedProduct(R.string.product_bebidas, 3, 800)
+                    SeedProduct(R.string.product_queso, 1, 2500)
                 )
             ),
             SeedPurchase(
                 nameRes = R.string.supermarket_coto,
-                dateMillis = now - 172_800_000L,
+                dateMillis = now - 3 * day,
                 totalCents = 28900,
                 products = listOf(
-                    SeedProduct(R.string.product_queso, 1, 4200),
-                    SeedProduct(R.string.product_verduras, 3, 2100),
                     SeedProduct(R.string.product_carne, 1, 8500),
-                    SeedProduct(R.string.product_pan, 2, 1500),
-                    SeedProduct(R.string.product_leche, 1, 3200),
-                    SeedProduct(R.string.product_bebidas, 2, 2000)
+                    SeedProduct(R.string.product_verduras, 3, 2100)
                 )
             ),
             SeedPurchase(
                 nameRes = R.string.supermarket_jumbo,
-                dateMillis = now - 259_200_000L,
+                dateMillis = now - 5 * day,
                 totalCents = 31200,
                 products = listOf(
-                    SeedProduct(R.string.product_carne, 1, 12500),
                     SeedProduct(R.string.product_bebidas, 2, 3800),
-                    SeedProduct(R.string.product_verduras, 2, 1800),
-                    SeedProduct(R.string.product_leche, 3, 3000),
-                    SeedProduct(R.string.product_pan, 1, 1800),
-                    SeedProduct(R.string.product_queso, 1, 2500)
+                    SeedProduct(R.string.product_leche, 3, 3000)
                 )
+            ),
+            // Mes Anterior (Hace 1 mes)
+            SeedPurchase(
+                nameRes = R.string.supermarket_carrefour,
+                dateMillis = now - 1 * month - 2 * day,
+                totalCents = 55000,
+                products = listOf(
+                    SeedProduct(R.string.product_leche, 5, 3000),
+                    SeedProduct(R.string.product_carne, 2, 9000)
+                )
+            ),
+            SeedPurchase(
+                nameRes = R.string.supermarket_coto,
+                dateMillis = now - 1 * month - 10 * day,
+                totalCents = 42000,
+                products = listOf(SeedProduct(R.string.product_bebidas, 10, 1500))
+            ),
+            // Hace 2 meses
+            SeedPurchase(
+                nameRes = R.string.supermarket_jumbo,
+                dateMillis = now - 2 * month - 5 * day,
+                totalCents = 38000,
+                products = listOf(SeedProduct(R.string.product_queso, 4, 2800))
+            ),
+            SeedPurchase(
+                nameRes = R.string.supermarket_carrefour,
+                dateMillis = now - 2 * month - 15 * day,
+                totalCents = 62000,
+                products = listOf(SeedProduct(R.string.product_carne, 3, 9500))
+            ),
+            // Hace 3 meses
+            SeedPurchase(
+                nameRes = R.string.supermarket_coto,
+                dateMillis = now - 3 * month - 8 * day,
+                totalCents = 25000,
+                products = listOf(SeedProduct(R.string.product_pan, 5, 1200))
+            ),
+            SeedPurchase(
+                nameRes = R.string.supermarket_jumbo,
+                dateMillis = now - 3 * month - 20 * day,
+                totalCents = 48000,
+                products = listOf(SeedProduct(R.string.product_leche, 8, 3100))
+            ),
+            // Hace 4 meses
+            SeedPurchase(
+                nameRes = R.string.supermarket_carrefour,
+                dateMillis = now - 4 * month - 12 * day,
+                totalCents = 51000,
+                products = listOf(SeedProduct(R.string.product_verduras, 10, 2000))
+            ),
+            // Hace 5 meses
+            SeedPurchase(
+                nameRes = R.string.supermarket_coto,
+                dateMillis = now - 5 * month - 5 * day,
+                totalCents = 33000,
+                products = listOf(SeedProduct(R.string.product_bebidas, 6, 2200))
             )
         )
     }

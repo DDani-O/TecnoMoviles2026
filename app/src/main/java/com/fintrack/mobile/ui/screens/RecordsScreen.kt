@@ -16,18 +16,26 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.ReceiptLong
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.Storefront
+import java.util.Calendar
+import java.util.Date
+import java.util.Locale
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -75,8 +83,6 @@ import com.fintrack.mobile.ui.util.formatDate
 import com.fintrack.mobile.ui.util.parseCents
 import com.fintrack.mobile.ui.viewmodel.RecordsViewModel
 import java.text.DateFormat
-import java.util.Date
-import java.util.Locale
 
 private enum class PeriodFilter { WEEK, MONTH, YEAR }
 
@@ -578,56 +584,167 @@ private fun StatsTab(
     currencyCode: String,
 ) {
     var selectedPeriod by rememberSaveable { mutableStateOf(PeriodFilter.MONTH) }
+    
+    // State for specific month selection (when MONTH is selected)
+    val calendar = java.util.Calendar.getInstance()
+    var selectedMonthIndex by rememberSaveable { mutableIntStateOf(calendar.get(java.util.Calendar.MONTH)) }
+    
+    // State for specific year selection (when MONTH or YEAR is selected)
+    var selectedYear by rememberSaveable { mutableIntStateOf(calendar.get(java.util.Calendar.YEAR)) }
+
     val now = System.currentTimeMillis()
-    val rangeMillis = when (selectedPeriod) {
-        PeriodFilter.WEEK -> 7L * 24 * 60 * 60 * 1000
-        PeriodFilter.MONTH -> 30L * 24 * 60 * 60 * 1000
-        PeriodFilter.YEAR -> 365L * 24 * 60 * 60 * 1000
+    
+    val filteredPurchases = remember(purchases, selectedPeriod, selectedMonthIndex, selectedYear) {
+        when (selectedPeriod) {
+            PeriodFilter.WEEK -> {
+                val range = 7L * 24 * 60 * 60 * 1000
+                purchases.filter { it.dateMillis >= now - range }
+            }
+            PeriodFilter.MONTH -> {
+                purchases.filter { purchase ->
+                    val pCal = java.util.Calendar.getInstance().apply { timeInMillis = purchase.dateMillis }
+                    pCal.get(java.util.Calendar.MONTH) == selectedMonthIndex && 
+                    pCal.get(java.util.Calendar.YEAR) == selectedYear
+                }
+            }
+            PeriodFilter.YEAR -> {
+                purchases.filter { purchase ->
+                    val pCal = java.util.Calendar.getInstance().apply { timeInMillis = purchase.dateMillis }
+                    pCal.get(java.util.Calendar.YEAR) == selectedYear
+                }
+            }
+        }
     }
-    val filteredPurchases = remember(purchases, selectedPeriod) {
-        purchases.filter { it.dateMillis >= now - rangeMillis }
+    
+    val filteredWithProducts = remember(purchasesWithProducts, filteredPurchases) {
+        val ids = filteredPurchases.map { it.id }.toSet()
+        purchasesWithProducts.filter { it.purchase.id in ids }
     }
-    val filteredWithProducts = remember(purchasesWithProducts, selectedPeriod) {
-        purchasesWithProducts.filter { it.purchase.dateMillis >= now - rangeMillis }
-    }
+    
     val totalSpent = filteredPurchases.sumOf { it.totalCents }
     val average = if (filteredPurchases.isNotEmpty()) totalSpent / filteredPurchases.size else 0L
 
-    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-        RecordsSectionHeader(title = R.string.records_stats_period_title, subtitle = null)
-        PeriodFilterRow(selectedPeriod = selectedPeriod, onSelected = { selectedPeriod = it })
-
-        Card(
-            colors = CardDefaults.cardColors(containerColor = CelesteMist),
-            shape = RoundedCornerShape(20.dp)
+    Column(
+        modifier = Modifier.verticalScroll(rememberScrollState()),
+        verticalArrangement = Arrangement.spacedBy(24.dp)
+    ) {
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                Text(
-                    text = formatCurrency(totalSpent, currencyCode),
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold
-                )
-                Text(
-                    text = stringResource(R.string.records_stats_avg, formatCurrency(average, currencyCode)),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Text(
-                    text = stringResource(R.string.records_stats_count, filteredPurchases.size),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+            RecordsSectionHeader(
+                title = R.string.records_stats_period_title, 
+                subtitle = "Selecciona el tiempo que quieres analizar"
+            )
+            
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                PeriodFilterRow(selectedPeriod = selectedPeriod, onSelected = { selectedPeriod = it })
+                
+                // Show selectors based on the main period chosen
+                if (selectedPeriod == PeriodFilter.MONTH) {
+                    SpecificMonthSelector(
+                        selectedMonth = selectedMonthIndex,
+                        selectedYear = selectedYear,
+                        onMonthYearSelected = { month, year ->
+                            selectedMonthIndex = month
+                            selectedYear = year
+                        }
+                    )
+                } else if (selectedPeriod == PeriodFilter.YEAR) {
+                    SpecificYearSelector(
+                        selectedYear = selectedYear,
+                        onYearSelected = { selectedYear = it }
+                    )
+                }
             }
         }
 
-        RecordsSectionHeader(title = R.string.records_stats_distribution_title, subtitle = null)
-        SupermarketDistributionCard(stats = filteredPurchases, currencyCode = currencyCode)
+        Card(
+            colors = CardDefaults.cardColors(containerColor = CelestePale),
+            shape = RoundedCornerShape(28.dp),
+            modifier = Modifier.fillMaxWidth(),
+            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        ) {
+            Column(
+                modifier = Modifier
+                    .padding(24.dp)
+                    .fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Text(
+                    text = when(selectedPeriod) {
+                        PeriodFilter.WEEK -> "Total de la semana"
+                        PeriodFilter.MONTH -> {
+                            val months = listOf("Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre")
+                            "Total de ${months[selectedMonthIndex]} $selectedYear"
+                        }
+                        PeriodFilter.YEAR -> "Total del año $selectedYear"
+                    },
+                    style = MaterialTheme.typography.titleMedium.copy(fontSize = 18.sp),
+                    color = CelesteInk
+                )
+                Text(
+                    text = formatCurrency(totalSpent, currencyCode),
+                    style = MaterialTheme.typography.displayMedium.copy(
+                        fontWeight = FontWeight.ExtraBold,
+                        fontSize = 36.sp
+                    ),
+                    color = CelesteDeep
+                )
+                HorizontalDivider(color = CelesteSoft.copy(alpha = 0.3f), modifier = Modifier.padding(vertical = 8.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceEvenly
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(
+                            text = formatCurrency(average, currencyCode),
+                            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                            color = CelesteInk
+                        )
+                        Text(
+                            text = "Promedio",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = CelesteInk.copy(alpha = 0.7f)
+                        )
+                    }
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(
+                            text = filteredPurchases.size.toString(),
+                            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                            color = CelesteInk
+                        )
+                        Text(
+                            text = "Tickets",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = CelesteInk.copy(alpha = 0.7f)
+                        )
+                    }
+                }
+            }
+        }
 
-        RecordsSectionHeader(title = R.string.records_stats_trend_title, subtitle = null)
-        MonthlyTrendCard(purchases = purchases, currencyCode = currencyCode)
+        RecordsSectionHeader(
+            title = R.string.records_stats_distribution_title, 
+            subtitle = "Dónde gastaste más en este periodo"
+        )
+        SupermarketPieChartCard(stats = filteredPurchases, currencyCode = currencyCode)
 
-        RecordsSectionHeader(title = R.string.records_stats_ranking_title, subtitle = null)
-        ProductRankingCard(purchases = filteredWithProducts, currencyCode = currencyCode)
+        RecordsSectionHeader(
+            title = R.string.records_stats_trend_title, 
+            subtitle = "Comparativa de gastos mes a mes"
+        )
+        MonthlyTrendBarCard(purchases = purchases, currencyCode = currencyCode)
+
+        RecordsSectionHeader(
+            title = R.string.records_stats_ranking_title, 
+            subtitle = "Los productos que más compraste"
+        )
+        ProductPodiumCard(purchases = filteredWithProducts, currencyCode = currencyCode)
+        
+        Spacer(modifier = Modifier.height(24.dp))
     }
 }
 
@@ -636,19 +753,22 @@ private fun PeriodFilterRow(
     selectedPeriod: PeriodFilter,
     onSelected: (PeriodFilter) -> Unit,
 ) {
-    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceEvenly
+    ) {
         PeriodFilterButton(
-            label = R.string.records_period_week,
+            label = "Semana",
             selected = selectedPeriod == PeriodFilter.WEEK,
             onClick = { onSelected(PeriodFilter.WEEK) }
         )
         PeriodFilterButton(
-            label = R.string.records_period_month,
+            label = "Mes",
             selected = selectedPeriod == PeriodFilter.MONTH,
             onClick = { onSelected(PeriodFilter.MONTH) }
         )
         PeriodFilterButton(
-            label = R.string.records_period_year,
+            label = "Año",
             selected = selectedPeriod == PeriodFilter.YEAR,
             onClick = { onSelected(PeriodFilter.YEAR) }
         )
@@ -656,71 +776,59 @@ private fun PeriodFilterRow(
 }
 
 @Composable
-private fun PeriodFilterButton(
-    @StringRes label: Int,
-    selected: Boolean,
-    onClick: () -> Unit,
+private fun SpecificMonthSelector(
+    selectedMonth: Int,
+    selectedYear: Int,
+    onMonthYearSelected: (Int, Int) -> Unit
 ) {
-    OutlinedButton(
-        onClick = onClick,
-        colors = ButtonDefaults.outlinedButtonColors(
-            containerColor = if (selected) CelestePale else Color.Transparent,
-            contentColor = if (selected) CelesteDeep else MaterialTheme.colorScheme.onSurfaceVariant
-        ),
-        border = ButtonDefaults.outlinedButtonBorder.copy(
-            brush = androidx.compose.ui.graphics.SolidColor(if (selected) CelesteSoft else CelestePale)
-        )
+    val months = listOf("Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic")
+    
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 8.dp)
+            .background(CelestePale.copy(alpha = 0.5f), RoundedCornerShape(16.dp))
+            .padding(12.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        Text(text = stringResource(label))
-    }
-}
-
-@Composable
-private fun SupermarketDistributionCard(
-    stats: List<PurchaseEntity>,
-    currencyCode: String,
-) {
-    val grouped = stats.groupBy { it.supermarketName }
-        .mapValues { entry -> entry.value.sumOf { it.totalCents } }
-        .toList()
-        .sortedByDescending { it.second }
-    val maxSpent = grouped.maxOfOrNull { it.second }?.toFloat()?.coerceAtLeast(1f) ?: 1f
-
-    Card(
-        colors = CardDefaults.cardColors(containerColor = CelestePale),
-        shape = RoundedCornerShape(20.dp)
-    ) {
-        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            grouped.forEach { (name, total) ->
-                val ratio = total.toFloat() / maxSpent
-                val barColor = pastelForSupermarket(name)
-                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(text = name, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            IconButton(onClick = { onMonthYearSelected(selectedMonth, selectedYear - 1) }) {
+                Icon(Icons.Default.ArrowBack, contentDescription = "Año anterior", tint = CelesteDeep)
+            }
+            Text(
+                text = selectedYear.toString(),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                color = CelesteDeep
+            )
+            IconButton(onClick = { onMonthYearSelected(selectedMonth, selectedYear + 1) }) {
+                Icon(Icons.Default.ArrowForward, contentDescription = "Año siguiente", tint = CelesteDeep)
+            }
+        }
+        
+        LazyRow(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            contentPadding = PaddingValues(horizontal = 4.dp)
+        ) {
+            itemsIndexed(months) { index, month ->
+                val isSelected = index == selectedMonth
+                Surface(
+                    onClick = { onMonthYearSelected(index, selectedYear) },
+                    shape = RoundedCornerShape(12.dp),
+                    color = if (isSelected) CelesteDeep else Color.White,
+                    modifier = Modifier.width(60.dp)
+                ) {
+                    Box(modifier = Modifier.padding(vertical = 8.dp), contentAlignment = Alignment.Center) {
                         Text(
-                            text = formatCurrency(total, currencyCode),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = barColor,
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(12.dp)
-                            .clip(CircleShape)
-                            .background(barColor.copy(alpha = 0.2f))
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth(ratio)
-                                .fillMaxSize()
-                                .clip(CircleShape)
-                                .background(barColor)
+                            text = month,
+                            style = MaterialTheme.typography.labelLarge,
+                            color = if (isSelected) Color.White else CelesteInk,
+                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
                         )
                     }
                 }
@@ -730,80 +838,193 @@ private fun SupermarketDistributionCard(
 }
 
 @Composable
-private fun MonthlyTrendCard(
+private fun SpecificYearSelector(
+    selectedYear: Int,
+    onYearSelected: (Int) -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 8.dp)
+            .background(CelestePale.copy(alpha = 0.5f), RoundedCornerShape(16.dp))
+            .padding(12.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        IconButton(onClick = { onYearSelected(selectedYear - 1) }) {
+            Icon(Icons.Default.ArrowBack, contentDescription = "Año anterior", tint = CelesteDeep)
+        }
+        Text(
+            text = "Año $selectedYear",
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold,
+            color = CelesteDeep
+        )
+        IconButton(onClick = { onYearSelected(selectedYear + 1) }) {
+            Icon(Icons.Default.ArrowForward, contentDescription = "Año siguiente", tint = CelesteDeep)
+        }
+    }
+}
+
+@Composable
+private fun PeriodFilterButton(
+    label: String,
+    selected: Boolean,
+    onClick: () -> Unit,
+) {
+    Button(
+        onClick = onClick,
+        modifier = Modifier
+            .height(44.dp)
+            .padding(horizontal = 2.dp),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = if (selected) CelesteDeep else CelestePale,
+            contentColor = if (selected) Color.White else CelesteInk
+        ),
+        contentPadding = PaddingValues(horizontal = 12.dp),
+        shape = RoundedCornerShape(12.dp),
+        elevation = ButtonDefaults.buttonElevation(defaultElevation = if (selected) 2.dp else 0.dp)
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold, fontSize = 12.sp)
+        )
+    }
+}
+
+@Composable
+private fun SupermarketPieChartCard(
+    stats: List<PurchaseEntity>,
+    currencyCode: String,
+) {
+    val grouped = stats.groupBy { it.supermarketName }
+        .mapValues { entry -> entry.value.sumOf { it.totalCents } }
+        .toList()
+        .sortedByDescending { it.second }
+    
+    val totalSpent = grouped.sumOf { it.second }.toFloat().coerceAtLeast(1f)
+
+    Card(
+        colors = CardDefaults.cardColors(containerColor = CelesteMist),
+        shape = RoundedCornerShape(24.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .padding(20.dp)
+                .fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(140.dp)
+                    .weight(1f),
+                contentAlignment = Alignment.Center
+            ) {
+                Canvas(modifier = Modifier.fillMaxSize()) {
+                    var startAngle = -90f
+                    grouped.forEach { (name, amount) ->
+                        val sweepAngle = (amount.toFloat() / totalSpent) * 360f
+                        drawArc(
+                            color = pastelForSupermarket(name),
+                            startAngle = startAngle,
+                            sweepAngle = sweepAngle,
+                            useCenter = true
+                        )
+                        startAngle += sweepAngle
+                    }
+                }
+            }
+
+            Column(
+                modifier = Modifier.weight(1.2f),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                grouped.take(4).forEach { (name, amount) ->
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Box(
+                            modifier = Modifier
+                                .size(12.dp)
+                                .clip(CircleShape)
+                                .background(pastelForSupermarket(name))
+                        )
+                        Column {
+                            Text(text = name, style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold))
+                            Text(
+                                text = formatCurrency(amount, currencyCode),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun MonthlyTrendBarCard(
     purchases: List<PurchaseEntity>,
     currencyCode: String,
 ) {
     val now = System.currentTimeMillis()
     val monthMillis = 30L * 24 * 60 * 60 * 1000
-    val monthTotals = (0..5).map { index ->
+    val monthData = (0..4).map { index ->
         val end = now - index * monthMillis
         val start = end - monthMillis
-        purchases.filter { it.dateMillis in start until end }.sumOf { it.totalCents }
+        val amount = purchases.filter { it.dateMillis in start until end }.sumOf { it.totalCents }
+        // Format month name (simple version)
+        val date = java.util.Date(start)
+        val label = java.text.SimpleDateFormat("MMM", java.util.Locale("es", "AR")).format(date)
+        label to amount
     }.reversed()
-    val labels = (1..monthTotals.size).map { "M$it" }
+
+    val maxVal = monthData.maxOfOrNull { it.second }?.toFloat()?.coerceAtLeast(1f) ?: 1f
 
     Card(
         colors = CardDefaults.cardColors(containerColor = CelesteMist),
-        shape = RoundedCornerShape(20.dp)
+        shape = RoundedCornerShape(24.dp)
     ) {
-        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text(
-                text = stringResource(R.string.records_stats_trend_subtitle),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            LineChart(values = monthTotals.map { it.toFloat() }, labels = labels)
-            Text(
-                text = stringResource(
-                    R.string.records_stats_trend_total,
-                    formatCurrency(monthTotals.sum(), currencyCode)
-                ),
-                style = MaterialTheme.typography.labelMedium,
-                color = CelesteInk
-            )
-        }
-    }
-}
-
-@Composable
-private fun LineChart(values: List<Float>, labels: List<String>) {
-    val maxValue = values.maxOrNull()?.coerceAtLeast(1f) ?: 1f
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Canvas(modifier = Modifier.fillMaxWidth().height(160.dp)) {
-            val stepX = if (values.size > 1) size.width / (values.size - 1) else size.width
-            val points = values.mapIndexed { index, value ->
-                val ratio = value / maxValue
-                val x = stepX * index
-                val y = size.height - (ratio * size.height)
-                x to y
-            }
-            for (i in 0 until points.size - 1) {
-                drawLine(
-                    color = CelesteDeep,
-                    start = androidx.compose.ui.geometry.Offset(points[i].first, points[i].second),
-                    end = androidx.compose.ui.geometry.Offset(points[i + 1].first, points[i + 1].second),
-                    strokeWidth = 4f
-                )
-            }
-            points.forEach { (x, y) ->
-                drawCircle(
-                    color = CelesteBase,
-                    radius = 6f,
-                    center = androidx.compose.ui.geometry.Offset(x, y)
-                )
-            }
-        }
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            labels.forEach { label ->
-                Text(text = label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Column(modifier = Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(160.dp),
+                verticalAlignment = Alignment.Bottom,
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                monthData.forEach { (label, amount) ->
+                    val ratio = amount.toFloat() / maxVal
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Bottom,
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text(
+                            text = if (amount > 0) formatCurrency(amount, currencyCode).replace("$", "").take(4) else "",
+                            style = MaterialTheme.typography.labelSmall,
+                            fontSize = 10.sp
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth(0.6f)
+                                .height((ratio * 120).dp)
+                                .clip(RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp))
+                                .background(CelesteSoft)
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(text = label, style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold))
+                    }
+                }
             }
         }
     }
 }
 
 @Composable
-private fun ProductRankingCard(
+private fun ProductPodiumCard(
     purchases: List<PurchaseWithProducts>,
     currencyCode: String,
 ) {
@@ -815,46 +1036,53 @@ private fun ProductRankingCard(
             ProductRank(name, qty, total)
         }
         .sortedByDescending { it.quantity }
-        .take(6)
+        .take(5)
 
-    val maxQty = grouped.maxOfOrNull { it.quantity }?.toFloat()?.coerceAtLeast(1f) ?: 1f
+    if (grouped.isEmpty()) return
 
     Card(
         colors = CardDefaults.cardColors(containerColor = CelestePale),
-        shape = RoundedCornerShape(20.dp)
+        shape = RoundedCornerShape(24.dp)
     ) {
-        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            grouped.forEach { item ->
-                val ratio = item.quantity / maxQty
-                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                        Text(text = item.name, style = MaterialTheme.typography.bodyMedium)
-                        Text(
-                            text = formatCurrency(item.totalCents, currencyCode),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(10.dp)
-                            .clip(CircleShape)
-                            .background(OrangePastel)
-                    ) {
-                        Box(
+        Column(modifier = Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(20.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly,
+                verticalAlignment = Alignment.Bottom
+            ) {
+                // 2nd Place
+                if (grouped.size >= 2) {
+                    PodiumStep(rank = grouped[1], position = 2, height = 80.dp, color = Color(0xFFC0C0C0))
+                }
+                // 1st Place
+                if (grouped.size >= 1) {
+                    PodiumStep(rank = grouped[0], position = 1, height = 120.dp, color = Color(0xFFFFD700))
+                }
+                // 3rd Place
+                if (grouped.size >= 3) {
+                    PodiumStep(rank = grouped[2], position = 3, height = 60.dp, color = Color(0xFFCD7F32))
+                }
+            }
+            
+            if (grouped.size > 3) {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    grouped.drop(3).forEachIndexed { index, item ->
+                        Row(
                             modifier = Modifier
-                                .fillMaxWidth(ratio)
-                                .fillMaxSize()
-                                .clip(CircleShape)
-                                .background(OfferPeach)
-                        )
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(Color.White.copy(alpha = 0.5f))
+                                .padding(12.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                                Text(text = "${index + 4}", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                                Text(text = item.name, style = MaterialTheme.typography.bodyLarge)
+                            }
+                            Text(text = "x${item.quantity}", fontWeight = FontWeight.Bold, color = CelesteDeep)
+                        }
                     }
-                    Text(
-                        text = stringResource(R.string.records_product_qty, item.quantity),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = CelesteInk
-                    )
                 }
             }
         }
@@ -862,12 +1090,50 @@ private fun ProductRankingCard(
 }
 
 @Composable
-private fun RecordsSectionHeader(@StringRes title: Int, subtitle: Int?) {
-    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        Text(text = stringResource(title), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
+private fun PodiumStep(rank: ProductRank, position: Int, height: androidx.compose.ui.unit.Dp, color: Color) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Text(
+            text = rank.name,
+            style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold),
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.width(80.dp)
+        )
+        Box(
+            modifier = Modifier
+                .width(70.dp)
+                .height(height)
+                .clip(RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp))
+                .background(color),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = position.toString(),
+                style = MaterialTheme.typography.displaySmall.copy(fontWeight = FontWeight.ExtraBold),
+                color = Color.White.copy(alpha = 0.8f)
+            )
+        }
+        Text(text = "x${rank.quantity}", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold)
+    }
+}
+
+@Composable
+private fun RecordsSectionHeader(title: Any, subtitle: String?) {
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp), modifier = Modifier.padding(horizontal = 4.dp)) {
+        val titleText = when (title) {
+            is Int -> stringResource(title)
+            is String -> title
+            else -> ""
+        }
+        Text(
+            text = titleText,
+            style = MaterialTheme.typography.titleLarge.copy(fontSize = 18.sp),
+            fontWeight = FontWeight.Bold,
+            color = CelesteInk
+        )
         subtitle?.let {
             Text(
-                text = stringResource(it),
+                text = it,
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
