@@ -1,9 +1,11 @@
 package com.fintrack.mobile.data.local.dao
 
 import androidx.room.Dao
+import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Transaction
+import androidx.room.Update
 import com.fintrack.mobile.data.local.entity.PurchaseEntity
 import com.fintrack.mobile.data.local.entity.PurchaseWithProducts
 import com.fintrack.mobile.data.local.entity.ProductEntity
@@ -26,4 +28,13 @@ interface PurchaseDao {
 
     @Insert
     suspend fun insertProducts(products: List<ProductEntity>)
+
+    @Update
+    suspend fun updatePurchase(purchase: PurchaseEntity)
+
+    @Update
+    suspend fun updateProducts(products: List<ProductEntity>)
+
+    @Delete
+    suspend fun deletePurchase(purchase: PurchaseEntity)
 }

@@ -29,6 +29,20 @@ class PurchaseRepository(
 
     fun observePurchasesWithProducts(): Flow<List<PurchaseWithProducts>> = purchaseDao.observePurchasesWithProducts()
 
+    suspend fun updatePurchase(
+        purchase: PurchaseEntity,
+        products: List<ProductEntity>
+    ) = withContext(Dispatchers.IO) {
+        purchaseDao.updatePurchase(purchase)
+        if (products.isNotEmpty()) {
+            purchaseDao.updateProducts(products)
+        }
+    }
+
+    suspend fun deletePurchase(purchase: PurchaseEntity) = withContext(Dispatchers.IO) {
+        purchaseDao.deletePurchase(purchase)
+    }
+
     suspend fun addPurchase(
         supermarketName: String,
         totalCents: Long,
