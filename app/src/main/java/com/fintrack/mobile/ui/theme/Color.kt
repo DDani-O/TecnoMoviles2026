@@ -20,6 +20,12 @@ val OnSurfaceDark = Color(0xFFE8F6F8)
 
 val OutlineLight = Color(0xFFB6DDE2)
 
+val NeutralWhite = Color(0xFFFFFFFF)
+val NeutralBlack = Color(0xFF000000)
+val NeutralDarkGray = Color(0xFF444444)
+val NeutralLightGray = Color(0xFFCCCCCC)
+val NeutralTransparent = Color(0x00000000)
+
 val CelesteBase = GreenPrimary
 val CelesteSoft = Color(0xFF54BDCA)
 val CelesteDeep = Color(0xFF1E8D9B)

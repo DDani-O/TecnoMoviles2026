@@ -52,6 +52,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.fintrack.mobile.R
+import com.fintrack.mobile.ui.theme.FintrackTheme
 import com.fintrack.mobile.ui.viewmodel.ProfileViewModel
 
 private data class CurrencyOption(
@@ -87,11 +88,7 @@ fun ProfileScreen(
         CurrencyOption("USD", R.string.currency_usd),
     )
     val selectedOption = currencies.firstOrNull { it.code == preferences.currencyCode } ?: currencies.first()
-
-    // Paleta celeste basada en #33B2C3
-    val primaryGradientStart = Color(0xFF33B2C3)
-    val primaryGradientEnd = Color(0xFF7AD1DC)
-    val accentColor = Color(0xFF2B9EAE)
+    val colors = FintrackTheme.colors
 
     Surface(
         modifier = modifier.fillMaxSize(),
@@ -136,9 +133,9 @@ fun ProfileScreen(
                         viewModel.updateDisplayName(displayName)
                         isEditing = false
                     },
-                    primaryGradientStart = primaryGradientStart,
-                    primaryGradientEnd = primaryGradientEnd,
-                    accentColor = accentColor,
+                    primaryGradientStart = colors.profileGradientStart,
+                    primaryGradientEnd = colors.profileGradientEnd,
+                    accentColor = colors.profileAccent,
                 )
             }
 
@@ -194,8 +191,8 @@ fun ProfileScreen(
                     },
                     modifier = Modifier.fillMaxWidth(),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFF8EDAE3),
-                        contentColor = Color(0xFF0F4E57)
+                        containerColor = colors.profileLogoutContainer,
+                        contentColor = colors.profileLogoutContent
                     ),
                     shape = RoundedCornerShape(16.dp)
                 ) {
@@ -242,6 +239,7 @@ private fun ProfileCardSection(
     primaryGradientEnd: Color,
     accentColor: Color,
 ) {
+    val colors = FintrackTheme.colors
     val initials = buildString {
         displayName.trim().firstOrNull()?.let { append(it.uppercaseChar()) }
         lastName.trim().firstOrNull()?.let { append(it.uppercaseChar()) }
@@ -250,7 +248,7 @@ private fun ProfileCardSection(
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.Transparent),
+        colors = CardDefaults.cardColors(containerColor = colors.neutralTransparent),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
         Box(
@@ -268,7 +266,7 @@ private fun ProfileCardSection(
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(
-                        color = Color.White,
+                        color = colors.neutralWhite,
                         shape = RoundedCornerShape(22.dp)
                     )
                     .padding(20.dp),
@@ -294,7 +292,7 @@ private fun ProfileCardSection(
                     Surface(
                         modifier = Modifier.size(64.dp),
                         shape = CircleShape,
-                        color = Color.White.copy(alpha = 0.9f)
+                        color = colors.neutralWhite.copy(alpha = 0.9f)
                     ) {
                         Box(contentAlignment = Alignment.Center) {
                             Text(
@@ -312,7 +310,7 @@ private fun ProfileCardSection(
                                 .size(28.dp)
                                 .clickable(onClick = onChangePhoto),
                             shape = CircleShape,
-                            color = Color.White
+                            color = colors.neutralWhite
                         ) {
                             Box(contentAlignment = Alignment.Center) {
                                 Icon(
@@ -434,7 +432,7 @@ private fun ProfileCardSection(
                         modifier = Modifier.fillMaxWidth(),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = primaryGradientStart,
-                            contentColor = Color.White
+                            contentColor = colors.neutralWhite
                         ),
                         shape = RoundedCornerShape(12.dp)
                     ) {
@@ -465,10 +463,11 @@ private fun SettingCard(
     options: List<CurrencyOption>,
     onOptionClick: (CurrencyOption) -> Unit,
 ) {
+    val colors = FintrackTheme.colors
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = colors.neutralWhite),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
@@ -509,10 +508,11 @@ private fun SettingToggleCard(
     isChecked: Boolean,
     onToggle: (Boolean) -> Unit,
 ) {
+    val colors = FintrackTheme.colors
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = colors.neutralWhite),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Row(

@@ -29,14 +29,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.fintrack.mobile.R
-import com.fintrack.mobile.ui.components.CelesteBase
-import com.fintrack.mobile.ui.components.CelesteInk
-import com.fintrack.mobile.ui.components.CelesteMist
-import com.fintrack.mobile.ui.components.CelesteSoft
 import com.fintrack.mobile.ui.components.EditableProductCard
 import com.fintrack.mobile.ui.components.PurchaseBreakdownCard
 import com.fintrack.mobile.ui.components.PurchaseDataSection
 import com.fintrack.mobile.ui.components.calculatePurchaseTotals
+import com.fintrack.mobile.ui.theme.FintrackTheme
 import com.fintrack.mobile.ui.util.formatDate
 import com.fintrack.mobile.ui.util.formatTime
 import com.fintrack.mobile.ui.util.updateDateMillis
@@ -56,6 +53,7 @@ fun AdjustTicketScreen(
     val dateMillis by viewModel.dateMillis.collectAsStateWithLifecycle()
     val ticketUri by viewModel.ticketUri.collectAsStateWithLifecycle()
     val products by viewModel.products.collectAsStateWithLifecycle()
+    val colors = FintrackTheme.colors
 
     val totals = calculatePurchaseTotals(products)
 
@@ -89,7 +87,7 @@ fun AdjustTicketScreen(
         }
     }
 
-    Surface(modifier = modifier.fillMaxSize(), color = CelesteMist) {
+    Surface(modifier = modifier.fillMaxSize(), color = colors.celesteMist) {
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
@@ -111,16 +109,16 @@ fun AdjustTicketScreen(
             }
             item {
                 Card(
-                    colors = CardDefaults.cardColors(containerColor = androidx.compose.ui.graphics.Color.White),
+                    colors = CardDefaults.cardColors(containerColor = colors.neutralWhite),
                     shape = androidx.compose.foundation.shape.RoundedCornerShape(12.dp),
                     modifier = Modifier
                         .fillMaxWidth()
-                        .border(1.dp, CelesteSoft, androidx.compose.foundation.shape.RoundedCornerShape(12.dp))
+                        .border(1.dp, colors.celesteSoft, androidx.compose.foundation.shape.RoundedCornerShape(12.dp))
                 ) {
                     Text(
                         text = ticketUri ?: stringResource(R.string.purchase_ticket_empty),
                         style = MaterialTheme.typography.bodySmall,
-                        color = CelesteInk,
+                        color = colors.celesteInk,
                         modifier = Modifier.padding(12.dp)
                     )
                 }
@@ -145,13 +143,13 @@ fun AdjustTicketScreen(
                         text = stringResource(R.string.records_products_title),
                         style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.Bold,
-                        color = CelesteInk
+                        color = colors.celesteInk
                     )
                     Button(
                         onClick = { viewModel.addEmptyProduct() },
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = CelesteBase,
-                            contentColor = androidx.compose.ui.graphics.Color.White
+                            containerColor = colors.celesteBase,
+                            contentColor = colors.neutralWhite
                         )
                     ) {
                         Text(text = stringResource(R.string.purchase_add_inline))
@@ -180,8 +178,8 @@ fun AdjustTicketScreen(
                     onClick = onDone,
                     modifier = Modifier.fillMaxWidth(),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = CelesteBase,
-                        contentColor = androidx.compose.ui.graphics.Color.White
+                        containerColor = colors.celesteBase,
+                        contentColor = colors.neutralWhite
                     )
                 ) {
                     Text(text = stringResource(R.string.purchase_adjust_confirm))

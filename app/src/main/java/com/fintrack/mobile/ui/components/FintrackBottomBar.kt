@@ -6,23 +6,20 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import com.fintrack.mobile.ui.navigation.FintrackDestination
+import com.fintrack.mobile.ui.theme.FintrackTheme
 
 @Composable
 fun FintrackBottomBar(
     navController: NavHostController,
     currentRoute: String?,
 ) {
-    val barColor = Color(0xFFE7F7F9)
-    val selectedColor = Color(0xFF33B2C3)
-    val unselectedColor = Color(0xFF6FA8B0)
-    val indicatorColor = Color(0xFFCDEFF3)
+    val colors = FintrackTheme.colors
 
-    NavigationBar(containerColor = barColor) {
+    NavigationBar(containerColor = colors.navBarContainer) {
         FintrackDestination.bottomItems.forEach { destination ->
             val selected = currentRoute == destination.route
             NavigationBarItem(
@@ -46,11 +43,11 @@ fun FintrackBottomBar(
                     Text(text = stringResource(destination.labelRes))
                 },
                 colors = NavigationBarItemDefaults.colors(
-                    selectedIconColor = selectedColor,
-                    selectedTextColor = selectedColor,
-                    indicatorColor = indicatorColor,
-                    unselectedIconColor = unselectedColor,
-                    unselectedTextColor = unselectedColor
+                    selectedIconColor = colors.navBarSelected,
+                    selectedTextColor = colors.navBarSelected,
+                    indicatorColor = colors.navBarIndicator,
+                    unselectedIconColor = colors.navBarUnselected,
+                    unselectedTextColor = colors.navBarUnselected
                 )
             )
         }

@@ -26,23 +26,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.fintrack.mobile.R
+import com.fintrack.mobile.ui.theme.FintrackTheme
 import com.fintrack.mobile.ui.util.formatCurrency
 import com.fintrack.mobile.ui.util.parseCents
 import com.fintrack.mobile.ui.viewmodel.EditableProductDraft
-
-val CelesteBase = Color(0xFF33B2C3)
-val CelesteSoft = Color(0xFF54BDCA)
-val CelesteDeep = Color(0xFF1E8D9B)
-val CelestePale = Color(0xFFD8F4F7)
-val CelesteMist = Color(0xFFF0FBFC)
-val CelesteInk = Color(0xFF1B4B52)
-val PastelRed = Color(0xFFF3A1A1)
 
 data class PurchaseTotals(
     val subtotalCents: Long,
@@ -83,6 +75,8 @@ fun PurchaseDataSection(
     onTimeClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val colors = FintrackTheme.colors
+
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Text(
             text = title,
@@ -90,11 +84,11 @@ fun PurchaseDataSection(
             fontWeight = FontWeight.Bold
         )
         Card(
-            colors = CardDefaults.cardColors(containerColor = Color.White),
+            colors = CardDefaults.cardColors(containerColor = colors.neutralWhite),
             shape = RoundedCornerShape(12.dp),
             modifier = Modifier
                 .fillMaxWidth()
-                .border(1.dp, CelesteSoft, RoundedCornerShape(12.dp))
+                .border(1.dp, colors.celesteSoft, RoundedCornerShape(12.dp))
         ) {
             Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 OutlinedTextField(
@@ -126,7 +120,7 @@ fun PurchaseDataSection(
                     Text(
                         text = stringResource(R.string.action_change_date),
                         style = MaterialTheme.typography.labelSmall,
-                        color = CelesteDeep,
+                        color = colors.celesteDeep,
                         modifier = Modifier
                             .weight(1f)
                             .padding(start = 4.dp)
@@ -135,7 +129,7 @@ fun PurchaseDataSection(
                     Text(
                         text = stringResource(R.string.action_change_time),
                         style = MaterialTheme.typography.labelSmall,
-                        color = CelesteDeep,
+                        color = colors.celesteDeep,
                         modifier = Modifier
                             .weight(1f)
                             .padding(start = 4.dp)
@@ -155,12 +149,14 @@ fun EditableProductCard(
     onRemove: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val colors = FintrackTheme.colors
+
     Card(
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = colors.neutralWhite),
         shape = RoundedCornerShape(12.dp),
         modifier = modifier
             .fillMaxWidth()
-            .border(1.dp, CelesteSoft, RoundedCornerShape(12.dp))
+            .border(1.dp, colors.celesteSoft, RoundedCornerShape(12.dp))
     ) {
         Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Row(
@@ -172,7 +168,7 @@ fun EditableProductCard(
                     text = stringResource(R.string.purchase_product_title, index + 1),
                     style = MaterialTheme.typography.labelMedium,
                     fontWeight = FontWeight.SemiBold,
-                    color = CelesteDeep
+                    color = colors.celesteDeep
                 )
                 IconButton(
                     onClick = onRemove,
@@ -181,7 +177,7 @@ fun EditableProductCard(
                     Icon(
                         imageVector = Icons.Filled.Delete,
                         contentDescription = stringResource(R.string.action_delete_product),
-                        tint = PastelRed,
+                        tint = colors.pastelRed,
                         modifier = Modifier.size(20.dp)
                     )
                 }
@@ -253,8 +249,10 @@ fun PurchaseBreakdownCard(
     currencyCode: String,
     modifier: Modifier = Modifier,
 ) {
+    val colors = FintrackTheme.colors
+
     Card(
-        colors = CardDefaults.cardColors(containerColor = CelestePale),
+        colors = CardDefaults.cardColors(containerColor = colors.celestePale),
         shape = RoundedCornerShape(16.dp),
         modifier = modifier.fillMaxWidth()
     ) {
@@ -281,7 +279,7 @@ fun PurchaseBreakdownCard(
                 label = R.string.records_breakdown_taxes,
                 value = formatCurrency(totals.taxesCents, currencyCode)
             )
-            HorizontalDivider(color = CelesteSoft.copy(alpha = 0.4f))
+            HorizontalDivider(color = colors.celesteSoft.copy(alpha = 0.4f))
             BreakdownRow(
                 label = R.string.records_breakdown_total,
                 value = formatCurrency(totals.totalCents, currencyCode),

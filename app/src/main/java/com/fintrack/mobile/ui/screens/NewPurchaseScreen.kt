@@ -46,13 +46,11 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.fintrack.mobile.R
-import com.fintrack.mobile.ui.components.CelesteBase
-import com.fintrack.mobile.ui.components.CelesteInk
-import com.fintrack.mobile.ui.components.CelesteMist
 import com.fintrack.mobile.ui.components.EditableProductCard
 import com.fintrack.mobile.ui.components.PurchaseBreakdownCard
 import com.fintrack.mobile.ui.components.PurchaseDataSection
 import com.fintrack.mobile.ui.components.calculatePurchaseTotals
+import com.fintrack.mobile.ui.theme.FintrackTheme
 import com.fintrack.mobile.ui.util.formatDate
 import com.fintrack.mobile.ui.util.formatTime
 import com.fintrack.mobile.ui.util.updateDateMillis
@@ -73,6 +71,7 @@ fun NewPurchaseScreen(
     val supermarket by viewModel.supermarket.collectAsStateWithLifecycle()
     val dateMillis by viewModel.dateMillis.collectAsStateWithLifecycle()
     val products by viewModel.products.collectAsStateWithLifecycle()
+    val colors = FintrackTheme.colors
 
     val totals = calculatePurchaseTotals(products)
     var showTicketSheet by rememberSaveable { mutableStateOf(false) }
@@ -145,7 +144,7 @@ fun NewPurchaseScreen(
         }
     }
 
-    Surface(modifier = modifier.fillMaxSize(), color = CelesteMist) {
+    Surface(modifier = modifier.fillMaxSize(), color = colors.celesteMist) {
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
@@ -174,8 +173,8 @@ fun NewPurchaseScreen(
                     Button(
                         onClick = { viewModel.addEmptyProduct() },
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = CelesteBase,
-                            contentColor = androidx.compose.ui.graphics.Color.White
+                            containerColor = colors.celesteBase,
+                            contentColor = colors.neutralWhite
                         ),
                         modifier = Modifier.weight(1f)
                     ) {
@@ -183,10 +182,10 @@ fun NewPurchaseScreen(
                     }
                     OutlinedButton(
                         onClick = { showTicketSheet = true },
-                        border = BorderStroke(1.dp, CelesteBase),
+                        border = BorderStroke(1.dp, colors.celesteBase),
                         modifier = Modifier.weight(1f)
                     ) {
-                        Text(text = stringResource(R.string.purchase_load_ticket), color = CelesteBase)
+                        Text(text = stringResource(R.string.purchase_load_ticket), color = colors.celesteBase)
                     }
                 }
             }
@@ -195,7 +194,7 @@ fun NewPurchaseScreen(
                     text = stringResource(R.string.records_products_title),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
-                    color = CelesteInk
+                    color = colors.celesteInk
                 )
             }
             if (products.isEmpty()) {
@@ -224,8 +223,8 @@ fun NewPurchaseScreen(
                     },
                     modifier = Modifier.fillMaxWidth(),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = CelesteBase,
-                        contentColor = androidx.compose.ui.graphics.Color.White
+                        containerColor = colors.celesteBase,
+                        contentColor = colors.neutralWhite
                     )
                 ) {
                     Text(text = stringResource(R.string.purchase_save))
@@ -238,7 +237,7 @@ fun NewPurchaseScreen(
         ModalBottomSheet(
             onDismissRequest = { showTicketSheet = false },
             sheetState = sheetState,
-            containerColor = CelesteMist
+            containerColor = colors.celesteMist
         ) {
             Column(
                 modifier = Modifier
@@ -258,8 +257,8 @@ fun NewPurchaseScreen(
                     },
                     modifier = Modifier.fillMaxWidth(),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = CelesteBase,
-                        contentColor = androidx.compose.ui.graphics.Color.White
+                        containerColor = colors.celesteBase,
+                        contentColor = colors.neutralWhite
                     )
                 ) {
                     Icon(imageVector = Icons.Filled.UploadFile, contentDescription = null)
@@ -282,12 +281,12 @@ fun NewPurchaseScreen(
                         }
                     },
                     modifier = Modifier.fillMaxWidth(),
-                    border = BorderStroke(1.dp, CelesteBase)
+                    border = BorderStroke(1.dp, colors.celesteBase)
                 ) {
-                    Icon(imageVector = Icons.Filled.CameraAlt, contentDescription = null, tint = CelesteBase)
+                    Icon(imageVector = Icons.Filled.CameraAlt, contentDescription = null, tint = colors.celesteBase)
                     Text(
                         text = stringResource(R.string.purchase_ticket_camera),
-                        color = CelesteBase,
+                        color = colors.celesteBase,
                         modifier = Modifier.padding(start = 8.dp)
                     )
                 }

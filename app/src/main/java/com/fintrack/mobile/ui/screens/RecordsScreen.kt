@@ -72,6 +72,8 @@ import com.fintrack.mobile.R
 import com.fintrack.mobile.data.local.entity.ProductEntity
 import com.fintrack.mobile.data.local.entity.PurchaseEntity
 import com.fintrack.mobile.data.local.entity.PurchaseWithProducts
+import com.fintrack.mobile.ui.theme.FintrackBrandColors
+import com.fintrack.mobile.ui.theme.FintrackTheme
 import com.fintrack.mobile.ui.util.formatCurrency
 import com.fintrack.mobile.ui.util.formatDate
 import com.fintrack.mobile.ui.util.parseCents
@@ -116,7 +118,7 @@ fun RecordsScreen(
             }
             is RecordsUiState.Error -> {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text("Error: ${state.message}", color = Color.Red)
+                    Text("Error: ${state.message}", color = MaterialTheme.colorScheme.error)
                 }
             }
             is RecordsUiState.Success -> {
@@ -224,6 +226,7 @@ private fun HistoryRecordCard(
     onEdit: () -> Unit,
     onDelete: () -> Unit,
 ) {
+    val colors = FintrackTheme.colors
     // Estado local para controlar si el detalle de productos está visible.
     var expanded by rememberSaveable(purchase.purchase.id) { mutableStateOf(false) }
     val subtitleColor = MaterialTheme.colorScheme.onSurfaceVariant
@@ -232,17 +235,17 @@ private fun HistoryRecordCard(
     val discountCents = (subtotalCents * 0.06f).toLong()
     val taxesCents = ((subtotalCents - discountCents) * 0.21f).toLong()
     val totalFinalCents = subtotalCents - discountCents + taxesCents
-    val accent = pastelForSupermarket(purchase.purchase.supermarketName)
+    val accent = pastelForSupermarket(purchase.purchase.supermarketName, colors)
 
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .border(
                 width = 1.dp,
-                color = CelesteDeep.copy(alpha = 0.3f),
+                color = colors.celesteDeep.copy(alpha = 0.3f),
                 shape = RoundedCornerShape(20.dp)
             ),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = colors.neutralWhite),
         shape = RoundedCornerShape(20.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
@@ -290,7 +293,7 @@ private fun HistoryRecordCard(
                     
                     // Etiqueta de "Motivo" o tipo de compra.
                     Surface(
-                        color = PastelGreenPale,
+                        color = colors.pastelGreenPale,
                         shape = RoundedCornerShape(12.dp)
                     ) {
                         Row(
@@ -301,13 +304,13 @@ private fun HistoryRecordCard(
                             Icon(
                                 imageVector = Icons.AutoMirrored.Filled.ReceiptLong,
                                 contentDescription = null,
-                                tint = PastelGreenDeep,
+                                tint = colors.pastelGreenDeep,
                                 modifier = Modifier.size(16.dp)
                             )
                             Text(
                                 text = stringResource(R.string.records_label_reason, reason),
                                 style = MaterialTheme.typography.labelMedium,
-                                color = PastelGreenDeep
+                                color = colors.pastelGreenDeep
                             )
                         }
                     }
@@ -319,14 +322,14 @@ private fun HistoryRecordCard(
                         Icon(
                             imageVector = Icons.Filled.Edit,
                             contentDescription = stringResource(R.string.records_action_edit),
-                            tint = CelesteInk
+                            tint = colors.celesteInk
                         )
                     }
                     IconButton(onClick = onDelete) {
                         Icon(
                             imageVector = Icons.Filled.Delete,
                             contentDescription = stringResource(R.string.records_action_delete),
-                            tint = PastelRed
+                            tint = colors.pastelRed
                         )
                     }
                 }
@@ -343,7 +346,7 @@ private fun HistoryRecordCard(
                         text = stringResource(
                             if (expanded) R.string.records_action_hide_detail else R.string.records_action_view_detail
                         ),
-                        color = CelesteDeep
+                        color = colors.celesteDeep
                     )
                 }
 
@@ -358,7 +361,7 @@ private fun HistoryRecordCard(
                         text = formatCurrency(totalFinalCents, currencyCode),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.ExtraBold,
-                        color = CelesteDeep
+                        color = colors.celesteDeep
                     )
                 }
             }
@@ -390,6 +393,7 @@ private fun PurchaseDetailSection(
     taxesCents: Long,
     totalFinalCents: Long
 ) {
+    val colors = FintrackTheme.colors
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Text(
             text = stringResource(R.string.records_products_title),
@@ -417,7 +421,7 @@ private fun PurchaseDetailSection(
             label = R.string.records_breakdown_taxes,
             value = formatCurrency(taxesCents, currencyCode)
         )
-        HorizontalDivider(color = CelesteSoft.copy(alpha = 0.4f))
+        HorizontalDivider(color = colors.celesteSoft.copy(alpha = 0.4f))
         BreakdownRow(
             label = R.string.records_breakdown_total,
             value = formatCurrency(totalFinalCents, currencyCode),
@@ -431,9 +435,10 @@ private fun PurchaseDetailSection(
  */
 @Composable
 private fun ProductDetailRow(product: ProductEntity, currencyCode: String) {
+    val colors = FintrackTheme.colors
     val lineTotal = product.priceCents * product.quantity.toLong()
     Card(
-        colors = CardDefaults.cardColors(containerColor = CelesteMist),
+        colors = CardDefaults.cardColors(containerColor = colors.celesteMist),
         shape = RoundedCornerShape(16.dp)
     ) {
         Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -486,8 +491,9 @@ private fun ProductDetailRow(product: ProductEntity, currencyCode: String) {
  */
 @Composable
 private fun EmptyHistoryCard() {
+    val colors = FintrackTheme.colors
     Card(
-        colors = CardDefaults.cardColors(containerColor = CelesteMist),
+        colors = CardDefaults.cardColors(containerColor = colors.celesteMist),
         shape = RoundedCornerShape(16.dp),
     ) {
         Text(
@@ -553,6 +559,7 @@ private fun EditPurchaseSheet(
     onDismiss: () -> Unit,
     onSave: (PurchaseEntity, List<ProductEntity>) -> Unit,
 ) {
+    val colors = FintrackTheme.colors
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var supermarket by rememberSaveable(purchase.purchase.id) { mutableStateOf(purchase.purchase.supermarketName) }
     
@@ -595,7 +602,7 @@ private fun EditPurchaseSheet(
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
-        containerColor = CelesteMist
+        containerColor = colors.celesteMist
     ) {
         Column(
             modifier = Modifier
@@ -617,11 +624,11 @@ private fun EditPurchaseSheet(
                 fontWeight = FontWeight.Bold
             )
             Card(
-                colors = CardDefaults.cardColors(containerColor = Color.White),
+                colors = CardDefaults.cardColors(containerColor = colors.neutralWhite),
                 shape = RoundedCornerShape(12.dp),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .border(1.dp, CelesteSoft, RoundedCornerShape(12.dp))
+                    .border(1.dp, colors.celesteSoft, RoundedCornerShape(12.dp))
             ) {
                 Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     OutlinedTextField(
@@ -682,7 +689,7 @@ private fun EditPurchaseSheet(
                         .height(32.dp)
                         .padding(0.dp),
                     contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = CelesteBase, contentColor = Color.White)
+                    colors = ButtonDefaults.buttonColors(containerColor = colors.celesteBase, contentColor = colors.neutralWhite)
                 ) {
                     Text("+ Agregar", style = MaterialTheme.typography.labelSmall)
                 }
@@ -699,11 +706,11 @@ private fun EditPurchaseSheet(
             } else {
                 productStates.forEachIndexed { index, editable ->
                     Card(
-                        colors = CardDefaults.cardColors(containerColor = Color.White),
+                        colors = CardDefaults.cardColors(containerColor = colors.neutralWhite),
                         shape = RoundedCornerShape(12.dp),
                         modifier = Modifier
                             .fillMaxWidth()
-                            .border(1.dp, CelesteSoft, RoundedCornerShape(12.dp))
+                            .border(1.dp, colors.celesteSoft, RoundedCornerShape(12.dp))
                     ) {
                         Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                             // Encabezado con número de producto y botón de eliminar
@@ -716,7 +723,7 @@ private fun EditPurchaseSheet(
                                     text = "Producto ${index + 1}",
                                     style = MaterialTheme.typography.labelMedium,
                                     fontWeight = FontWeight.SemiBold,
-                                    color = CelesteDeep
+                                    color = colors.celesteDeep
                                 )
                                 IconButton(
                                     onClick = { productStates.removeAt(index) },
@@ -725,7 +732,7 @@ private fun EditPurchaseSheet(
                                     Icon(
                                         imageVector = Icons.Filled.Delete,
                                         contentDescription = "Eliminar producto",
-                                        tint = PastelRed,
+                                        tint = colors.pastelRed,
                                         modifier = Modifier.size(20.dp)
                                     )
                                 }
@@ -792,7 +799,7 @@ private fun EditPurchaseSheet(
 
             // Resumen de cálculos
             Card(
-                colors = CardDefaults.cardColors(containerColor = CelestePale),
+                colors = CardDefaults.cardColors(containerColor = colors.celestePale),
                 shape = RoundedCornerShape(16.dp)
             ) {
                 Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -808,7 +815,7 @@ private fun EditPurchaseSheet(
                         label = R.string.records_breakdown_taxes,
                         value = formatCurrency(taxesCents, currencyCode)
                     )
-                    HorizontalDivider(color = CelesteSoft.copy(alpha = 0.4f))
+                    HorizontalDivider(color = colors.celesteSoft.copy(alpha = 0.4f))
                     BreakdownRow(
                         label = R.string.records_breakdown_total,
                         value = formatCurrency(totalFinalCents, currencyCode),
@@ -845,7 +852,7 @@ private fun EditPurchaseSheet(
                     onSave(updatedPurchase, updatedProducts)
                 },
                 modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(containerColor = CelesteBase, contentColor = Color.White)
+                colors = ButtonDefaults.buttonColors(containerColor = colors.celesteBase, contentColor = colors.neutralWhite)
             ) {
                 Text(stringResource(R.string.records_action_save))
             }
@@ -951,8 +958,9 @@ private fun StatsSummaryCard(
     ticketCount: Int,
     currencyCode: String
 ) {
+    val colors = FintrackTheme.colors
     Card(
-        colors = CardDefaults.cardColors(containerColor = CelestePale),
+        colors = CardDefaults.cardColors(containerColor = colors.celestePale),
         shape = RoundedCornerShape(28.dp),
         modifier = Modifier.fillMaxWidth(),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
@@ -972,7 +980,7 @@ private fun StatsSummaryCard(
                     PeriodFilter.YEAR -> "Total del año $selectedYear"
                 },
                 style = MaterialTheme.typography.titleMedium.copy(fontSize = 18.sp),
-                color = CelesteInk
+                color = colors.celesteInk
             )
             Text(
                 text = formatCurrency(totalSpent, currencyCode),
@@ -980,17 +988,17 @@ private fun StatsSummaryCard(
                     fontWeight = FontWeight.ExtraBold,
                     fontSize = 36.sp
                 ),
-                color = CelesteDeep
+                color = colors.celesteDeep
             )
-            HorizontalDivider(color = CelesteSoft.copy(alpha = 0.3f), modifier = Modifier.padding(vertical = 8.dp))
+            HorizontalDivider(color = colors.celesteSoft.copy(alpha = 0.3f), modifier = Modifier.padding(vertical = 8.dp))
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(text = formatCurrency(average, currencyCode), style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold), color = CelesteInk)
-                    Text(text = "Promedio", style = MaterialTheme.typography.bodyMedium, color = CelesteInk.copy(alpha = 0.7f))
+                    Text(text = formatCurrency(average, currencyCode), style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold), color = colors.celesteInk)
+                    Text(text = "Promedio", style = MaterialTheme.typography.bodyMedium, color = colors.celesteInk.copy(alpha = 0.7f))
                 }
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(text = ticketCount.toString(), style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold), color = CelesteInk)
-                    Text(text = "Tickets", style = MaterialTheme.typography.bodyMedium, color = CelesteInk.copy(alpha = 0.7f))
+                    Text(text = ticketCount.toString(), style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold), color = colors.celesteInk)
+                    Text(text = "Tickets", style = MaterialTheme.typography.bodyMedium, color = colors.celesteInk.copy(alpha = 0.7f))
                 }
             }
         }
@@ -1019,12 +1027,13 @@ private fun SpecificMonthSelector(
     onMonthYearSelected: (Int, Int) -> Unit
 ) {
     val months = listOf("Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic")
+    val colors = FintrackTheme.colors
     
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 8.dp)
-            .background(CelestePale.copy(alpha = 0.5f), RoundedCornerShape(16.dp))
+            .background(colors.celestePale.copy(alpha = 0.5f), RoundedCornerShape(16.dp))
             .padding(12.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -1035,11 +1044,11 @@ private fun SpecificMonthSelector(
             verticalAlignment = Alignment.CenterVertically
         ) {
             IconButton(onClick = { onMonthYearSelected(selectedMonth, selectedYear - 1) }) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Año anterior", tint = CelesteDeep)
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Año anterior", tint = colors.celesteDeep)
             }
-            Text(text = selectedYear.toString(), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = CelesteDeep)
+            Text(text = selectedYear.toString(), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = colors.celesteDeep)
             IconButton(onClick = { onMonthYearSelected(selectedMonth, selectedYear + 1) }) {
-                Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = "Año siguiente", tint = CelesteDeep)
+                Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = "Año siguiente", tint = colors.celesteDeep)
             }
         }
         
@@ -1049,11 +1058,11 @@ private fun SpecificMonthSelector(
                 Surface(
                     onClick = { onMonthYearSelected(index, selectedYear) },
                     shape = RoundedCornerShape(12.dp),
-                    color = if (isSelected) CelesteDeep else Color.White,
+                    color = if (isSelected) colors.celesteDeep else colors.neutralWhite,
                     modifier = Modifier.width(60.dp)
                 ) {
                     Box(modifier = Modifier.padding(vertical = 8.dp), contentAlignment = Alignment.Center) {
-                        Text(text = month, style = MaterialTheme.typography.labelLarge, color = if (isSelected) Color.White else CelesteInk, fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal)
+                        Text(text = month, style = MaterialTheme.typography.labelLarge, color = if (isSelected) colors.neutralWhite else colors.celesteInk, fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal)
                     }
                 }
             }
@@ -1066,21 +1075,22 @@ private fun SpecificYearSelector(
     selectedYear: Int,
     onYearSelected: (Int) -> Unit
 ) {
+    val colors = FintrackTheme.colors
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 8.dp)
-            .background(CelestePale.copy(alpha = 0.5f), RoundedCornerShape(16.dp))
+            .background(colors.celestePale.copy(alpha = 0.5f), RoundedCornerShape(16.dp))
             .padding(12.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
         IconButton(onClick = { onYearSelected(selectedYear - 1) }) {
-            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Año anterior", tint = CelesteDeep)
+            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Año anterior", tint = colors.celesteDeep)
         }
-        Text(text = "Año $selectedYear", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = CelesteDeep)
+        Text(text = "Año $selectedYear", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = colors.celesteDeep)
         IconButton(onClick = { onYearSelected(selectedYear + 1) }) {
-            Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = "Año siguiente", tint = CelesteDeep)
+            Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = "Año siguiente", tint = colors.celesteDeep)
         }
     }
 }
@@ -1091,10 +1101,11 @@ private fun PeriodFilterButton(
     selected: Boolean,
     onClick: () -> Unit,
 ) {
+    val colors = FintrackTheme.colors
     Button(
         onClick = onClick,
         modifier = Modifier.height(44.dp).padding(horizontal = 2.dp),
-        colors = ButtonDefaults.buttonColors(containerColor = if (selected) CelesteDeep else CelestePale, contentColor = if (selected) Color.White else CelesteInk),
+        colors = ButtonDefaults.buttonColors(containerColor = if (selected) colors.celesteDeep else colors.celestePale, contentColor = if (selected) colors.neutralWhite else colors.celesteInk),
         contentPadding = PaddingValues(horizontal = 12.dp),
         shape = RoundedCornerShape(12.dp),
         elevation = ButtonDefaults.buttonElevation(defaultElevation = if (selected) 2.dp else 0.dp)
@@ -1109,9 +1120,10 @@ private fun SupermarketPieChartCard(
     currencyCode: String,
 ) {
     val totalSpent = distribution.sumOf { it.second }.toFloat().coerceAtLeast(1f)
+    val colors = FintrackTheme.colors
 
     Card(
-        colors = CardDefaults.cardColors(containerColor = CelesteMist),
+        colors = CardDefaults.cardColors(containerColor = colors.celesteMist),
         shape = RoundedCornerShape(24.dp)
     ) {
         Row(
@@ -1124,7 +1136,7 @@ private fun SupermarketPieChartCard(
                     var startAngle = -90f
                     distribution.forEach { (name, amount) ->
                         val sweepAngle = (amount.toFloat() / totalSpent) * 360f
-                        drawArc(color = pastelForSupermarket(name), startAngle = startAngle, sweepAngle = sweepAngle, useCenter = true)
+                        drawArc(color = pastelForSupermarket(name, colors), startAngle = startAngle, sweepAngle = sweepAngle, useCenter = true)
                         startAngle += sweepAngle
                     }
                 }
@@ -1133,7 +1145,7 @@ private fun SupermarketPieChartCard(
             Column(modifier = Modifier.weight(1.2f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 distribution.take(4).forEach { (name, amount) ->
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Box(modifier = Modifier.size(12.dp).clip(CircleShape).background(pastelForSupermarket(name)))
+                        Box(modifier = Modifier.size(12.dp).clip(CircleShape).background(pastelForSupermarket(name, colors)))
                         Column {
                             Text(text = name, style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold))
                             Text(text = formatCurrency(amount, currencyCode), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -1150,27 +1162,28 @@ private fun ProductPodiumCard(
     ranking: List<ProductRank>
 ) {
     if (ranking.isEmpty()) return
+    val colors = FintrackTheme.colors
 
     Card(
-        colors = CardDefaults.cardColors(containerColor = CelestePale),
+        colors = CardDefaults.cardColors(containerColor = colors.celestePale),
         shape = RoundedCornerShape(24.dp)
     ) {
         Column(modifier = Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(20.dp)) {
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly, verticalAlignment = Alignment.Bottom) {
-                if (ranking.size >= 2) PodiumStep(rank = ranking[1], position = 2, height = 80.dp, color = Color(0xFFC0C0C0))
-                if (ranking.isNotEmpty()) PodiumStep(rank = ranking[0], position = 1, height = 120.dp, color = Color(0xFFFFD700))
-                if (ranking.size >= 3) PodiumStep(rank = ranking[2], position = 3, height = 60.dp, color = Color(0xFFCD7F32))
+                if (ranking.size >= 2) PodiumStep(rank = ranking[1], position = 2, height = 80.dp, color = colors.medalSilver)
+                if (ranking.isNotEmpty()) PodiumStep(rank = ranking[0], position = 1, height = 120.dp, color = colors.medalGold)
+                if (ranking.size >= 3) PodiumStep(rank = ranking[2], position = 3, height = 60.dp, color = colors.medalBronze)
             }
             
             if (ranking.size > 3) {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     ranking.drop(3).forEachIndexed { index, item ->
-                        Row(modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(Color.White.copy(alpha = 0.5f)).padding(12.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                        Row(modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(colors.neutralWhite.copy(alpha = 0.5f)).padding(12.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                                 Text(text = "${index + 4}", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                                 Text(text = item.name, style = MaterialTheme.typography.bodyLarge)
                             }
-                            Text(text = "x${item.quantity}", fontWeight = FontWeight.Bold, color = CelesteDeep)
+                            Text(text = "x${item.quantity}", fontWeight = FontWeight.Bold, color = colors.celesteDeep)
                         }
                     }
                 }
@@ -1181,10 +1194,11 @@ private fun ProductPodiumCard(
 
 @Composable
 private fun PodiumStep(rank: ProductRank, position: Int, height: androidx.compose.ui.unit.Dp, color: Color) {
+    val colors = FintrackTheme.colors
     Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text(text = rank.name, style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold), maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.width(80.dp))
         Box(modifier = Modifier.width(70.dp).height(height).clip(RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)).background(color), contentAlignment = Alignment.Center) {
-            Text(text = position.toString(), style = MaterialTheme.typography.displaySmall.copy(fontWeight = FontWeight.ExtraBold), color = Color.White.copy(alpha = 0.8f))
+            Text(text = position.toString(), style = MaterialTheme.typography.displaySmall.copy(fontWeight = FontWeight.ExtraBold), color = colors.neutralWhite.copy(alpha = 0.8f))
         }
         Text(text = "x${rank.quantity}", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold)
     }
@@ -1192,13 +1206,14 @@ private fun PodiumStep(rank: ProductRank, position: Int, height: androidx.compos
 
 @Composable
 private fun RecordsSectionHeader(title: Any, subtitle: String?) {
+    val colors = FintrackTheme.colors
     Column(verticalArrangement = Arrangement.spacedBy(4.dp), modifier = Modifier.padding(horizontal = 4.dp)) {
         val titleText = when (title) {
             is Int -> stringResource(title)
             is String -> title
             else -> ""
         }
-        Text(text = titleText, style = MaterialTheme.typography.titleLarge.copy(fontSize = 18.sp), fontWeight = FontWeight.Bold, color = CelesteInk)
+        Text(text = titleText, style = MaterialTheme.typography.titleLarge.copy(fontSize = 18.sp), fontWeight = FontWeight.Bold, color = colors.celesteInk)
         subtitle?.let {
             Text(text = it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
@@ -1238,23 +1253,11 @@ private fun formatRawPrice(cents: Long): String {
     return String.format(Locale.US, "%.2f", cents / 100.0)
 }
 
-private fun pastelForSupermarket(name: String): Color {
+private fun pastelForSupermarket(name: String, colors: FintrackBrandColors): Color {
     return when {
-        name.contains("Carrefour", ignoreCase = true) -> PastelBlue
-        name.contains("Coto", ignoreCase = true) -> PastelRed
-        name.contains("Jumbo", ignoreCase = true) -> PastelGreen
-        else -> CelesteSoft
+        name.contains("Carrefour", ignoreCase = true) -> colors.pastelBlue
+        name.contains("Coto", ignoreCase = true) -> colors.pastelRed
+        name.contains("Jumbo", ignoreCase = true) -> colors.pastelGreen
+        else -> colors.celesteSoft
     }
 }
-
-private val CelesteBase = Color(0xFF33B2C3)
-private val CelesteSoft = Color(0xFF54BDCA)
-private val CelesteDeep = Color(0xFF1E8D9B)
-private val CelestePale = Color(0xFFD8F4F7)
-private val CelesteMist = Color(0xFFF0FBFC)
-private val CelesteInk = Color(0xFF1B4B52)
-private val PastelGreenDeep = Color(0xFF5FAF9C)
-private val PastelGreenPale = Color(0xFFE6F6F1)
-private val PastelBlue = Color(0xFF7BB9F1)
-private val PastelRed = Color(0xFFF3A1A1)
-private val PastelGreen = Color(0xFF7BCB85)

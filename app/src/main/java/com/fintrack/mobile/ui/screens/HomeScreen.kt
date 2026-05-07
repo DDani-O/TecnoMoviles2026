@@ -69,6 +69,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.fintrack.mobile.R
 import com.fintrack.mobile.data.local.entity.PurchaseWithProducts
 import com.fintrack.mobile.ui.components.TitleSubtitleCard
+import com.fintrack.mobile.ui.theme.FintrackBrandColors
+import com.fintrack.mobile.ui.theme.FintrackTheme
 import com.fintrack.mobile.ui.util.formatCurrency
 import com.fintrack.mobile.ui.util.formatDate
 import com.fintrack.mobile.ui.util.getSupermarketColors
@@ -121,7 +123,7 @@ fun HomeScreen(
             }
             is HomeUiState.Error -> {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text(text = "Error: ${state.message}", color = Color.Red)
+                    Text(text = "Error: ${state.message}", color = MaterialTheme.colorScheme.error)
                 }
             }
             is HomeUiState.Success -> {
@@ -153,9 +155,10 @@ private fun HomeScreenContent(
     onProfileClick: () -> Unit,
 ) {
     val greetingName = displayName.ifBlank { stringResource(R.string.default_user_name) }
+    val colors = FintrackTheme.colors
 
     // Configuración de ofertas.
-    val offers = remember { getStaticOffers() }
+    val offers = remember(colors) { getStaticOffers(colors) }
     val offerListState = rememberLazyListState()
     var offerIndex by remember { mutableIntStateOf(0) }
 
@@ -243,7 +246,7 @@ private fun HomeScreenContent(
             Spacer(modifier = Modifier.height(12.dp))
             Card(
                 modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(containerColor = CelesteIce),
+                colors = CardDefaults.cardColors(containerColor = colors.celesteIce),
                 shape = RoundedCornerShape(24.dp),
                 elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
             ) {
@@ -262,6 +265,7 @@ private fun HeaderRow(
     onNotificationsClick: () -> Unit,
     onProfileClick: () -> Unit,
 ) {
+    val colors = FintrackTheme.colors
     val notificationCount = 1
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -294,22 +298,22 @@ private fun HeaderRow(
             badge = {
                 Badge(
                     modifier = Modifier.padding(4.dp),
-                    containerColor = CelesteDeep
+                    containerColor = colors.celesteDeep
                 ) {
-                    Text(text = notificationCount.toString(), color = Color.White)
+                    Text(text = notificationCount.toString(), color = colors.neutralWhite)
                 }
             }
         ) {
             Surface(
                 shape = CircleShape,
-                color = CelestePale,
+                color = colors.celestePale,
                 modifier = Modifier.size(48.dp)
             ) {
                 IconButton(onClick = onNotificationsClick) {
                     Icon(
                         imageVector = Icons.Filled.Notifications,
                         contentDescription = stringResource(R.string.home_notifications),
-                        tint = CelesteDeep
+                        tint = colors.celesteDeep
                     )
                 }
             }
@@ -322,10 +326,11 @@ private fun ProfileAvatar(
     displayName: String,
     profileImagePainter: Painter?,
 ) {
+    val colors = FintrackTheme.colors
     Surface(
         modifier = Modifier.size(56.dp),
         shape = CircleShape,
-        color = CelestePale,
+        color = colors.celestePale,
     ) {
         if (profileImagePainter != null) {
             Image(
@@ -341,7 +346,7 @@ private fun ProfileAvatar(
                 Text(
                     text = initialsFor(displayName),
                     style = MaterialTheme.typography.titleMedium,
-                    color = CelesteDeep,
+                    color = colors.celesteDeep,
                 )
             }
         }
@@ -354,13 +359,14 @@ private fun NewsFeedSection(
     currencyCode: String,
     totalCents: Long
 ) {
+    val colors = FintrackTheme.colors
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         SectionHeader(title = R.string.home_news_title, subtitle = R.string.home_news_subtitle)
         if (insights.isEmpty()) {
             TitleSubtitleCard(
                 title = stringResource(R.string.home_news_empty_title),
                 subtitle = stringResource(R.string.home_news_empty_subtitle),
-                containerColor = PastelGreenPale,
+                containerColor = colors.pastelGreenPale,
                 contentPadding = 16.dp,
                 titleStyle = MaterialTheme.typography.titleMedium,
                 subtitleStyle = MaterialTheme.typography.bodyMedium,
@@ -378,7 +384,8 @@ private fun NewsFeedSection(
 @Composable
 private fun InsightCard(insight: HomeInsight, currencyCode: String, totalCents: Long) {
     // Unificamos el color a un verde pastel para todas las noticias.
-    val accent = PastelGreenDeep
+    val colors = FintrackTheme.colors
+    val accent = colors.pastelGreenDeep
     
     val icon = when (insight.iconType) {
         InsightIcon.TRENDING_UP -> Icons.AutoMirrored.Filled.TrendingUp
@@ -414,7 +421,7 @@ private fun InsightCard(insight: HomeInsight, currencyCode: String, totalCents: 
                         Icon(
                             imageVector = icon,
                             contentDescription = null,
-                            tint = Color.White,
+                            tint = colors.neutralWhite,
                             modifier = Modifier.size(28.dp),
                         )
                     }
@@ -442,15 +449,16 @@ private fun InsightCard(insight: HomeInsight, currencyCode: String, totalCents: 
 
 @Composable
 private fun HistoryStatCard(stat: HistoryStat, currencyCode: String) {
+    val colors = FintrackTheme.colors
     Card(
         modifier = Modifier
             .fillMaxWidth(0.72f)
             .border(
                 width = 1.dp,
-                color = IndicatorBorder,
+                color = colors.indicatorBorder,
                 shape = RoundedCornerShape(20.dp)
             ),
-        colors = CardDefaults.cardColors(containerColor = IndicatorBg),
+        colors = CardDefaults.cardColors(containerColor = colors.indicatorBg),
         shape = RoundedCornerShape(20.dp),
     ) {
         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -530,8 +538,8 @@ private fun TicketCard(
     purchase: PurchaseWithProducts,
     currencyCode: String,
 ) {
-    val colors = getSupermarketColors(purchase.purchase.supermarketName)
-    val (bgColor, accentColor, logoRes) = colors
+    val brandColors = FintrackTheme.colors
+    val (bgColor, accentColor, logoRes) = getSupermarketColors(purchase.purchase.supermarketName)
 
     Card(
         modifier = Modifier
@@ -595,23 +603,23 @@ private fun TicketCard(
                             text = product.name.uppercase(),
                             style = MaterialTheme.typography.bodyMedium,
                             fontWeight = FontWeight.Bold,
-                            color = Color.Black
+                            color = brandColors.neutralBlack
                         )
                         Text(
                             text = "PRECIO UNITARIO: ${formatCurrency(product.priceCents, currencyCode)}",
                             style = MaterialTheme.typography.labelMedium,
-                            color = Color.DarkGray
+                            color = brandColors.neutralDarkGray
                         )
                         Text(
                             text = "CANTIDAD: ${product.quantity}",
                             style = MaterialTheme.typography.labelMedium,
-                            color = Color.DarkGray
+                            color = brandColors.neutralDarkGray
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         HorizontalDivider(
                             modifier = Modifier.fillMaxWidth(0.3f),
                             thickness = 0.5.dp,
-                            color = Color.LightGray
+                            color = brandColors.neutralLightGray
                         )
                     }
                 }
@@ -629,10 +637,10 @@ private fun TicketCard(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(text = stringResource(R.string.home_ticket_total), color = Color.White, style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold)
+                    Text(text = stringResource(R.string.home_ticket_total), color = brandColors.neutralWhite, style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold)
                     Text(
                         text = formatCurrency(purchase.purchase.totalCents, currencyCode),
-                        color = Color.White,
+                        color = brandColors.neutralWhite,
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.ExtraBold
                     )
@@ -670,10 +678,11 @@ private fun NotificationsBottomSheet(
     sheetState: androidx.compose.material3.SheetState,
     onDismiss: () -> Unit
 ) {
+    val colors = FintrackTheme.colors
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
-        containerColor = CelesteMist,
+        containerColor = colors.celesteMist,
     ) {
         Column(
             modifier = Modifier
@@ -686,14 +695,14 @@ private fun NotificationsBottomSheet(
                 text = stringResource(R.string.home_notifications),
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
-                color = CelesteDeep
+                color = colors.celesteDeep
             )
 
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .border(1.dp, CelesteSoft, RoundedCornerShape(16.dp)),
-                colors = CardDefaults.cardColors(containerColor = CelestePastel),
+                    .border(1.dp, colors.celesteSoft, RoundedCornerShape(16.dp)),
+                colors = CardDefaults.cardColors(containerColor = colors.celestePastel),
                 shape = RoundedCornerShape(16.dp)
             ) {
                 Row(
@@ -701,14 +710,14 @@ private fun NotificationsBottomSheet(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    Surface(shape = CircleShape, color = CelestePale, modifier = Modifier.size(40.dp)) {
+                    Surface(shape = CircleShape, color = colors.celestePale, modifier = Modifier.size(40.dp)) {
                         Box(contentAlignment = Alignment.Center) {
-                            Icon(imageVector = Icons.Filled.CardGiftcard, contentDescription = null, tint = CelesteDeep)
+                            Icon(imageVector = Icons.Filled.CardGiftcard, contentDescription = null, tint = colors.celesteDeep)
                         }
                     }
                     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                        Text(text = "¡Regalo de bienvenida!", fontWeight = FontWeight.Bold, color = CelesteDeep)
-                        Text(text = "Tienes un 10% de descuento en tu próxima compra.", color = CelesteInk)
+                        Text(text = "¡Regalo de bienvenida!", fontWeight = FontWeight.Bold, color = colors.celesteDeep)
+                        Text(text = "Tienes un 10% de descuento en tu próxima compra.", color = colors.celesteInk)
                     }
                 }
             }
@@ -723,11 +732,12 @@ private fun SummaryCard(
     weeklyStats: List<Long>,
     currencyCode: String,
 ) {
+    val colors = FintrackTheme.colors
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .border(2.dp, CelesteDeep.copy(alpha = 0.15f), RoundedCornerShape(24.dp)),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+            .border(2.dp, colors.celesteDeep.copy(alpha = 0.15f), RoundedCornerShape(24.dp)),
+        colors = CardDefaults.cardColors(containerColor = colors.neutralWhite),
         shape = RoundedCornerShape(24.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
@@ -736,7 +746,7 @@ private fun SummaryCard(
                 Text(
                     text = stringResource(R.string.home_month_summary),
                     style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.ExtraBold),
-                    color = CelesteDeep
+                    color = colors.celesteDeep
                 )
                 Text(
                     text = stringResource(R.string.home_month_summary_subtitle),
@@ -767,13 +777,14 @@ private fun SummaryCard(
 
 @Composable
 private fun SummaryMetric(label: String, value: String, emphasized: Boolean = false) {
+    val colors = FintrackTheme.colors
     Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-        Text(text = label, style = MaterialTheme.typography.labelSmall, color = CelesteDeep.copy(alpha = 0.75f))
+        Text(text = label, style = MaterialTheme.typography.labelSmall, color = colors.celesteDeep.copy(alpha = 0.75f))
         Text(
             text = value,
             style = if (emphasized) MaterialTheme.typography.titleLarge else MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.ExtraBold,
-            color = if (emphasized) CelesteDeep else MaterialTheme.colorScheme.onSurface,
+            color = if (emphasized) colors.celesteDeep else MaterialTheme.colorScheme.onSurface,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis
         )
@@ -783,6 +794,7 @@ private fun SummaryMetric(label: String, value: String, emphasized: Boolean = fa
 @Composable
 private fun BarChart(values: List<Float>, labels: List<String>, amounts: List<String>) {
     val maxValue = values.maxOrNull()?.coerceAtLeast(1f) ?: 1f
+    val colors = FintrackTheme.colors
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Row(
             modifier = Modifier.fillMaxWidth().height(140.dp),
@@ -799,7 +811,7 @@ private fun BarChart(values: List<Float>, labels: List<String>, amounts: List<St
                     Text(
                         text = amounts[index],
                         style = MaterialTheme.typography.labelSmall,
-                        color = CelesteBase,
+                        color = colors.celesteBase,
                         fontSize = 7.sp,
                         fontWeight = FontWeight.Bold,
                         maxLines = 1,
@@ -811,7 +823,7 @@ private fun BarChart(values: List<Float>, labels: List<String>, amounts: List<St
                             .fillMaxWidth()
                             .height((ratio * 90).dp)
                             .clip(RoundedCornerShape(topStart = 6.dp, topEnd = 6.dp))
-                            .background(CelesteBase),
+                            .background(colors.celesteBase),
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(text = labels[index], style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -844,12 +856,13 @@ private fun SupermarketMonthlySpendingSection(stats: List<Pair<String, Long>>, c
 
 @Composable
 private fun CategorySection() {
-    val categories = remember {
+    val colors = FintrackTheme.colors
+    val categories = remember(colors) {
         listOf(
-            CategoryStat(R.string.category_food, 0.45f, Color(0xFF7BB9F1)),
-            CategoryStat(R.string.category_cleaning, 0.2f, Color(0xFFFFD48A)),
-            CategoryStat(R.string.category_home, 0.15f, Color(0xFFF3A1A1)),
-            CategoryStat(R.string.category_other, 0.2f, Color(0xFFD1A6E8)),
+            CategoryStat(R.string.category_food, 0.45f, colors.categoryFood),
+            CategoryStat(R.string.category_cleaning, 0.2f, colors.categoryCleaning),
+            CategoryStat(R.string.category_home, 0.15f, colors.categoryHome),
+            CategoryStat(R.string.category_other, 0.2f, colors.categoryOther),
         )
     }
 
@@ -910,10 +923,10 @@ private data class CategoryStat(
     val color: Color,
 )
 
-private fun getStaticOffers() = listOf(
-    OfferCardState(R.string.home_offer_1_title, R.string.home_offer_1_subtitle, R.string.home_offer_1_detail, OfferPeach),
-    OfferCardState(R.string.home_offer_2_title, R.string.home_offer_2_subtitle, R.string.home_offer_2_detail, OfferLavender),
-    OfferCardState(R.string.home_offer_3_title, R.string.home_offer_3_subtitle, R.string.home_offer_3_detail, OfferSand),
+private fun getStaticOffers(colors: FintrackBrandColors) = listOf(
+    OfferCardState(R.string.home_offer_1_title, R.string.home_offer_1_subtitle, R.string.home_offer_1_detail, colors.offerPeach),
+    OfferCardState(R.string.home_offer_2_title, R.string.home_offer_2_subtitle, R.string.home_offer_2_detail, colors.offerLavender),
+    OfferCardState(R.string.home_offer_3_title, R.string.home_offer_3_subtitle, R.string.home_offer_3_detail, colors.offerSand),
 )
 
 private fun initialsFor(name: String): String {
@@ -921,18 +934,3 @@ private fun initialsFor(name: String): String {
     return if (parts.isEmpty()) "U" else parts.joinToString("") { it.first().uppercase() }
 }
 
-private val CelesteBase = Color(0xFF33B2C3)
-private val CelesteSoft = Color(0xFF54BDCA)
-private val CelesteDeep = Color(0xFF1E8D9B)
-private val CelestePastel = Color(0xFF9FE2EA)
-private val CelestePale = Color(0xFFD8F4F7)
-private val CelesteIce = Color(0xFFE2F7F9)
-private val CelesteMist = Color(0xFFF0FBFC)
-private val CelesteInk = Color(0xFF1B4B52)
-private val PastelGreenDeep = Color(0xFF5FAF9C)
-private val PastelGreenPale = Color(0xFFE6F6F1)
-private val IndicatorBg = Color(0xFFEEF9FA)
-private val IndicatorBorder = Color(0xFFD8F1F3)
-private val OfferPeach = Color(0xFFF1B591)
-private val OfferLavender = Color(0xFFC7B6E8)
-private val OfferSand = Color(0xFFE2C892)
