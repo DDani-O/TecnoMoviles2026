@@ -28,16 +28,20 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Surface
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -46,6 +50,10 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.fintrack.mobile.R
+import com.fintrack.mobile.ui.components.CelesteBase
+import com.fintrack.mobile.ui.components.CelesteDeep
+import com.fintrack.mobile.ui.components.CelesteInk
+import com.fintrack.mobile.ui.components.CelesteMist
 import com.fintrack.mobile.ui.components.EditableProductCard
 import com.fintrack.mobile.ui.components.PurchaseBreakdownCard
 import com.fintrack.mobile.ui.components.PurchaseDataSection
@@ -56,6 +64,7 @@ import com.fintrack.mobile.ui.util.formatTime
 import com.fintrack.mobile.ui.util.updateDateMillis
 import com.fintrack.mobile.ui.util.updateTimeMillis
 import com.fintrack.mobile.ui.viewmodel.PurchaseViewModel
+import kotlinx.coroutines.launch
 import java.io.File
 import java.util.Calendar
 
@@ -65,10 +74,10 @@ fun NewPurchaseScreen(
     currencyCode: String,
     viewModel: PurchaseViewModel,
     onAdjustTicket: () -> Unit,
-    modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
     val supermarket by viewModel.supermarket.collectAsStateWithLifecycle()
+    val reason by viewModel.reason.collectAsStateWithLifecycle()
     val dateMillis by viewModel.dateMillis.collectAsStateWithLifecycle()
     val products by viewModel.products.collectAsStateWithLifecycle()
     val colors = FintrackTheme.colors
@@ -77,6 +86,10 @@ fun NewPurchaseScreen(
     var showTicketSheet by rememberSaveable { mutableStateOf(false) }
     var pendingCameraUri by remember { mutableStateOf<Uri?>(null) }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+    val listState = androidx.compose.foundation.lazy.rememberLazyListState()
 
     val galleryLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.GetContent()
@@ -144,17 +157,25 @@ fun NewPurchaseScreen(
         }
     }
 
-    Surface(modifier = modifier.fillMaxSize(), color = colors.celesteMist) {
+    Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
+        containerColor = colors.celesteMist
+    ) { innerPadding ->
         LazyColumn(
+            state = listState,
             modifier = Modifier
                 .fillMaxSize()
-                .padding(16.dp),
+                .padding(innerPadding)
+                .padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             item {
+                // Título unificado con ExploreScreen
                 Text(
                     text = stringResource(R.string.purchase_title),
-                    style = MaterialTheme.typography.headlineSmall,
+                    style = MaterialTheme.typography.headlineMedium,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = CelesteDeep
                 )
             }
             item {
@@ -162,6 +183,8 @@ fun NewPurchaseScreen(
                     title = stringResource(R.string.purchase_data_title),
                     supermarket = supermarket,
                     onSupermarketChange = viewModel::setSupermarket,
+                    reason = reason,
+                    onReasonChange = viewModel::setReason,
                     dateText = formatDate(dateMillis),
                     timeText = formatTime(dateMillis),
                     onDateClick = openDatePicker,
@@ -171,7 +194,13 @@ fun NewPurchaseScreen(
             item {
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     Button(
-                        onClick = { viewModel.addEmptyProduct() },
+                        onClick = {
+                            viewModel.addEmptyProduct()
+                            // Scroll al inicio para ver el nuevo producto inmediatamente
+                            scope.launch {
+                                listState.animateScrollToItem(0)
+                            }
+                        },
                         colors = ButtonDefaults.buttonColors(
                             containerColor = colors.celesteBase,
                             contentColor = colors.neutralWhite
@@ -219,6 +248,9 @@ fun NewPurchaseScreen(
                     onClick = {
                         if (totals.totalCents > 0L && supermarket.isNotBlank()) {
                             viewModel.savePurchase(totals.totalCents)
+                            scope.launch {
+                                snackbarHostState.showSnackbar("Compra guardada correctamente")
+                            }
                         }
                     },
                     modifier = Modifier.fillMaxWidth(),
