@@ -31,6 +31,5 @@ object Routes {
     const val WELCOME = "welcome"
     const val LOGIN = "login"
     const val REGISTER = "register"
-    const val ADD_PRODUCTS = "add_products"
     const val ADJUST_TICKET = "adjust_ticket"
 }

@@ -15,7 +15,6 @@ import androidx.navigation.compose.rememberNavController
 import com.fintrack.mobile.ui.components.FintrackBottomBar
 import com.fintrack.mobile.ui.navigation.FintrackDestination
 import com.fintrack.mobile.ui.navigation.Routes
-import com.fintrack.mobile.ui.screens.AddProductsScreen
 import com.fintrack.mobile.ui.screens.AdjustTicketScreen
 import com.fintrack.mobile.ui.screens.ExploreScreen
 import com.fintrack.mobile.ui.screens.HomeScreen
@@ -118,23 +117,19 @@ fun FintrackApp(container: AppContainer) {
                     NewPurchaseScreen(
                         currencyCode = preferences.currencyCode,
                         viewModel = viewModel,
-                        onAddProducts = { navController.navigate(Routes.ADD_PRODUCTS) },
                         onAdjustTicket = { navController.navigate(Routes.ADJUST_TICKET) }
                     )
                 }
-                composable(Routes.ADD_PRODUCTS) { entry ->
+                composable(Routes.ADJUST_TICKET) { entry ->
                     val parentEntry = remember(entry) {
                         navController.getBackStackEntry(FintrackDestination.NewPurchase.route)
                     }
                     val viewModel: PurchaseViewModel = viewModel(parentEntry, factory = viewModelFactory)
-                    AddProductsScreen(
-                        viewModel = viewModel,
+                    AdjustTicketScreen(
                         currencyCode = preferences.currencyCode,
+                        viewModel = viewModel,
                         onDone = { navController.popBackStack() }
                     )
-                }
-                composable(Routes.ADJUST_TICKET) {
-                    AdjustTicketScreen(onDone = { navController.popBackStack() })
                 }
                 composable(FintrackDestination.Records.route) {
                     val viewModel: RecordsViewModel = viewModel(factory = viewModelFactory)

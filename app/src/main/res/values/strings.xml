@@ -29,17 +29,26 @@
     <string name="placeholder_supermarket">Ej: Carrefour</string>
     <string name="label_total">Total</string>
     <string name="placeholder_total">Ej: 15230</string>
+    <string name="label_date">Fecha</string>
+    <string name="label_time">Hora</string>
     <string name="label_product_name">Producto</string>
     <string name="placeholder_product_name">Ej: Leche</string>
     <string name="label_product_quantity">Cantidad</string>
     <string name="placeholder_product_quantity">Ej: 2</string>
     <string name="label_product_price">Precio</string>
     <string name="placeholder_product_price">Ej: 1200</string>
+    <string name="label_product_id">ID</string>
+    <string name="label_product_code_optional">Codigo (opcional)</string>
+    <string name="label_product_description_optional">Descripcion (opcional)</string>
+    <string name="label_product_discount">Desc.</string>
 
     <string name="action_login">Iniciar sesion</string>
     <string name="action_register">Crear cuenta</string>
     <string name="action_done">Listo</string>
     <string name="action_back">Volver</string>
+    <string name="action_change_date">Cambiar fecha</string>
+    <string name="action_change_time">Cambiar hora</string>
+    <string name="action_delete_product">Eliminar producto</string>
 
     <string name="home_greeting">Hola, %1$s 👋</string>
     <string name="home_welcome">¿Qué tesoros (y ofertas) encontraremos hoy??</string>
@@ -131,15 +140,24 @@
     <string name="promo_subtitle_3">Productos de hogar con rebaja</string>
 
     <string name="purchase_title">Nueva compra</string>
-    <string name="purchase_add_products">Agregar productos</string>
     <string name="purchase_adjust_ticket">Ajustar ticket</string>
     <string name="purchase_products_title">Productos agregados</string>
     <string name="purchase_save">Guardar compra</string>
+    <string name="purchase_data_title">Datos de la compra</string>
+    <string name="purchase_load_product">Cargar producto</string>
+    <string name="purchase_load_ticket">Cargar ticket</string>
+    <string name="purchase_products_empty">No hay productos. Agrega uno para continuar.</string>
+    <string name="purchase_ticket_sheet_title">Subir ticket</string>
+    <string name="purchase_ticket_gallery">Subir archivo</string>
+    <string name="purchase_ticket_camera">Sacar foto</string>
+    <string name="purchase_ticket_title">Ticket cargado</string>
+    <string name="purchase_ticket_empty">Aun no se cargo un ticket</string>
+    <string name="purchase_add_inline">+ Agregar</string>
+    <string name="purchase_adjust_confirm">Confirmar ajuste</string>
+    <string name="purchase_product_title">Producto %1$d</string>
+    <string name="purchase_breakdown_discount">Descuento</string>
     <string name="product_line_item">%1$d x %2$s</string>
 
-    <string name="add_products_title">Agregar productos</string>
-    <string name="add_products_button">Agregar</string>
-    <string name="add_products_empty">Sin productos aun</string>
 
     <string name="adjust_ticket_title">Ajustar ticket</string>
     <string name="adjust_ticket_discount">Descuento: %1$d%%</string>
