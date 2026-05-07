@@ -41,7 +41,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -50,10 +49,6 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.fintrack.mobile.R
-import com.fintrack.mobile.ui.components.CelesteBase
-import com.fintrack.mobile.ui.components.CelesteDeep
-import com.fintrack.mobile.ui.components.CelesteInk
-import com.fintrack.mobile.ui.components.CelesteMist
 import com.fintrack.mobile.ui.components.EditableProductCard
 import com.fintrack.mobile.ui.components.PurchaseBreakdownCard
 import com.fintrack.mobile.ui.components.PurchaseDataSection
@@ -175,7 +170,7 @@ fun NewPurchaseScreen(
                     text = stringResource(R.string.purchase_title),
                     style = MaterialTheme.typography.headlineMedium,
                     fontWeight = FontWeight.ExtraBold,
-                    color = CelesteDeep
+                    color = colors.celesteDeep
                 )
             }
             item {

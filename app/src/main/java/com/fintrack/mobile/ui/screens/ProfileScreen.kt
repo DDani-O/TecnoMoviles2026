@@ -44,7 +44,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -87,6 +86,7 @@ fun ProfileScreen(
     )
     val selectedOption = currencies.firstOrNull { it.code == preferences.currencyCode } ?: currencies.first()
     val colors = FintrackTheme.colors
+    val titleColor = colors.celesteInk
 
     Surface(
         modifier = modifier.fillMaxSize(),
@@ -187,7 +187,7 @@ fun ProfileScreen(
                     onClick = onOpenSettings,
                     modifier = Modifier.fillMaxWidth(),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFFE0F7F9),
+                        containerColor = colors.celesteIce,
                         contentColor = titleColor
                     ),
                     shape = RoundedCornerShape(16.dp)

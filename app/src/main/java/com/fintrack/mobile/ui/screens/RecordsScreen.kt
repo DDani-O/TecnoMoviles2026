@@ -113,6 +113,7 @@ fun RecordsScreen(
     modifier: Modifier = Modifier,
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val colors = FintrackTheme.colors
     
     // Estado local para navegación y diálogos
     var selectedTab by rememberSaveable { mutableIntStateOf(0) }
@@ -128,7 +129,7 @@ fun RecordsScreen(
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         modifier = modifier.fillMaxSize(),
-        containerColor = CelesteMist
+        containerColor = colors.celesteMist
     ) { innerPadding ->
         when (val state = uiState) {
             is RecordsUiState.Loading -> {
@@ -148,7 +149,7 @@ fun RecordsScreen(
                         text = stringResource(R.string.records_title),
                         style = MaterialTheme.typography.headlineMedium,
                         fontWeight = FontWeight.ExtraBold,
-                        color = CelesteDeep
+                        color = colors.celesteDeep
                     )
                     Spacer(modifier = Modifier.height(12.dp))
                     
@@ -714,9 +715,9 @@ private fun EditPurchaseSheet(
                             readOnly = true,
                             enabled = false,
                             colors = androidx.compose.material3.OutlinedTextFieldDefaults.colors(
-                                disabledTextColor = Color.Black,
-                                disabledBorderColor = CelesteSoft,
-                                disabledLabelColor = CelesteInk
+                                disabledTextColor = colors.neutralBlack,
+                                disabledBorderColor = colors.celesteSoft,
+                                disabledLabelColor = colors.celesteInk
                             )
                         )
                         OutlinedTextField(
@@ -727,9 +728,9 @@ private fun EditPurchaseSheet(
                             readOnly = true,
                             enabled = false,
                             colors = androidx.compose.material3.OutlinedTextFieldDefaults.colors(
-                                disabledTextColor = Color.Black,
-                                disabledBorderColor = CelesteSoft,
-                                disabledLabelColor = CelesteInk
+                                disabledTextColor = colors.neutralBlack,
+                                disabledBorderColor = colors.celesteSoft,
+                                disabledLabelColor = colors.celesteInk
                             )
                         )
                     }
@@ -794,7 +795,7 @@ private fun EditPurchaseSheet(
                     Card(
                         colors = CardDefaults.cardColors(
                             // Fondo celeste pastel suave para nuevos productos
-                            containerColor = if (isNewProduct) CelestePale else colors.neutralWhite
+                            containerColor = if (isNewProduct) colors.celestePale else colors.neutralWhite
                         ),
                         shape = RoundedCornerShape(12.dp),
                         modifier = Modifier
@@ -802,7 +803,7 @@ private fun EditPurchaseSheet(
                             .border(
                                 width = 1.dp,
                                 // Borde celeste suave para diferenciación estética
-                                color = if (isNewProduct) CelesteSoft else CelesteSoft.copy(alpha = 0.5f),
+                                color = if (isNewProduct) colors.celesteSoft else colors.celesteSoft.copy(alpha = 0.5f),
                                 shape = RoundedCornerShape(12.dp)
                             )
                     ) {
@@ -817,7 +818,7 @@ private fun EditPurchaseSheet(
                                     text = if (isNewProduct) "Nuevo Producto" else "Producto ${index + 1}",
                                     style = MaterialTheme.typography.labelMedium,
                                     fontWeight = FontWeight.SemiBold,
-                                    color = if (isNewProduct) CelesteDeep else colors.celesteDeep
+                                    color = colors.celesteDeep
                                 )
                                 IconButton(
                                     onClick = { productStates.removeAt(index) },
