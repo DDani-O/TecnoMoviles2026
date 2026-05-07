@@ -51,12 +51,13 @@ class PurchaseRepository(
     suspend fun addPurchase(
         supermarketName: String,
         totalCents: Long,
+        dateMillis: Long,
         products: List<NewProduct>
     ) = withContext(Dispatchers.IO) {
         val purchaseId = purchaseDao.insertPurchase(
             PurchaseEntity(
                 supermarketName = supermarketName,
-                dateMillis = System.currentTimeMillis(),
+                dateMillis = dateMillis,
                 totalCents = totalCents
             )
         )

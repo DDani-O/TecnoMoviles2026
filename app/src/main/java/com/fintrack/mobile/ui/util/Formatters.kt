@@ -7,6 +7,7 @@ import java.util.Date
 import java.util.Locale
 import java.math.BigDecimal
 import java.math.RoundingMode
+import java.util.Calendar
 
 fun formatCurrency(cents: Long, currencyCode: String): String {
     val locale = if (currencyCode == "ARS") {
@@ -25,6 +26,12 @@ fun formatDate(dateMillis: Long): String {
     return formatter.format(Date(dateMillis))
 }
 
+fun formatTime(dateMillis: Long): String {
+    val locale = Locale.Builder().setLanguage("es").setRegion("AR").build()
+    val formatter = DateFormat.getTimeInstance(DateFormat.SHORT, locale)
+    return formatter.format(Date(dateMillis))
+}
+
 fun parseCents(input: String): Long {
     val normalized = input.trim().replace(",", ".")
     if (normalized.isBlank()) return 0L
@@ -34,6 +41,23 @@ fun parseCents(input: String): Long {
     } catch (_: Exception) {
         0L
     }
+}
+
+fun updateDateMillis(currentMillis: Long, year: Int, month: Int, dayOfMonth: Int): Long {
+    val calendar = Calendar.getInstance().apply { timeInMillis = currentMillis }
+    calendar.set(Calendar.YEAR, year)
+    calendar.set(Calendar.MONTH, month)
+    calendar.set(Calendar.DAY_OF_MONTH, dayOfMonth)
+    return calendar.timeInMillis
+}
+
+fun updateTimeMillis(currentMillis: Long, hourOfDay: Int, minute: Int): Long {
+    val calendar = Calendar.getInstance().apply { timeInMillis = currentMillis }
+    calendar.set(Calendar.HOUR_OF_DAY, hourOfDay)
+    calendar.set(Calendar.MINUTE, minute)
+    calendar.set(Calendar.SECOND, 0)
+    calendar.set(Calendar.MILLISECOND, 0)
+    return calendar.timeInMillis
 }
 
 data class SupermarketColors(
