@@ -877,7 +877,7 @@ private fun StatsTab(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             RecordsSectionHeader(
-                title = R.string.records_stats_period_title, 
+                title = R.string.records_stats_period_title,
                 subtitle = "Selecciona el tiempo que quieres analizar"
             )
             
@@ -923,13 +923,13 @@ private fun StatsTab(
         )
 
         RecordsSectionHeader(
-            title = R.string.records_stats_distribution_title, 
+            title = R.string.records_stats_distribution_title,
             subtitle = "Dónde gastaste más en este periodo"
         )
         SupermarketPieChartCard(distribution = statsData.supermarketDistribution, currencyCode = currencyCode)
 
         RecordsSectionHeader(
-            title = R.string.records_stats_ranking_title, 
+            title = R.string.records_stats_ranking_title,
             subtitle = "Los productos que más compraste"
         )
         ProductPodiumCard(ranking = statsData.productRanking)
