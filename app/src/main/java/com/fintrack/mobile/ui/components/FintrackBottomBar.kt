@@ -1,6 +1,7 @@
 package com.fintrack.mobile.ui.components
 
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
@@ -43,7 +44,12 @@ fun FintrackBottomBar(
                     )
                 },
                 label = {
-                    Text(text = stringResource(destination.labelRes))
+                    Text(
+                        text = stringResource(destination.labelRes),
+                        style = MaterialTheme.typography.labelSmall,
+                        maxLines = 1,
+                        softWrap = false
+                    )
                 },
                 colors = NavigationBarItemDefaults.colors(
                     selectedIconColor = selectedColor,

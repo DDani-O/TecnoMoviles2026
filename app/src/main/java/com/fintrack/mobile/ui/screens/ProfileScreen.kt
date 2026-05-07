@@ -16,7 +16,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material3.Button
@@ -29,7 +28,6 @@ import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
@@ -92,6 +90,7 @@ fun ProfileScreen(
     val primaryGradientStart = Color(0xFF33B2C3)
     val primaryGradientEnd = Color(0xFF7AD1DC)
     val accentColor = Color(0xFF2B9EAE)
+    val titleColor = Color(0xFF1E8D9B)
 
     Surface(
         modifier = modifier.fillMaxSize(),
@@ -104,12 +103,13 @@ fun ProfileScreen(
             contentPadding = androidx.compose.foundation.layout.PaddingValues(vertical = 16.dp),
             verticalArrangement = Arrangement.spacedBy(20.dp),
         ) {
-            // ENCABEZADO
+            // ENCABEZADO - Título unificado con ExploreScreen
             item {
                 Text(
                     text = stringResource(R.string.profile_title),
                     style = MaterialTheme.typography.headlineMedium,
                     fontWeight = FontWeight.ExtraBold,
+                    color = titleColor,
                     modifier = Modifier.padding(bottom = 8.dp)
                 )
             }
@@ -183,6 +183,25 @@ fun ProfileScreen(
                     isChecked = notificationsEnabled,
                     onToggle = { notificationsEnabled = it }
                 )
+            }
+
+            // CONFIGURACIÓN AVANZADA
+            item {
+                Button(
+                    onClick = onOpenSettings,
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFFE0F7F9),
+                        contentColor = titleColor
+                    ),
+                    shape = RoundedCornerShape(16.dp)
+                ) {
+                    Text(
+                        text = stringResource(R.string.profile_open_settings),
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
             }
 
             // CERRAR SESIÓN
@@ -531,50 +550,6 @@ private fun SettingToggleCard(
                 checked = isChecked,
                 onCheckedChange = onToggle
             )
-        }
-    }
-}
-
-@Composable
-private fun SettingActionCard(
-    title: String,
-    subtitle: String,
-    actionColor: Color,
-) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = actionColor.copy(alpha = 0.1f)),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = FontWeight.Bold,
-                    color = actionColor
-                )
-                Text(
-                    text = subtitle,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-            IconButton(onClick = {}) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-                    contentDescription = null,
-                    tint = actionColor,
-                    modifier = Modifier.size(20.dp)
-                )
-            }
         }
     }
 }

@@ -4,7 +4,7 @@
 
     <string name="nav_home">Inicio</string>
     <string name="nav_explore">Explorar</string>
-    <string name="nav_new_purchase">Nueva compra</string>
+    <string name="nav_new_purchase">Nuevo</string>
     <string name="nav_records">Registros</string>
     <string name="nav_profile">Yo</string>
 
@@ -27,6 +27,8 @@
     <string name="placeholder_birth_date">DD/MM/AAAA</string>
     <string name="label_supermarket">Supermercado</string>
     <string name="placeholder_supermarket">Ej: Carrefour</string>
+    <string name="label_purchase_reason">Motivo de la compra</string>
+    <string name="placeholder_purchase_reason">Ej: Compra mensual (opcional)</string>
     <string name="label_total">Total</string>
     <string name="placeholder_total">Ej: 15230</string>
     <string name="label_date">Fecha</string>

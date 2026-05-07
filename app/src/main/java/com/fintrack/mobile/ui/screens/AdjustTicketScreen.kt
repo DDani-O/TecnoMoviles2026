@@ -5,7 +5,6 @@ import android.app.TimePickerDialog
 import android.text.format.DateFormat
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -39,6 +38,7 @@ import com.fintrack.mobile.ui.components.PurchaseDataSection
 import com.fintrack.mobile.ui.components.calculatePurchaseTotals
 import com.fintrack.mobile.ui.util.formatDate
 import com.fintrack.mobile.ui.util.formatTime
+import kotlinx.coroutines.launch
 import com.fintrack.mobile.ui.util.updateDateMillis
 import com.fintrack.mobile.ui.util.updateTimeMillis
 import com.fintrack.mobile.ui.viewmodel.PurchaseViewModel
@@ -53,9 +53,12 @@ fun AdjustTicketScreen(
 ) {
     val context = LocalContext.current
     val supermarket by viewModel.supermarket.collectAsStateWithLifecycle()
+    val reason by viewModel.reason.collectAsStateWithLifecycle()
     val dateMillis by viewModel.dateMillis.collectAsStateWithLifecycle()
     val ticketUri by viewModel.ticketUri.collectAsStateWithLifecycle()
     val products by viewModel.products.collectAsStateWithLifecycle()
+    val listState = androidx.compose.foundation.lazy.rememberLazyListState()
+    val scope = androidx.compose.runtime.rememberCoroutineScope()
 
     val totals = calculatePurchaseTotals(products)
 
@@ -91,6 +94,7 @@ fun AdjustTicketScreen(
 
     Surface(modifier = modifier.fillMaxSize(), color = CelesteMist) {
         LazyColumn(
+            state = listState,
             modifier = Modifier
                 .fillMaxSize()
                 .padding(16.dp),
@@ -130,6 +134,8 @@ fun AdjustTicketScreen(
                     title = stringResource(R.string.purchase_data_title),
                     supermarket = supermarket,
                     onSupermarketChange = viewModel::setSupermarket,
+                    reason = reason,
+                    onReasonChange = viewModel::setReason,
                     dateText = formatDate(dateMillis),
                     timeText = formatTime(dateMillis),
                     onDateClick = openDatePicker,
@@ -148,7 +154,13 @@ fun AdjustTicketScreen(
                         color = CelesteInk
                     )
                     Button(
-                        onClick = { viewModel.addEmptyProduct() },
+                        onClick = {
+                            viewModel.addEmptyProduct()
+                            // Scroll al inicio para ver el nuevo producto
+                            scope.launch {
+                                listState.animateScrollToItem(0)
+                            }
+                        },
                         colors = ButtonDefaults.buttonColors(
                             containerColor = CelesteBase,
                             contentColor = androidx.compose.ui.graphics.Color.White

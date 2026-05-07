@@ -77,6 +77,8 @@ fun PurchaseDataSection(
     title: String,
     supermarket: String,
     onSupermarketChange: (String) -> Unit,
+    reason: String,
+    onReasonChange: (String) -> Unit,
     dateText: String,
     timeText: String,
     onDateClick: () -> Unit,
@@ -101,6 +103,14 @@ fun PurchaseDataSection(
                     value = supermarket,
                     onValueChange = onSupermarketChange,
                     label = { Text(stringResource(R.string.label_supermarket)) },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true
+                )
+                OutlinedTextField(
+                    value = reason,
+                    onValueChange = onReasonChange,
+                    label = { Text(stringResource(R.string.label_purchase_reason)) },
+                    placeholder = { Text(stringResource(R.string.placeholder_purchase_reason)) },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true
                 )

@@ -1,9 +1,12 @@
 package com.fintrack.mobile.ui.screens
 
+import android.app.DatePickerDialog
+import android.app.TimePickerDialog
 import androidx.annotation.StringRes
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -46,6 +49,9 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.PrimaryTabRow
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -53,15 +59,18 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -75,12 +84,16 @@ import com.fintrack.mobile.data.local.entity.PurchaseWithProducts
 import com.fintrack.mobile.ui.util.formatCurrency
 import com.fintrack.mobile.ui.util.formatDate
 import com.fintrack.mobile.ui.util.parseCents
+import com.fintrack.mobile.ui.util.updateDateMillis
+import com.fintrack.mobile.ui.util.updateTimeMillis
 import com.fintrack.mobile.ui.viewmodel.PeriodFilter
 import com.fintrack.mobile.ui.viewmodel.ProductRank
 import com.fintrack.mobile.ui.viewmodel.RecordsUiState
 import com.fintrack.mobile.ui.viewmodel.RecordsViewModel
 import com.fintrack.mobile.ui.viewmodel.StatsData
+import kotlinx.coroutines.launch
 import java.text.DateFormat
+import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 
@@ -103,28 +116,37 @@ fun RecordsScreen(
     var selectedTab by rememberSaveable { mutableIntStateOf(0) }
     var editingPurchase by remember { mutableStateOf<PurchaseWithProducts?>(null) }
     var deleteTarget by remember { mutableStateOf<PurchaseEntity?>(null) }
+    
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
 
     val onDismissEdit = remember { { editingPurchase = null } }
     val onDismissDelete = remember { { deleteTarget = null } }
 
-    Surface(modifier = modifier.fillMaxSize()) {
+    Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
+        modifier = modifier.fillMaxSize(),
+        containerColor = CelesteMist
+    ) { innerPadding ->
         when (val state = uiState) {
             is RecordsUiState.Loading -> {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Box(modifier = Modifier.fillMaxSize().padding(innerPadding), contentAlignment = Alignment.Center) {
                     Text("Cargando registros...")
                 }
             }
             is RecordsUiState.Error -> {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Box(modifier = Modifier.fillMaxSize().padding(innerPadding), contentAlignment = Alignment.Center) {
                     Text("Error: ${state.message}", color = Color.Red)
                 }
             }
             is RecordsUiState.Success -> {
-                Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
+                Column(modifier = Modifier.fillMaxSize().padding(innerPadding).padding(16.dp)) {
+                    // Título unificado con ExploreScreen
                     Text(
                         text = stringResource(R.string.records_title),
-                        style = MaterialTheme.typography.headlineSmall,
-                        fontWeight = FontWeight.Bold
+                        style = MaterialTheme.typography.headlineMedium,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = CelesteDeep
                     )
                     Spacer(modifier = Modifier.height(12.dp))
                     
@@ -170,6 +192,9 @@ fun RecordsScreen(
             onSave = { updatedPurchase, updatedProducts ->
                 viewModel.updatePurchase(updatedPurchase, updatedProducts)
                 onDismissEdit()
+                scope.launch {
+                    snackbarHostState.showSnackbar("Cambios guardados con éxito")
+                }
             }
         )
     }
@@ -227,7 +252,7 @@ private fun HistoryRecordCard(
     // Estado local para controlar si el detalle de productos está visible.
     var expanded by rememberSaveable(purchase.purchase.id) { mutableStateOf(false) }
     val subtitleColor = MaterialTheme.colorScheme.onSurfaceVariant
-    val reason = remember(purchase) { inferReason(purchase) }
+    val displayReason = purchase.purchase.reason.ifBlank { inferReason(purchase) }
     val subtotalCents = purchase.products.sumOf { it.priceCents * it.quantity.toLong() }
     val discountCents = (subtotalCents * 0.06f).toLong()
     val taxesCents = ((subtotalCents - discountCents) * 0.21f).toLong()
@@ -305,7 +330,7 @@ private fun HistoryRecordCard(
                                 modifier = Modifier.size(16.dp)
                             )
                             Text(
-                                text = stringResource(R.string.records_label_reason, reason),
+                                text = stringResource(R.string.records_label_reason, displayReason),
                                 style = MaterialTheme.typography.labelMedium,
                                 color = PastelGreenDeep
                             )
@@ -553,12 +578,46 @@ private fun EditPurchaseSheet(
     onDismiss: () -> Unit,
     onSave: (PurchaseEntity, List<ProductEntity>) -> Unit,
 ) {
+    val context = LocalContext.current
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val scrollState = rememberScrollState()
+    val scope = rememberCoroutineScope()
     var supermarket by rememberSaveable(purchase.purchase.id) { mutableStateOf(purchase.purchase.supermarketName) }
+    var reason by rememberSaveable(purchase.purchase.id) { mutableStateOf(purchase.purchase.reason) }
     
-    // Estado para fecha y hora
-    var editDate by rememberSaveable { mutableStateOf(formatDate(purchase.purchase.dateMillis)) }
-    var editTime by rememberSaveable { mutableStateOf(formatTime(purchase.purchase.dateMillis)) }
+    // Estado para fecha y hora (mantenido en milisegundos para consistencia lógica)
+    var dateMillis by rememberSaveable(purchase.purchase.id) { mutableLongStateOf(purchase.purchase.dateMillis) }
+    
+    // Selectores de fecha y hora (replicando NewPurchaseScreen)
+    val openDatePicker = remember(context, dateMillis) {
+        {
+            val calendar = Calendar.getInstance().apply { timeInMillis = dateMillis }
+            DatePickerDialog(
+                context,
+                { _, year, month, dayOfMonth ->
+                    dateMillis = updateDateMillis(dateMillis, year, month, dayOfMonth)
+                },
+                calendar.get(Calendar.YEAR),
+                calendar.get(Calendar.MONTH),
+                calendar.get(Calendar.DAY_OF_MONTH)
+            ).show()
+        }
+    }
+
+    val openTimePicker = remember(context, dateMillis) {
+        {
+            val calendar = Calendar.getInstance().apply { timeInMillis = dateMillis }
+            TimePickerDialog(
+                context,
+                { _, hour, minute ->
+                    dateMillis = updateTimeMillis(dateMillis, hour, minute)
+                },
+                calendar.get(Calendar.HOUR_OF_DAY),
+                calendar.get(Calendar.MINUTE),
+                android.text.format.DateFormat.is24HourFormat(context)
+            ).show()
+        }
+    }
     
     val defaultProductDesc = stringResource(R.string.records_product_desc_placeholder)
     val productStates = remember(purchase) {
@@ -601,7 +660,7 @@ private fun EditPurchaseSheet(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp)
-                .verticalScroll(rememberScrollState()),
+                .verticalScroll(scrollState),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Text(
@@ -627,24 +686,44 @@ private fun EditPurchaseSheet(
                     OutlinedTextField(
                         value = supermarket,
                         onValueChange = { supermarket = it },
-                        label = { Text("Supermercado") },
+                        label = { Text(stringResource(R.string.label_supermarket)) },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true
+                    )
+                    OutlinedTextField(
+                        value = reason,
+                        onValueChange = { reason = it },
+                        label = { Text(stringResource(R.string.label_purchase_reason)) },
+                        placeholder = { Text(stringResource(R.string.placeholder_purchase_reason)) },
                         modifier = Modifier.fillMaxWidth(),
                         singleLine = true
                     )
                     Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                         OutlinedTextField(
-                            value = editDate,
-                            onValueChange = { editDate = it },
-                            label = { Text("Fecha") },
-                            modifier = Modifier.weight(1f),
-                            readOnly = true
+                            value = formatDate(dateMillis),
+                            onValueChange = {},
+                            label = { Text(stringResource(R.string.label_date)) },
+                            modifier = Modifier.weight(1f).clickable { openDatePicker() },
+                            readOnly = true,
+                            enabled = false,
+                            colors = androidx.compose.material3.OutlinedTextFieldDefaults.colors(
+                                disabledTextColor = Color.Black,
+                                disabledBorderColor = CelesteSoft,
+                                disabledLabelColor = CelesteInk
+                            )
                         )
                         OutlinedTextField(
-                            value = editTime,
-                            onValueChange = { editTime = it },
-                            label = { Text("Hora") },
-                            modifier = Modifier.weight(1f),
-                            readOnly = true
+                            value = formatTime(dateMillis),
+                            onValueChange = {},
+                            label = { Text(stringResource(R.string.label_time)) },
+                            modifier = Modifier.weight(1f).clickable { openTimePicker() },
+                            readOnly = true,
+                            enabled = false,
+                            colors = androidx.compose.material3.OutlinedTextFieldDefaults.colors(
+                                disabledTextColor = Color.Black,
+                                disabledBorderColor = CelesteSoft,
+                                disabledLabelColor = CelesteInk
+                            )
                         )
                     }
                 }
@@ -665,7 +744,9 @@ private fun EditPurchaseSheet(
                 )
                 Button(
                     onClick = {
+                        // Insertar nuevo producto al principio de la lista
                         productStates.add(
+                            0,
                             EditableProduct(
                                 id = 0,
                                 purchaseId = purchase.purchase.id,
@@ -677,6 +758,10 @@ private fun EditPurchaseSheet(
                                 discount = "0.00"
                             )
                         )
+                        // Scroll al inicio para ver el nuevo producto inmediatamente
+                        scope.launch {
+                            scrollState.animateScrollTo(0)
+                        }
                     },
                     modifier = Modifier
                         .height(32.dp)
@@ -698,12 +783,21 @@ private fun EditPurchaseSheet(
                 )
             } else {
                 productStates.forEachIndexed { index, editable ->
+                    val isNewProduct = editable.id == 0L
                     Card(
-                        colors = CardDefaults.cardColors(containerColor = Color.White),
+                        colors = CardDefaults.cardColors(
+                            // Fondo celeste pastel suave para nuevos productos
+                            containerColor = if (isNewProduct) CelestePale else Color.White
+                        ),
                         shape = RoundedCornerShape(12.dp),
                         modifier = Modifier
                             .fillMaxWidth()
-                            .border(1.dp, CelesteSoft, RoundedCornerShape(12.dp))
+                            .border(
+                                width = 1.dp,
+                                // Borde celeste suave para diferenciación estética
+                                color = if (isNewProduct) CelesteSoft else CelesteSoft.copy(alpha = 0.5f),
+                                shape = RoundedCornerShape(12.dp)
+                            )
                     ) {
                         Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                             // Encabezado con número de producto y botón de eliminar
@@ -713,10 +807,10 @@ private fun EditPurchaseSheet(
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Text(
-                                    text = "Producto ${index + 1}",
+                                    text = if (isNewProduct) "Nuevo Producto" else "Producto ${index + 1}",
                                     style = MaterialTheme.typography.labelMedium,
                                     fontWeight = FontWeight.SemiBold,
-                                    color = CelesteDeep
+                                    color = if (isNewProduct) CelesteDeep else CelesteDeep
                                 )
                                 IconButton(
                                     onClick = { productStates.removeAt(index) },
@@ -836,9 +930,11 @@ private fun EditPurchaseSheet(
                         )
                     }
                     
-                    // Recalcular fecha/hora (por ahora, mantenemos la original)
+                    // Recalcular fecha/hora y motivo
                     val updatedPurchase = purchase.purchase.copy(
                         supermarketName = supermarket.ifBlank { purchase.purchase.supermarketName },
+                        reason = reason,
+                        dateMillis = dateMillis,
                         totalCents = totalFinalCents
                     )
                     
@@ -863,9 +959,9 @@ private fun StatsTab(
 ) {
     var selectedPeriod by rememberSaveable { mutableStateOf(PeriodFilter.MONTH) }
     
-    val calendar = java.util.Calendar.getInstance()
-    var selectedMonthIndex by rememberSaveable { mutableIntStateOf(calendar.get(java.util.Calendar.MONTH)) }
-    var selectedYear by rememberSaveable { mutableIntStateOf(calendar.get(java.util.Calendar.YEAR)) }
+    val calendar = Calendar.getInstance()
+    var selectedMonthIndex by rememberSaveable { mutableIntStateOf(calendar.get(Calendar.MONTH)) }
+    var selectedYear by rememberSaveable { mutableIntStateOf(calendar.get(Calendar.YEAR)) }
 
     Column(
         modifier = Modifier.verticalScroll(rememberScrollState()),
@@ -1230,7 +1326,7 @@ private fun inferReason(purchase: PurchaseWithProducts): String {
         items >= 12 -> "Compra grande"
         items >= 6 -> "Compra mensual"
         purchase.purchase.totalCents >= 50000 -> "Compra de abastecimiento"
-        else -> "Compra rapida"
+        else -> "Compra rápida"
     }
 }
 

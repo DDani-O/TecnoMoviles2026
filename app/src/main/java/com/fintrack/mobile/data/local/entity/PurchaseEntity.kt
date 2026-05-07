@@ -9,5 +9,6 @@ data class PurchaseEntity(
     val id: Long = 0,
     val supermarketName: String,
     val dateMillis: Long,
-    val totalCents: Long
+    val totalCents: Long,
+    val reason: String = ""
 )

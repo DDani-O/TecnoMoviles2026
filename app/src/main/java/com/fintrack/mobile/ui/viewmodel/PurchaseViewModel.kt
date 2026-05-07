@@ -24,8 +24,12 @@ data class EditableProductDraft(
 class PurchaseViewModel(
     private val repository: PurchaseRepository,
 ) : ViewModel() {
+    // Estado para los datos generales de la compra
     private val _supermarket = MutableStateFlow("")
     val supermarket: StateFlow<String> = _supermarket.asStateFlow()
+
+    private val _reason = MutableStateFlow("")
+    val reason: StateFlow<String> = _reason.asStateFlow()
 
     private val _dateMillis = MutableStateFlow(System.currentTimeMillis())
     val dateMillis: StateFlow<Long> = _dateMillis.asStateFlow()
@@ -33,6 +37,7 @@ class PurchaseViewModel(
     private val _ticketUri = MutableStateFlow<String?>(null)
     val ticketUri: StateFlow<String?> = _ticketUri.asStateFlow()
 
+    // Lista de productos en borrador
     private val _products = MutableStateFlow<List<EditableProductDraft>>(emptyList())
     val products: StateFlow<List<EditableProductDraft>> = _products.asStateFlow()
 
@@ -40,6 +45,10 @@ class PurchaseViewModel(
 
     fun setSupermarket(value: String) {
         _supermarket.value = value
+    }
+
+    fun setReason(value: String) {
+        _reason.value = value
     }
 
     fun setDateMillis(value: Long) {
@@ -51,20 +60,8 @@ class PurchaseViewModel(
     }
 
     fun addEmptyProduct() {
-        _products.value = _products.value + buildEmptyProduct()
-    }
-
-    fun addProduct(name: String, quantity: Int, priceCents: Long) {
-        val product = EditableProductDraft(
-            id = nextProductId++,
-            name = name,
-            code = "",
-            description = "",
-            quantity = quantity.toString(),
-            price = formatCents(priceCents),
-            discount = formatCents(0)
-        )
-        _products.value = _products.value + product
+        // Agregamos el producto al inicio de la lista para mejorar la usabilidad (evita scroll innecesario)
+        _products.value = listOf(buildEmptyProduct()) + _products.value
     }
 
     fun updateProduct(index: Int, updated: EditableProductDraft) {
@@ -84,19 +81,23 @@ class PurchaseViewModel(
     }
 
     fun clearDraft() {
+        // Limpia todos los campos del borrador
         _supermarket.value = ""
+        _reason.value = ""
         _dateMillis.value = System.currentTimeMillis()
         _ticketUri.value = null
         _products.value = emptyList()
     }
 
     fun savePurchase(totalCents: Long) {
+        // Persiste la compra en el repositorio local
         val supermarketName = _supermarket.value.trim()
+        val reason = _reason.value.trim()
         val dateMillis = _dateMillis.value
         val products = _products.value.map { it.toNewProduct() }
         if (supermarketName.isBlank()) return
         viewModelScope.launch {
-            repository.addPurchase(supermarketName, totalCents, dateMillis, products)
+            repository.addPurchase(supermarketName, totalCents, dateMillis, reason, products)
             clearDraft()
         }
     }
