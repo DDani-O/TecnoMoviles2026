@@ -59,8 +59,9 @@ fun RecordsScreen(
                 }
             }
             is RecordsUiState.Error -> {
+                val errorMsg = state.messageRes?.let { stringResource(it) } ?: state.message ?: stringResource(R.string.error_unknown)
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text("Error: ${state.message}", color = MaterialTheme.colorScheme.error)
+                    Text(stringResource(R.string.error_prefix, errorMsg), color = MaterialTheme.colorScheme.error)
                 }
             }
             is RecordsUiState.Success -> {
@@ -118,6 +119,9 @@ fun RecordsScreen(
         )
     }
 
+    val saveSuccessMsg = stringResource(R.string.records_save_success)
+    val deleteSuccessMsg = stringResource(R.string.records_delete_success)
+
     // Hoja modal para edición de compras
     editingPurchaseState.value?.let { purchase ->
         EditPurchaseSheet(
@@ -128,7 +132,7 @@ fun RecordsScreen(
                 viewModel.updatePurchase(updatedPurchase, updatedProducts)
                 editingPurchaseState.value = null
                 scope.launch {
-                    snackbarHostState.showSnackbar("Cambios guardados con éxito")
+                    snackbarHostState.showSnackbar(saveSuccessMsg)
                 }
             }
         )
@@ -142,7 +146,7 @@ fun RecordsScreen(
                 viewModel.deletePurchase(target)
                 deleteTargetState.value = null
                 scope.launch {
-                    snackbarHostState.showSnackbar("Registro eliminado")
+                    snackbarHostState.showSnackbar(deleteSuccessMsg)
                 }
             }
         )
@@ -205,7 +209,7 @@ private fun StatsTab(
         ) {
             FintrackSectionHeader(
                 title = R.string.records_stats_period_title,
-                subtitle = "Selecciona el tiempo que quieres analizar"
+                subtitle = stringResource(R.string.records_stats_period_subtitle)
             )
 
             Column(verticalArrangement = Arrangement.spacedBy(12.dp), horizontalAlignment = Alignment.CenterHorizontally) {
@@ -248,13 +252,13 @@ private fun StatsTab(
 
         FintrackSectionHeader(
             title = R.string.records_stats_distribution_title,
-            subtitle = "Dónde gastaste más en este periodo"
+            subtitle = stringResource(R.string.records_stats_distribution_subtitle)
         )
         SupermarketPieChartCard(distribution = statsData.supermarketDistribution, currencyCode = currencyCode)
 
         FintrackSectionHeader(
             title = R.string.records_stats_ranking_title,
-            subtitle = "Los productos que más compraste"
+            subtitle = stringResource(R.string.records_stats_ranking_subtitle)
         )
         ProductPodiumCard(ranking = statsData.productRanking)
 

@@ -15,7 +15,7 @@ import kotlinx.coroutines.launch
 sealed class ExploreUiState {
     object Loading : ExploreUiState()
     data class Success(val data: ExploreData) : ExploreUiState()
-    data class Error(val message: String) : ExploreUiState()
+    data class Error(val message: String? = null, val messageRes: Int? = null, val messageArgs: List<Any> = emptyList()) : ExploreUiState()
 }
 
 /**
@@ -186,7 +186,11 @@ class ExploreViewModel(
                     ExploreData(supermarkets, sections, news, suggestions)
                 )
             } catch (e: Exception) {
-                _state.value = ExploreUiState.Error("¡Ups! Algo salió mal: ${e.message}")
+                _state.value = ExploreUiState.Error(
+                    message = e.message,
+                    messageRes = R.string.explore_error_loading,
+                    messageArgs = listOf(e.message ?: "")
+                )
             }
         }
     }

@@ -14,9 +14,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
+import com.undef.fintrackmobile.R
 import com.undef.fintrackmobile.ui.theme.FintrackTheme
 import com.undef.fintrackmobile.ui.viewmodel.SupermarketExplore
 
@@ -117,8 +119,12 @@ private fun SupermarketDetailContent(
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 InfoItem(icon = Icons.Default.LocationOn, text = supermarket.location, tint = accent)
-                InfoItem(icon = Icons.Default.AccessTime, text = "Abierto: ${supermarket.hours}", tint = colors.neutralDarkGray)
-                InfoItem(icon = Icons.Default.Star, text = "${supermarket.rating} - ${supermarket.comments}", tint = colors.medalGold)
+                InfoItem(icon = Icons.Default.AccessTime, text = stringResource(R.string.supermarket_open_hours, supermarket.hours), tint = colors.neutralDarkGray)
+                InfoItem(
+                    icon = Icons.Default.Star,
+                    text = stringResource(R.string.rating_with_comments, supermarket.rating, supermarket.comments),
+                    tint = colors.medalGold
+                )
             }
         }
 
@@ -128,13 +134,13 @@ private fun SupermarketDetailContent(
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             SectionList(
-                title = "Promos",
+                title = stringResource(R.string.supermarket_promos_title),
                 items = supermarket.promotions,
                 modifier = Modifier.weight(1f),
                 color = accent
             )
             SectionList(
-                title = "Pagos",
+                title = stringResource(R.string.supermarket_payments_title),
                 items = supermarket.paymentMethods,
                 modifier = Modifier.weight(1f),
                 color = colors.celesteDeep
@@ -157,7 +163,7 @@ private fun SupermarketDetailContent(
             Icon(Icons.Default.Language, contentDescription = null, modifier = Modifier.size(20.dp))
             Spacer(modifier = Modifier.width(10.dp))
             Text(
-                text = "Visitar Web Oficial",
+                text = stringResource(R.string.supermarket_visit_web),
                 fontWeight = FontWeight.Bold,
                 style = MaterialTheme.typography.titleMedium
             )

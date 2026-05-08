@@ -115,12 +115,12 @@ private fun TicketCard(
                             color = brandColors.neutralBlack
                         )
                         Text(
-                            text = "PRECIO UNITARIO: ${formatCurrency(product.priceCents, currencyCode)}",
+                            text = stringResource(R.string.ticket_unit_price, formatCurrency(product.priceCents, currencyCode)),
                             style = MaterialTheme.typography.labelMedium,
                             color = brandColors.neutralDarkGray
                         )
                         Text(
-                            text = "CANTIDAD: ${product.quantity}",
+                            text = stringResource(R.string.ticket_quantity, product.quantity),
                             style = MaterialTheme.typography.labelMedium,
                             color = brandColors.neutralDarkGray
                         )

@@ -298,7 +298,7 @@ fun PurchaseBreakdownCard(
             )
             BreakdownRow(
                 label = R.string.purchase_breakdown_discount,
-                value = "- ${formatCurrency(totals.discountCents, currencyCode)}"
+                value = stringResource(R.string.discount_negative_value, formatCurrency(totals.discountCents, currencyCode))
             )
             BreakdownRow(
                 label = R.string.records_breakdown_taxes,

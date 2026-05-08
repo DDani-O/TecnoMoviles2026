@@ -74,7 +74,9 @@ private fun InsightCard(insight: HomeInsight, currencyCode: String, totalCents: 
     val subtitle = if (insight.category == InsightCategory.SPENDING) {
         stringResource(R.string.home_news_spending_value, formatCurrency(totalCents, currencyCode))
     } else {
-        insight.subtitle
+        insight.subtitleRes?.let {
+            stringResource(it, *insight.subtitleArgs.toTypedArray())
+        } ?: insight.subtitle ?: ""
     }
 
     BorderedCard(

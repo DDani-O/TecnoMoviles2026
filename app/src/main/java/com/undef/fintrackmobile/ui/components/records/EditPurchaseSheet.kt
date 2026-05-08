@@ -40,6 +40,7 @@ fun EditPurchaseSheet(
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val scrollState = rememberScrollState()
     val scope = rememberCoroutineScope()
+    val defaultProductName = stringResource(R.string.product_default_name)
     
     var supermarket by rememberSaveable(purchase.purchase.id) { mutableStateOf(purchase.purchase.supermarketName) }
     var reason by rememberSaveable(purchase.purchase.id) { mutableStateOf(purchase.purchase.reason) }
@@ -114,7 +115,7 @@ fun EditPurchaseSheet(
                     shape = MaterialTheme.shapes.small,
                     colors = ButtonDefaults.buttonColors(containerColor = colors.celesteBase)
                 ) {
-                    Text("+ Agregar", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
+                    Text(stringResource(R.string.purchase_add_inline), style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
                 }
             }
 
@@ -135,7 +136,7 @@ fun EditPurchaseSheet(
                         ProductEntity(
                             id = draft.id,
                             purchaseId = draft.purchaseId,
-                            name = draft.name.ifBlank { "Producto" },
+                            name = draft.name.ifBlank { defaultProductName },
                             code = draft.code,
                             description = draft.description,
                             quantity = draft.quantity.toIntOrNull() ?: 0,

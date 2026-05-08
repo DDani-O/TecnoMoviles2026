@@ -41,7 +41,7 @@ fun HistoryRecordCard(
     val colors = FintrackTheme.colors
     var expanded by rememberSaveable(purchase.purchase.id) { mutableStateOf(value = false) }
     val subtitleColor = MaterialTheme.colorScheme.onSurfaceVariant
-    val displayReason = purchase.purchase.reason.ifBlank { inferReason(purchase) }
+    val displayReason = purchase.purchase.reason.ifBlank { stringResource(inferReasonRes(purchase)) }
     
     // Cálculos (Podrían estar en un UseCase o ViewModel, pero para UI se mantienen aquí)
     val subtotalCents = purchase.products.sumOf { it.priceCents * it.quantity.toLong() }
@@ -272,13 +272,13 @@ private fun formatTime(dateMillis: Long): String {
     return formatter.format(Date(dateMillis))
 }
 
-private fun inferReason(purchase: PurchaseWithProducts): String {
+private fun inferReasonRes(purchase: PurchaseWithProducts): Int {
     val items = purchase.products.sumOf { it.quantity }
     return when {
-        items >= 12 -> "Compra grande"
-        items >= 6 -> "Compra mensual"
-        purchase.purchase.totalCents >= 50000 -> "Compra de abastecimiento"
-        else -> "Compra rápida"
+        items >= 12 -> R.string.purchase_tag_large
+        items >= 6 -> R.string.purchase_tag_monthly
+        purchase.purchase.totalCents >= 50000 -> R.string.purchase_tag_supply
+        else -> R.string.purchase_tag_quick
     }
 }
 

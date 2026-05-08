@@ -16,7 +16,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import com.undef.fintrackmobile.R
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -41,6 +43,13 @@ fun StatsSummaryCard(
     currencyCode: String,
 ) {
     val colors = FintrackTheme.colors
+    val months = listOf(
+        stringResource(R.string.month_1), stringResource(R.string.month_2), stringResource(R.string.month_3),
+        stringResource(R.string.month_4), stringResource(R.string.month_5), stringResource(R.string.month_6),
+        stringResource(R.string.month_7), stringResource(R.string.month_8), stringResource(R.string.month_9),
+        stringResource(R.string.month_10), stringResource(R.string.month_11), stringResource(R.string.month_12)
+    )
+
     Card(
         colors = CardDefaults.cardColors(containerColor = colors.celestePale),
         shape = RoundedCornerShape(28.dp),
@@ -54,12 +63,9 @@ fun StatsSummaryCard(
         ) {
             Text(
                 text = when(selectedPeriod) {
-                    PeriodFilter.WEEK -> "Total de la semana"
-                    PeriodFilter.MONTH -> {
-                        val months = listOf("Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre")
-                        "Total de ${months[selectedMonthIndex]} $selectedYear"
-                    }
-                    PeriodFilter.YEAR -> "Total del año $selectedYear"
+                    PeriodFilter.WEEK -> stringResource(R.string.stats_total_week)
+                    PeriodFilter.MONTH -> stringResource(R.string.stats_total_month, months[selectedMonthIndex], selectedYear)
+                    PeriodFilter.YEAR -> stringResource(R.string.stats_total_year, selectedYear)
                 },
                 style = MaterialTheme.typography.titleMedium.copy(fontSize = 18.sp),
                 color = colors.celesteInk
@@ -76,11 +82,11 @@ fun StatsSummaryCard(
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(text = formatCurrency(average, currencyCode), style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold), color = colors.celesteInk)
-                    Text(text = "Promedio", style = MaterialTheme.typography.bodyMedium, color = colors.celesteInk.copy(alpha = 0.7f))
+                    Text(text = stringResource(R.string.stats_avg_label), style = MaterialTheme.typography.bodyMedium, color = colors.celesteInk.copy(alpha = 0.7f))
                 }
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(text = ticketCount.toString(), style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold), color = colors.celesteInk)
-                    Text(text = "Tickets", style = MaterialTheme.typography.bodyMedium, color = colors.celesteInk.copy(alpha = 0.7f))
+                    Text(text = stringResource(R.string.stats_tickets_label), style = MaterialTheme.typography.bodyMedium, color = colors.celesteInk.copy(alpha = 0.7f))
                 }
             }
         }
@@ -97,17 +103,17 @@ fun PeriodFilterRow(
         horizontalArrangement = Arrangement.SpaceEvenly
     ) {
         PeriodFilterButton(
-            label = "Semana", 
+            label = stringResource(R.string.records_period_week), 
             selected = selectedPeriod == PeriodFilter.WEEK
         ) { onSelected(PeriodFilter.WEEK) }
         
         PeriodFilterButton(
-            label = "Mes", 
+            label = stringResource(R.string.records_period_month), 
             selected = selectedPeriod == PeriodFilter.MONTH
         ) { onSelected(PeriodFilter.MONTH) }
         
         PeriodFilterButton(
-            label = "Año", 
+            label = stringResource(R.string.records_period_year), 
             selected = selectedPeriod == PeriodFilter.YEAR
         ) { onSelected(PeriodFilter.YEAR) }
     }
@@ -119,7 +125,12 @@ fun SpecificMonthSelector(
     selectedYear: Int,
     onMonthYearSelected: (Int, Int) -> Unit
 ) {
-    val months = listOf("Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic")
+    val months = listOf(
+        stringResource(R.string.month_short_1), stringResource(R.string.month_short_2), stringResource(R.string.month_short_3),
+        stringResource(R.string.month_short_4), stringResource(R.string.month_short_5), stringResource(R.string.month_short_6),
+        stringResource(R.string.month_short_7), stringResource(R.string.month_short_8), stringResource(R.string.month_short_9),
+        stringResource(R.string.month_short_10), stringResource(R.string.month_short_11), stringResource(R.string.month_short_12)
+    )
     val colors = FintrackTheme.colors
 
     Column(
@@ -137,11 +148,11 @@ fun SpecificMonthSelector(
             verticalAlignment = Alignment.CenterVertically
         ) {
             IconButton(onClick = { onMonthYearSelected(selectedMonth, selectedYear - 1) }) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Año anterior", tint = colors.celesteDeep)
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.stats_prev_year), tint = colors.celesteDeep)
             }
             Text(text = selectedYear.toString(), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = colors.celesteDeep)
             IconButton(onClick = { onMonthYearSelected(selectedMonth, selectedYear + 1) }) {
-                Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = "Año siguiente", tint = colors.celesteDeep)
+                Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = stringResource(R.string.stats_next_year), tint = colors.celesteDeep)
             }
         }
 
@@ -179,11 +190,11 @@ fun SpecificYearSelector(
         verticalAlignment = Alignment.CenterVertically
     ) {
         IconButton(onClick = { onYearSelected(selectedYear - 1) }) {
-            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Año anterior", tint = colors.celesteDeep)
+            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.stats_prev_year), tint = colors.celesteDeep)
         }
-        Text(text = "Año $selectedYear", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = colors.celesteDeep)
+        Text(text = stringResource(R.string.stats_year_display, selectedYear), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = colors.celesteDeep)
         IconButton(onClick = { onYearSelected(selectedYear + 1) }) {
-            Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = "Año siguiente", tint = colors.celesteDeep)
+            Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = stringResource(R.string.stats_next_year), tint = colors.celesteDeep)
         }
     }
 }
@@ -276,7 +287,7 @@ fun ProductPodiumCard(
                                 Text(text = (index + 4).toString(), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                                 Text(text = item.name, style = MaterialTheme.typography.bodyLarge)
                             }
-                            Text(text = "x${item.quantity}", fontWeight = FontWeight.Bold, color = colors.celesteDeep)
+                            Text(text = stringResource(R.string.quantity_x, item.quantity), fontWeight = FontWeight.Bold, color = colors.celesteDeep)
                         }
                     }
                 }
@@ -293,7 +304,7 @@ private fun PodiumStep(rank: ProductRank, position: Int, height: Dp, color: Colo
         Box(modifier = Modifier.width(70.dp).height(height).clip(RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)).background(color), contentAlignment = Alignment.Center) {
             Text(text = position.toString(), style = MaterialTheme.typography.displaySmall.copy(fontWeight = FontWeight.ExtraBold), color = colors.neutralWhite.copy(alpha = 0.8f))
         }
-        Text(text = "x${rank.quantity}", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold)
+        Text(text = stringResource(R.string.quantity_x, rank.quantity), style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold)
     }
 }
 

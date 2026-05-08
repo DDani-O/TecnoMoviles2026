@@ -7,8 +7,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.undef.fintrackmobile.R
 
 /**
  * SectionList: Muestra un título y una lista de items con viñetas.
@@ -33,7 +35,7 @@ fun SectionList(
         )
         items.forEach { item ->
             Text(
-                text = "• $item",
+                text = stringResource(R.string.bullet_item, item),
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )

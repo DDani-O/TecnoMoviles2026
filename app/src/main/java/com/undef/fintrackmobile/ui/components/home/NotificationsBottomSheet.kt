@@ -64,8 +64,8 @@ fun NotificationsBottomSheet(
                         }
                     }
                     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                        Text(text = "¡Regalo de bienvenida!", fontWeight = FontWeight.Bold, color = colors.celesteDeep)
-                        Text(text = "Tienes un 10% de descuento en tu próxima compra.", color = colors.celesteInk)
+                        Text(text = stringResource(R.string.notification_welcome_title), fontWeight = FontWeight.Bold, color = colors.celesteDeep)
+                        Text(text = stringResource(R.string.notification_welcome_desc), color = colors.celesteInk)
                     }
                 }
             }

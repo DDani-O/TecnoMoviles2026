@@ -120,8 +120,9 @@ private fun ProfileAvatar(
                         modifier = Modifier.size(24.dp)
                     )
                 } else {
+                    val defaultInitial = stringResource(R.string.default_initials)
                     Text(
-                        text = initialsFor(displayName),
+                        text = initialsFor(displayName, defaultInitial),
                         style = MaterialTheme.typography.titleMedium,
                         color = colors.celesteDeep,
                     )
@@ -131,7 +132,7 @@ private fun ProfileAvatar(
     }
 }
 
-private fun initialsFor(name: String): String {
+private fun initialsFor(name: String, fallback: String): String {
     val parts = name.trim().split(Regex("\\s+")).asSequence().filter { it.isNotBlank() }.take(2).toList()
-    return if (parts.isEmpty()) "U" else parts.joinToString("") { it.first().uppercase() }
+    return if (parts.isEmpty()) fallback else parts.joinToString("") { it.first().uppercase() }
 }

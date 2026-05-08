@@ -20,7 +20,7 @@ sealed class RecordsUiState {
         val purchases: List<PurchaseWithProducts>,
         val filteredStats: StatsData,
     ) : RecordsUiState()
-    data class Error(val message: String) : RecordsUiState()
+    data class Error(val message: String? = null, val messageRes: Int? = null) : RecordsUiState()
 }
 
 data class StatsData(
@@ -58,7 +58,7 @@ class RecordsViewModel(
             val stats = calculateStats(filtered)
             RecordsUiState.Success(purchases, stats)
         } catch (e: Exception) {
-            RecordsUiState.Error(e.message ?: "Error desconocido")
+            RecordsUiState.Error(message = e.message, messageRes = com.undef.fintrackmobile.R.string.error_unknown)
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), RecordsUiState.Loading)
 

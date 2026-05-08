@@ -55,7 +55,7 @@ fun ExploreScreen(
                     color = colors.celesteDeep,
                 )
                 Text(
-                    text = "Encuentra las mejores ofertas y supermercados cerca de ti",
+                    text = stringResource(R.string.explore_subtitle_hero),
                     style = MaterialTheme.typography.bodyMedium,
                     color = colors.celesteInk.copy(alpha = 0.7f),
                     fontWeight = FontWeight.Medium,
@@ -66,7 +66,7 @@ fun ExploreScreen(
             OutlinedTextField(
                 value = searchText,
                 onValueChange = { searchText = it },
-                placeholder = { Text("¿Qué buscamos hoy, genio?", color = colors.celesteInk.copy(alpha = 0.5f)) },
+                placeholder = { Text(stringResource(R.string.explore_search_hint), color = colors.celesteInk.copy(alpha = 0.5f)) },
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp),
@@ -90,8 +90,11 @@ fun ExploreScreen(
                     }
                 }
                 is ExploreUiState.Error -> {
+                    val errorMsg = current.messageRes?.let { 
+                        stringResource(it, *current.messageArgs.toTypedArray()) 
+                    } ?: current.message ?: stringResource(R.string.error_unknown)
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Text(text = current.message, color = MaterialTheme.colorScheme.error, textAlign = TextAlign.Center)
+                        Text(text = errorMsg, color = MaterialTheme.colorScheme.error, textAlign = TextAlign.Center)
                     }
                 }
                 is ExploreUiState.Success -> {
@@ -122,8 +125,8 @@ private fun ExploreContent(data: ExploreData) {
         // Banner de Evento
         item(key = "event_banner") {
             ExploreNewsCard(
-                title = "¡Feria de Descuentos!",
-                description = "El 10/6 todo al 50% en locales adheridos.",
+                title = stringResource(R.string.explore_event_title),
+                description = stringResource(R.string.explore_event_desc),
                 icon = Icons.Default.Celebration,
                 containerColor = colors.pastelBlue,
                 contentColor = colors.celesteInk,
@@ -176,7 +179,7 @@ private fun ExploreContent(data: ExploreData) {
         item(key = "explore_footer") {
             Box(modifier = Modifier.fillMaxWidth().padding(16.dp), contentAlignment = Alignment.Center) {
                 Text(
-                    text = "¡Eso es todo por ahora, ahorrador experto!",
+                    text = stringResource(R.string.explore_footer),
                     style = MaterialTheme.typography.bodySmall,
                     color = colors.celesteInk.copy(alpha = 0.5f)
                 )
@@ -193,7 +196,7 @@ private fun MapSection() {
     val colors = FintrackTheme.colors
     Column(modifier = Modifier.padding(horizontal = 16.dp)) {
         Text(
-            text = "Locales cercanos",
+            text = stringResource(R.string.explore_map_title),
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold,
             color = colors.celesteInk
@@ -206,7 +209,7 @@ private fun MapSection() {
         ) {
             Image(
                 painter = painterResource(id = R.drawable.mapa),
-                contentDescription = "Mapa de locales cercanos",
+                contentDescription = stringResource(R.string.explore_map_desc),
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(200.dp),
@@ -232,7 +235,7 @@ private fun SupermarketsSection(supermarkets: List<SupermarketExplore>) {
 
     Column(modifier = Modifier.fillMaxWidth()) {
         Text(
-            text = "Supermercados amigos",
+            text = stringResource(R.string.explore_supermarkets_title),
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold,
             modifier = Modifier.padding(horizontal = 16.dp),
@@ -363,7 +366,7 @@ private fun OfferCardExplore(item: OfferItemExplore) {
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = "¡Aprovechá!",
+                text = stringResource(R.string.explore_offer_cta),
                 style = MaterialTheme.typography.labelSmall,
                 color = colors.celesteSoft,
                 fontWeight = FontWeight.Bold
@@ -380,7 +383,7 @@ private fun SuggestionsSectionExplore(suggestions: List<SuggestionExplore>) {
     val colors = FintrackTheme.colors
     Column(modifier = Modifier.padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Text(
-            text = "Recomendados solo para vos",
+            text = stringResource(R.string.explore_suggestions_title),
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold,
             color = colors.celesteInk

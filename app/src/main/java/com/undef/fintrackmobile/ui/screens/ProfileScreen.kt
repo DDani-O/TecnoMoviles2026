@@ -145,7 +145,7 @@ fun ProfileScreen(
             item {
                 FintrackSectionHeader(
                     title = R.string.profile_section_prefs,
-                    subtitle = "Personaliza tu experiencia en Fintrack"
+                    subtitle = stringResource(R.string.profile_prefs_subtitle)
                 )
             }
 

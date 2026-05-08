@@ -13,7 +13,7 @@ import kotlinx.coroutines.launch
 sealed class HomeUiState {
     object Loading : HomeUiState()
     data class Success(val data: HomeUiData) : HomeUiState()
-    data class Error(val message: String) : HomeUiState()
+    data class Error(val message: String? = null, val messageRes: Int? = null) : HomeUiState()
 }
 
 data class HomeUiData(
@@ -28,7 +28,9 @@ data class HomeUiData(
 
 data class HomeInsight(
     val titleRes: Int,
-    val subtitle: String,
+    val subtitleRes: Int? = null,
+    val subtitleArgs: List<Any> = emptyList(),
+    val subtitle: String? = null,
     val iconType: InsightIcon,
     val category: InsightCategory
 )
@@ -74,7 +76,10 @@ class HomeViewModel(
                 )
             )
         } catch (e: Exception) {
-            HomeUiState.Error(e.message ?: "Error al cargar el dashboard")
+            HomeUiState.Error(
+                message = e.message,
+                messageRes = com.undef.fintrackmobile.R.string.error_home_loading
+            )
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), HomeUiState.Loading)
 
@@ -118,7 +123,8 @@ class HomeViewModel(
                 val percent = (((currentItems - avgItems) / avgItems) * 100).toInt()
                 list.add(HomeInsight(
                     titleRes = com.undef.fintrackmobile.R.string.home_news_habit_change_title,
-                    subtitle = "Compraste $currentItems productos, un $percent% más que tu promedio.",
+                    subtitleRes = com.undef.fintrackmobile.R.string.home_news_habit_change_subtitle,
+                    subtitleArgs = listOf(currentItems, percent),
                     iconType = InsightIcon.SHOPPING_CART,
                     category = InsightCategory.HABIT
                 ))
@@ -129,7 +135,7 @@ class HomeViewModel(
         if (totalCents > 0L) {
             list.add(HomeInsight(
                 titleRes = com.undef.fintrackmobile.R.string.home_news_spending_title,
-                subtitle = "Has gastado en total este mes.", // El monto se formatea en la UI
+                subtitleRes = com.undef.fintrackmobile.R.string.home_news_spending_subtitle,
                 iconType = InsightIcon.TRENDING_UP,
                 category = InsightCategory.SPENDING
             ))
@@ -139,7 +145,8 @@ class HomeViewModel(
         if (purchases.isNotEmpty()) {
             list.add(HomeInsight(
                 titleRes = com.undef.fintrackmobile.R.string.home_news_recent_title,
-                subtitle = "Tu última compra fue en ${purchases.first().supermarketName}.",
+                subtitleRes = com.undef.fintrackmobile.R.string.home_news_recent_subtitle,
+                subtitleArgs = listOf(purchases.first().supermarketName),
                 iconType = InsightIcon.STORE,
                 category = InsightCategory.RECENT
             ))
@@ -151,7 +158,8 @@ class HomeViewModel(
             if ((repeatedStore?.value ?: 0) >= 2) {
                 list.add(HomeInsight(
                     titleRes = com.undef.fintrackmobile.R.string.home_news_loyalty_title,
-                    subtitle = "Has comprado ${repeatedStore?.value} veces en ${repeatedStore?.key}.",
+                    subtitleRes = com.undef.fintrackmobile.R.string.home_news_loyalty_subtitle,
+                    subtitleArgs = listOf(repeatedStore?.value ?: 0, repeatedStore?.key ?: ""),
                     iconType = InsightIcon.RECEIPT,
                     category = InsightCategory.LOYALTY
                 ))
@@ -181,7 +189,8 @@ class HomeViewModel(
             HistoryStat(
                 titleRes = com.undef.fintrackmobile.R.string.home_stats_biggest_ticket,
                 valueCents = biggestPurchase?.totalCents,
-                subtitle = biggestPurchase?.supermarketName ?: "Sin datos"
+                subtitle = biggestPurchase?.supermarketName,
+                subtitleRes = if (biggestPurchase == null) com.undef.fintrackmobile.R.string.home_stats_no_data else null
             ),
             HistoryStat(
                 titleRes = com.undef.fintrackmobile.R.string.home_stats_total_purchases,

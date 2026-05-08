@@ -60,8 +60,9 @@ fun HomeScreen(
                 }
             }
             is HomeUiState.Error -> {
+                val errorMsg = state.messageRes?.let { stringResource(it) } ?: state.message ?: stringResource(R.string.unknown_error)
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text(text = "Error: ${state.message}", color = MaterialTheme.colorScheme.error)
+                    Text(text = stringResource(R.string.error_prefix, errorMsg), color = MaterialTheme.colorScheme.error)
                 }
             }
             is HomeUiState.Success -> {

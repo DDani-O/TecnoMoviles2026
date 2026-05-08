@@ -62,12 +62,16 @@
     <string name="home_news_empty_subtitle">Cuando empieces a comprar apareceran aqui tus hallazgos y tendencias</string>
     <string name="home_news_spending_title">Buen ritmo de gasto</string>
     <string name="home_news_spending_value">Llevas gastado %1$s este mes</string>
+    <string name="home_news_spending_subtitle">Has gastado en total este mes.</string>
     <string name="home_news_recent_title">Tu tienda mas visitada</string>
     <string name="home_news_recent_value">Tu compra mas reciente fue en %1$s</string>
+    <string name="home_news_recent_subtitle">Tu última compra fue en %1$s.</string>
     <string name="home_news_loyalty_title">Eres cliente leal</string>
     <string name="home_news_loyalty_value">Visitaste %1$d veces a %2$s esta semana</string>
+    <string name="home_news_loyalty_subtitle">Has comprado %1$d veces en %2$s.</string>
     <string name="home_news_habit_change_title">Cambio en tus hábitos</string>
     <string name="home_news_habit_change_value">Llevas %1$d productos, un %2$d%% mas que tu promedio</string>
+    <string name="home_news_habit_change_subtitle">Compraste %1$d productos, un %2$d%% más que tu promedio.</string>
     <string name="home_news_products_title">Productos en tendencia</string>
     <string name="home_news_products_value">Tienes %1$d productos en compras recientes</string>
     <string name="home_month_summary">Resumen del mes</string>
@@ -248,4 +252,173 @@
     <string name="product_verduras">Verduras</string>
     <string name="product_carne">Carne</string>
     <string name="product_bebidas">Bebidas</string>
+    <string name="error_home_loading">Error al cargar el dashboard</string>
+    <string name="error_unknown">Error desconocido</string>
+
+    <string name="auth_form_register_subtitle">Únete a la comunidad Fintrack</string>
+    <string name="auth_form_login_subtitle">¡Qué bueno verte de nuevo!</string>
+    <string name="auth_error_required_fields">Por favor, completa todos los campos obligatorios.</string>
+    <string name="auth_mock_account">Usar cuenta de prueba (Mock)</string>
+
+    <string name="explore_subtitle_hero">Encuentra las mejores ofertas y supermercados cerca de ti</string>
+    <string name="explore_search_hint">¿Qué buscamos hoy, genio?</string>
+    <string name="explore_event_title">¡Feria de Descuentos!</string>
+    <string name="explore_event_desc">El 10/6 todo al 50% en locales adheridos.</string>
+    <string name="explore_footer">¡Eso es todo por ahora, ahorrador experto!</string>
+    <string name="explore_map_title">Locales cercanos</string>
+    <string name="explore_map_desc">Mapa de locales cercanos</string>
+    <string name="explore_supermarkets_title">Supermercados amigos</string>
+    <string name="explore_offer_cta">¡Aprovechá!</string>
+    <string name="explore_suggestions_title">Recomendados solo para vos</string>
+    <string name="explore_error_loading">¡Ups! Algo salió mal: %1$s</string>
+
+    <string name="profile_prefs_subtitle">Personaliza tu experiencia en Fintrack</string>
+
+    <string name="records_save_success">Cambios guardados con éxito</string>
+    <string name="records_delete_success">Registro eliminado</string>
+    <string name="records_stats_period_subtitle">Selecciona el tiempo que quieres analizar</string>
+    <string name="records_stats_distribution_subtitle">Dónde gastaste más en este periodo</string>
+    <string name="records_stats_ranking_subtitle">Los productos que más compraste</string>
+
+    <string name="purchase_save_success">Compra guardada correctamente</string>
+
+    <string name="settings_group_notifications">Sonido y Notificaciones</string>
+    <string name="settings_notification_sound">Sonidos de Notificación</string>
+    <string name="settings_group_security">Seguridad</string>
+    <string name="settings_biometric_lock">Bloqueo Biométrico</string>
+    <string name="settings_privacy_title">Privacidad y Datos</string>
+    <string name="settings_privacy_subtitle">Gestiona qué datos compartes</string>
+    <string name="settings_group_i18n">Internacionalización</string>
+    <string name="settings_group_maintenance">Mantenimiento</string>
+    <string name="settings_export_data">Exportar Datos</string>
+    <string name="settings_export_data_desc">Descarga tus gastos en formato CSV</string>
+    <string name="settings_group_support">Soporte</string>
+    <string name="settings_help_center">Centro de Ayuda</string>
+    <string name="settings_help_center_desc">Preguntas frecuentes y tutoriales</string>
+    <string name="settings_contact_support">Contactar Soporte</string>
+    <string name="settings_contact_support_desc">Escríbenos si tienes problemas</string>
+    <string name="settings_group_legal">Información Legal</string>
+    <string name="stats_total_week">Total de la semana</string>
+    <string name="stats_total_month">Total de %1$s %2$d</string>
+    <string name="stats_total_year">Total del año %1$d</string>
+    <string name="stats_avg_label">Promedio</string>
+    <string name="stats_tickets_label">Tickets</string>
+    <string name="stats_prev_year">Año anterior</string>
+    <string name="stats_next_year">Año siguiente</string>
+    <string name="stats_year_display">Año %1$d</string>
+
+    <string name="month_1">Enero</string>
+    <string name="month_2">Febrero</string>
+    <string name="month_3">Marzo</string>
+    <string name="month_4">Abril</string>
+    <string name="month_5">Mayo</string>
+    <string name="month_6">Junio</string>
+    <string name="month_7">Julio</string>
+    <string name="month_8">Agosto</string>
+    <string name="month_9">Septiembre</string>
+    <string name="month_10">Octubre</string>
+    <string name="month_11">Noviembre</string>
+    <string name="month_12">Diciembre</string>
+
+    <string name="month_short_1">Ene</string>
+    <string name="month_short_2">Feb</string>
+    <string name="month_short_3">Mar</string>
+    <string name="month_short_4">Abr</string>
+    <string name="month_short_5">May</string>
+    <string name="month_short_6">Jun</string>
+    <string name="month_short_7">Jul</string>
+    <string name="month_short_8">Ago</string>
+    <string name="month_short_9">Sep</string>
+    <string name="month_short_10">Oct</string>
+    <string name="month_short_11">Nov</string>
+    <string name="month_short_12">Dic</string>
+
+    <string name="product_default_name">Producto</string>
+
+    <string name="purchase_tag_large">Compra grande</string>
+    <string name="purchase_tag_monthly">Compra mensual</string>
+    <string name="purchase_tag_supply">Compra de abastecimiento</string>
+    <string name="purchase_tag_quick">Compra rápida</string>
+
+    <string name="ticket_unit_price">PRECIO UNITARIO: %1$s</string>
+    <string name="ticket_quantity">CANTIDAD: %1$d</string>
+
+    <string name="notification_welcome_title">¡Regalo de bienvenida!</string>
+    <string name="notification_welcome_desc">Tienes un 10% de descuento en tu próxima compra.</string>
+
+    <string name="supermarket_open_hours">Abierto: %1$s</string>
+    <string name="supermarket_promos_title">Promos</string>
+    <string name="supermarket_payments_title">Pagos</string>
+    <string name="supermarket_visit_web">Visitar Web Oficial</string>
+    <string name="supermarket_logo_desc">Logo %1$s</string>
+
+    <string name="chart_week_label">S%1$d</string>
+    <string name="error_prefix">Error: %1$s</string>
+    <string name="unknown_error">Error desconocido</string>
+
+    <string name="language_es">Español</string>
+    <string name="language_en">English</string>
+    <string name="language_pt">Português</string>
+
+    <string name="mock_user_name">Michael</string>
+
+    <string name="explore_mock_carrefour_location">Av. Santa Fe 1234, CABA</string>
+    <string name="explore_mock_carrefour_comments">¡Excelente atención y frescura!</string>
+    <string name="explore_mock_carrefour_desc">Precios bajos todos los días</string>
+    <string name="explore_mock_coto_location">Pueyrredón 2501, CABA</string>
+    <string name="explore_mock_coto_comments">Las mejores ofertas en carnicería.</string>
+    <string name="explore_mock_coto_desc">Yo te conozco</string>
+    <string name="explore_mock_jumbo_location">Bullrich 345, CABA</string>
+    <string name="explore_mock_jumbo_comments">Calidad premium asegurada.</string>
+    <string name="explore_mock_jumbo_desc">Calidad para tu familia</string>
+
+    <string name="explore_mock_promo_explosive">Ofertas explosivas</string>
+    <string name="explore_mock_promo_trending">Productos más buscados</string>
+    <string name="explore_mock_suggestion_title">Basado en tu consumo</string>
+    <string name="explore_mock_suggestion_desc">Sueles comprar mucho café. ¡Hay un descuento del 20%% en Starbucks de Carrefour!</string>
+
+    <string name="explore_mock_news_title">¡Aviso importante!</string>
+    <string name="explore_mock_news_desc">Jumbo cierra este viernes debido al feriado. ¡Corré que se acaba todo!</string>
+
+    <string name="explore_mock_promo_explosive_1_title">20%% de ahorro</string>
+    <string name="explore_mock_promo_explosive_1_desc">Usando Mercado Pago</string>
+    <string name="explore_mock_promo_explosive_2_title">15%% de descuento</string>
+    <string name="explore_mock_promo_explosive_2_desc">En carnicería los martes</string>
+    <string name="explore_mock_promo_explosive_3_title">3x2 en galletitas</string>
+    <string name="explore_mock_promo_explosive_3_desc">Llevando marcas elegidas</string>
+
+    <string name="explore_mock_most_searched_1_title">Yogur Firme</string>
+    <string name="explore_mock_most_searched_1_desc">$950</string>
+    <string name="explore_mock_most_searched_2_title">Manteca 200g</string>
+    <string name="explore_mock_most_searched_2_desc">$1800</string>
+    <string name="explore_mock_most_searched_3_title">Crema de Leche</string>
+    <string name="explore_mock_most_searched_3_desc">$1300</string>
+
+    <string name="supermarket_carrefour_promo_1">2x1 en lácteos</string>
+    <string name="supermarket_carrefour_promo_2">70%% 2da unidad vinos</string>
+    <string name="supermarket_coto_promo_1">Miércoles 15%% Comunidad Coto</string>
+    <string name="supermarket_coto_promo_2">OFERTAS de carne</string>
+    <string name="supermarket_jumbo_promo_1">Descuento con Jumbo Mas</string>
+    <string name="supermarket_jumbo_promo_2">Especial Gourmet</string>
+
+    <string name="payment_method_mi_carrefour">Tarjeta Mi Carrefour</string>
+    <string name="payment_method_all_cards">Todas las tarjetas</string>
+    <string name="payment_method_comunidad_coto">Comunidad Coto</string>
+    <string name="payment_method_mercado_pago">Mercado Pago</string>
+    <string name="payment_method_jumbo_mas">Jumbo Mas</string>
+    <string name="payment_method_bank_cards">Tarjetas Bancarias</string>
+
+    <string name="benefit_mi_carrefour_points">Puntos Mi Carrefour</string>
+    <string name="benefit_free_shipping">Envío gratis > $30.000</string>
+    <string name="benefit_meat_discounts">Descuentos en carnes</string>
+    <string name="benefit_no_interest">Cuotas sin interés</string>
+    <string name="benefit_jumbo_mas_points">Puntos Jumbo Mas</string>
+    <string name="benefit_premium_service">Atención preferencial</string>
+
+    <string name="default_initials">U</string>
+    <string name="quantity_x">x%1$d</string>
+    <string name="discount_negative_value">-%1$s</string>
+    <string name="rating_with_comments">%1$.1f - %2$s</string>
+    <string name="bullet_item">&#8226; %1$s</string>
+    <string name="percent_format">%1$d%%</string>
 </resources>

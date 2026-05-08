@@ -159,12 +159,13 @@ fun NewPurchaseScreen(
             }
 
             item(key = "save_action") {
+                val saveSuccessMsg = stringResource(R.string.purchase_save_success)
                 Button(
                     onClick = {
                         if (totals.totalCents > 0L && supermarket.isNotBlank()) {
                             viewModel.savePurchase(totals.totalCents)
                             scope.launch {
-                                snackbarHostState.showSnackbar("Compra guardada correctamente")
+                                snackbarHostState.showSnackbar(saveSuccessMsg)
                             }
                         }
                     },

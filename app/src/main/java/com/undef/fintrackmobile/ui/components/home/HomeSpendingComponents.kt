@@ -71,7 +71,7 @@ fun CategorySpendingSection(modifier: Modifier = Modifier) {
                 Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     Surface(modifier = Modifier.size(16.dp), shape = CircleShape, color = stat.color) {}
                     Text(text = stringResource(stat.labelRes), style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
-                    Text(text = "${(stat.percent * 100).toInt()}%", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, fontWeight = FontWeight.Bold)
+                    Text(text = stringResource(R.string.percent_format, (stat.percent * 100).toInt()), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, fontWeight = FontWeight.Bold)
                 }
             }
         }

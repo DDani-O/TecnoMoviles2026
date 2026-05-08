@@ -37,9 +37,14 @@ fun SettingsScreen(
     val scrollState = rememberScrollState()
     
     // Estados locales para simular configuraciones
+    val spanishLabel = stringResource(R.string.language_es)
     var languageExpanded by rememberSaveable { mutableStateOf(false) }
-    var selectedLanguage by rememberSaveable { mutableStateOf("Español") }
-    val languages = listOf("Español", "English", "Português")
+    var selectedLanguage by rememberSaveable(spanishLabel) { mutableStateOf(spanishLabel) }
+    val languages = listOf(
+        stringResource(R.string.language_es),
+        stringResource(R.string.language_en),
+        stringResource(R.string.language_pt)
+    )
 
     var notificationSound by rememberSaveable { mutableStateOf(true) }
     var biometricEnabled by rememberSaveable { mutableStateOf(false) }
@@ -81,25 +86,25 @@ fun SettingsScreen(
         ) {
             Spacer(modifier = Modifier.height(4.dp))
 
-            // SECCIÓN: PERSONALIZACIÓN
-            SettingsGroup(title = "Sonido y Notificaciones", icon = Icons.Filled.Notifications) {
+            // SECCIÓN: SONIDO Y NOTIFICACIONES
+            SettingsGroup(title = stringResource(R.string.settings_group_notifications), icon = Icons.Filled.Notifications) {
                 SettingToggleCard(
-                    title = "Sonidos de Notificación",
+                    title = stringResource(R.string.settings_notification_sound),
                     isChecked = notificationSound,
                     onToggle = { notificationSound = it }
                 )
             }
 
             // SECCIÓN: SEGURIDAD Y PRIVACIDAD
-            SettingsGroup(title = "Seguridad", icon = Icons.Filled.Security) {
+            SettingsGroup(title = stringResource(R.string.settings_group_security), icon = Icons.Filled.Security) {
                 SettingToggleCard(
-                    title = "Bloqueo Biométrico",
+                    title = stringResource(R.string.settings_biometric_lock),
                     isChecked = biometricEnabled,
                     onToggle = { biometricEnabled = it }
                 )
                 SettingsActionCard(
-                    title = "Privacidad y Datos",
-                    subtitle = "Gestiona qué datos compartes",
+                    title = stringResource(R.string.settings_privacy_title),
+                    subtitle = stringResource(R.string.settings_privacy_subtitle),
                     icon = Icons.Filled.PrivacyTip,
                     iconColor = colors.celesteDeep,
                     onClick = {}
@@ -107,7 +112,7 @@ fun SettingsScreen(
             }
 
             // SECCIÓN: IDIOMA
-            SettingsGroup(title = "Internacionalización", icon = Icons.Filled.Language) {
+            SettingsGroup(title = stringResource(R.string.settings_group_i18n), icon = Icons.Filled.Language) {
                 SettingDropdownCard(
                     title = stringResource(R.string.profile_language),
                     expanded = languageExpanded,
@@ -123,7 +128,7 @@ fun SettingsScreen(
             }
 
             // SECCIÓN: SISTEMA Y LIMPIEZA
-            SettingsGroup(title = "Mantenimiento", icon = Icons.Filled.Cached) {
+            SettingsGroup(title = stringResource(R.string.settings_group_maintenance), icon = Icons.Filled.Cached) {
                 SettingsActionCard(
                     title = stringResource(R.string.profile_clear_cache),
                     subtitle = stringResource(R.string.profile_clear_cache_desc),
@@ -132,8 +137,8 @@ fun SettingsScreen(
                     onClick = {}
                 )
                 SettingsActionCard(
-                    title = "Exportar Datos",
-                    subtitle = "Descarga tus gastos en formato CSV",
+                    title = stringResource(R.string.settings_export_data),
+                    subtitle = stringResource(R.string.settings_export_data_desc),
                     icon = Icons.Filled.Download,
                     iconColor = colors.pastelGreenDeep,
                     onClick = {}
@@ -141,17 +146,17 @@ fun SettingsScreen(
             }
 
             // SECCIÓN: AYUDA Y SOPORTE
-            SettingsGroup(title = "Soporte", icon = Icons.AutoMirrored.Filled.HelpCenter) {
+            SettingsGroup(title = stringResource(R.string.settings_group_support), icon = Icons.AutoMirrored.Filled.HelpCenter) {
                 SettingsActionCard(
-                    title = "Centro de Ayuda",
-                    subtitle = "Preguntas frecuentes y tutoriales",
+                    title = stringResource(R.string.settings_help_center),
+                    subtitle = stringResource(R.string.settings_help_center_desc),
                     icon = Icons.Filled.QuestionAnswer,
                     iconColor = colors.celesteDeep,
                     onClick = {}
                 )
                 SettingsActionCard(
-                    title = "Contactar Soporte",
-                    subtitle = "Escríbenos si tienes problemas",
+                    title = stringResource(R.string.settings_contact_support),
+                    subtitle = stringResource(R.string.settings_contact_support_desc),
                     icon = Icons.Filled.Email,
                     iconColor = colors.celesteDeep,
                     onClick = {}
@@ -159,7 +164,7 @@ fun SettingsScreen(
             }
 
             // SECCIÓN: ACERCA DE
-            SettingsGroup(title = "Información Legal", icon = Icons.Filled.Info) {
+            SettingsGroup(title = stringResource(R.string.settings_group_legal), icon = Icons.Filled.Info) {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = MaterialTheme.shapes.medium,

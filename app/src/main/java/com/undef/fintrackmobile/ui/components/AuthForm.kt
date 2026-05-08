@@ -66,7 +66,7 @@ fun AuthForm(
             Spacer(modifier = Modifier.height(8.dp))
             
             Text(
-                text = if (isRegister) "Únete a la comunidad Fintrack" else "¡Qué bueno verte de nuevo!",
+                text = stringResource(if (isRegister) R.string.auth_form_register_subtitle else R.string.auth_form_login_subtitle),
                 style = MaterialTheme.typography.bodyLarge,
                 color = colors.celesteInk.copy(alpha = 0.7f)
             )
@@ -131,7 +131,7 @@ fun AuthForm(
                     
                     if (showError) {
                         Text(
-                            text = "Por favor, completa todos los campos obligatorios.",
+                            text = stringResource(R.string.auth_error_required_fields),
                             color = MaterialTheme.colorScheme.error,
                             style = MaterialTheme.typography.bodySmall,
                             fontWeight = FontWeight.Medium
@@ -165,10 +165,11 @@ fun AuthForm(
             )
             
             if (!isRegister) {
+                val mockName = stringResource(R.string.mock_user_name)
                 Spacer(modifier = Modifier.height(16.dp))
                 TextButton(
                     onClick = {
-                        displayName = "Michael"
+                        displayName = mockName
                         email = "mj@gmail.com"
                         showError = false
                     },
@@ -176,7 +177,7 @@ fun AuthForm(
                     colors = ButtonDefaults.textButtonColors(contentColor = colors.celesteSoft)
                 ) {
                     Text(
-                        text = "Usar cuenta de prueba (Mock)",
+                        text = stringResource(R.string.auth_mock_account),
                         fontWeight = FontWeight.Bold
                     )
                 }
