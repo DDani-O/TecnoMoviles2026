@@ -74,6 +74,16 @@ class PurchaseRepository(
         }
     }
 
+    suspend fun updatePurchase(purchase: PurchaseEntity, products: List<ProductEntity>) = withContext(Dispatchers.IO) {
+        purchaseDao.updatePurchase(purchase)
+        purchaseDao.deleteProductsByPurchaseId(purchase.id)
+        purchaseDao.insertProducts(products)
+    }
+
+    suspend fun deletePurchase(purchase: PurchaseEntity) = withContext(Dispatchers.IO) {
+        purchaseDao.deletePurchase(purchase)
+    }
+
     suspend fun seedIfEmpty(force: Boolean = false) = withContext(Dispatchers.IO) {
         seedMutex.withLock {
             if (!force && purchaseDao.countPurchases() > 0) return@withLock
