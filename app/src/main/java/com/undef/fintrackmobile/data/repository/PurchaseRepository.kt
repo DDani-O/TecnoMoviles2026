@@ -28,26 +28,19 @@ class PurchaseRepository(
 ) {
     private val seedMutex = Mutex()
 
+    /**
+     * 8️⃣ CORRUTINAS - Structured Concurrency
+     * El repositorio expone flujos de datos (Flow) o funciones suspendidas.
+     * Los flujos permiten que la UI reaccione a cambios en la BD sin volver a consultar.
+     */
     fun observePurchases(): Flow<List<PurchaseEntity>> = purchaseDao.observePurchases()
 
     fun observePurchasesWithProducts(): Flow<List<PurchaseWithProducts>> = purchaseDao.observePurchasesWithProducts()
 
-    suspend fun updatePurchase(
-        purchase: PurchaseEntity,
-        products: List<ProductEntity>
-    ) = withContext(Dispatchers.IO) {
-        purchaseDao.updatePurchase(purchase)
-        // Eliminar todos los productos antiguos y insertar los nuevos/modificados
-        purchaseDao.deleteProductsByPurchaseId(purchase.id)
-        if (products.isNotEmpty()) {
-            purchaseDao.insertProducts(products)
-        }
-    }
-
-    suspend fun deletePurchase(purchase: PurchaseEntity) = withContext(Dispatchers.IO) {
-        purchaseDao.deletePurchase(purchase)
-    }
-
+    /**
+     * Operación de escritura: Usamos withContext(Dispatchers.IO) para delegar el trabajo
+     * de base de datos a un hilo de I/O, evitando trabar la pantalla del usuario.
+     */
     suspend fun addPurchase(
         supermarketName: String,
         totalCents: Long,
@@ -55,6 +48,7 @@ class PurchaseRepository(
         reason: String,
         products: List<NewProduct>
     ) = withContext(Dispatchers.IO) {
+        // Inserta la compra y obtiene el ID generado
         val purchaseId = purchaseDao.insertPurchase(
             PurchaseEntity(
                 supermarketName = supermarketName,
@@ -63,6 +57,7 @@ class PurchaseRepository(
                 reason = reason
             )
         )
+        // Si hay productos, los asocia al ID de la compra recién creada
         if (products.isNotEmpty()) {
             val entities = products.map { product ->
                 ProductEntity(

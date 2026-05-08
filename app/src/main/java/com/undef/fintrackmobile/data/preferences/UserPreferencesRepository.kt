@@ -8,9 +8,17 @@ import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
+/*
+ * 5️⃣ PERSISTENCIA - DataStore
+ * Utilizamos DataStore para persistir preferencias del usuario de forma reactiva.
+ * A diferencia de SharedPreferences, DataStore se basa en Corrutinas y Flows.
+ */
 private val Context.dataStore by preferencesDataStore(name = "fintrack_prefs")
 
 class UserPreferencesRepository(private val context: Context) {
+    /**
+     * Keys Tipadas: Garantizan Type-Safety al acceder al store.
+     */
     private object Keys {
         val displayName = stringPreferencesKey("display_name")
         val lastName = stringPreferencesKey("last_name")
@@ -21,6 +29,10 @@ class UserPreferencesRepository(private val context: Context) {
         val isLoggedIn = booleanPreferencesKey("is_logged_in")
     }
 
+    /**
+     * Flow reactivo: Cualquier cambio en DataStore emite automáticamente un nuevo
+     * objeto UserPreferences a todos los observadores en la UI.
+     */
     val preferencesFlow: Flow<UserPreferences> = context.dataStore.data.map { prefs ->
         UserPreferences(
             displayName = prefs[Keys.displayName] ?: "",
@@ -33,6 +45,7 @@ class UserPreferencesRepository(private val context: Context) {
         )
     }
 
+    // Funciones suspendidas: Garantizan que las escrituras (I/O) no bloqueen el Main Thread.
     suspend fun updateDisplayName(value: String) {
         context.dataStore.edit { prefs ->
             prefs[Keys.displayName] = value

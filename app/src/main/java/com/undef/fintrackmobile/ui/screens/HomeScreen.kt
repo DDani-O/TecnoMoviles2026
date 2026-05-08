@@ -26,8 +26,9 @@ import kotlinx.coroutines.delay
 
 /**
  * HomeScreen: Dashboard principal de la aplicación.
- * Centraliza la visualización de gastos mensuales, métricas históricas, ofertas y compras recientes.
- * Refactorizado para usar componentes modulares y mantenibles.
+ * 2️⃣ JETPACK COMPOSE - UI Declarativa
+ * HomeScreen es una función @Composable. En lugar de manipular vistas, 
+ * describimos cómo se ve la UI para cada estado posible.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -40,6 +41,11 @@ fun HomeScreen(
     onNotificationsClick: () -> Unit = {},
     onProfileClick: () -> Unit = {},
 ) {
+    /**
+     * 9️⃣ OBSERVACIÓN DE ESTADO
+     * collectAsStateWithLifecycle() es consciente del ciclo de vida.
+     * Si la app está en background, deja de observar para ahorrar recursos.
+     */
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     // Estado para controlar la visibilidad del BottomSheet de notificaciones (State Hoisting).
@@ -53,6 +59,10 @@ fun HomeScreen(
     }
 
     Surface(modifier = modifier.fillMaxSize()) {
+        /**
+         * 1️⃣0️⃣ PATTERN MATCHING con Sealed Classes
+         * Usamos 'when' para renderizar diferentes UI según el estado del ViewModel.
+         */
         when (val state = uiState) {
             is HomeUiState.Loading -> {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -111,6 +121,11 @@ private fun HomeScreenContent(
         }
     }
 
+    /**
+     * 🎯 COMPOSABLES Y LAZY LISTS
+     * LazyColumn es el equivalente moderno a RecyclerView. 
+     * Solo renderiza los items que están visibles en pantalla.
+     */
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
@@ -154,6 +169,10 @@ private fun HomeScreenContent(
                 subtitle = R.string.home_stats_history_subtitle
             )
             Spacer(modifier = Modifier.height(12.dp))
+            /**
+             * LazyRow permite listas horizontales eficientes.
+             * 'key' ayuda a Compose a optimizar las recomposiciones.
+             */
             LazyRow(
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                 contentPadding = PaddingValues(end = 16.dp)

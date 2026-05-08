@@ -24,6 +24,9 @@ import com.undef.fintrackmobile.ui.util.getSupermarketColors
 
 /**
  * HomeTicketCarousel: Carrusel que muestra las últimas compras realizadas en formato de ticket.
+ * 🎯 COMPOSABLES Y LAZY LISTS
+ * LazyRow permite una lista horizontal eficiente. 
+ * Solo instancia los tickets que están en el viewport.
  */
 @Composable
 fun HomeTicketCarousel(
@@ -36,6 +39,10 @@ fun HomeTicketCarousel(
         horizontalArrangement = Arrangement.spacedBy(12.dp),
         contentPadding = PaddingValues(end = 16.dp)
     ) {
+        /**
+         * 'key' es fundamental para la optimización. Permite que Compose identifique
+         * unívocamente cada item y evite recomposiciones innecesarias si la lista cambia.
+         */
         items(purchases, key = { it.purchase.id }) { purchase ->
             TicketCard(purchase = purchase, currencyCode = currencyCode)
         }

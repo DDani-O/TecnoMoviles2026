@@ -10,6 +10,11 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
+/**
+ * 🔟 SEALED CLASSES - UI State
+ * Representan estados exhaustivos de la interfaz.
+ * El compilador nos obliga a manejar todos los casos (Loading, Success, Error).
+ */
 sealed class HomeUiState {
     object Loading : HomeUiState()
     data class Success(val data: HomeUiData) : HomeUiState()
@@ -47,15 +52,26 @@ data class HistoryStat(
     val subtitle: String? = null,
 )
 
+/**
+ * 9️⃣ VIEWMODEL Y STATEFLOW - Gestión de Estado
+ * El ViewModel sobrevive a cambios de configuración (rotación).
+ * Expone un StateFlow que es el 'Single Source of Truth' para la UI.
+ */
 class HomeViewModel(
     private val repository: PurchaseRepository,
 ) : ViewModel() {
 
+    /**
+     * combine() orquesta múltiples flujos de datos. Cada vez que cambie algo
+     * en la BD (purchases) o en las relaciones (purchasesWithProducts),
+     * este bloque se re-ejecuta automáticamente.
+     */
     val uiState: StateFlow<HomeUiState> = combine(
         repository.observePurchasesWithProducts(),
         repository.observePurchases()
     ) { purchasesWithProducts, purchases ->
         try {
+            // Lógica de Negocio: Transformamos datos crudos de BD en información útil para la UI
             val totalCents = purchases.sumOf { it.totalCents }
             val avgCents = if (purchases.isEmpty()) 0L else totalCents / purchases.size
             
@@ -64,6 +80,7 @@ class HomeViewModel(
             val insights = generateInsights(purchases, purchasesWithProducts, totalCents)
             val history = generateHistoryStats(purchases, totalCents, avgCents)
 
+            // Retornamos el estado de Éxito con los datos procesados
             HomeUiState.Success(
                 HomeUiData(
                     monthlyTotalCents = totalCents,
@@ -76,12 +93,18 @@ class HomeViewModel(
                 )
             )
         } catch (e: Exception) {
+            // Si algo falla en el cálculo, emitimos el estado de Error
             HomeUiState.Error(
                 message = e.message,
                 messageRes = com.undef.fintrackmobile.R.string.error_home_loading
             )
         }
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), HomeUiState.Loading)
+    }.stateIn(
+        scope = viewModelScope, 
+        // WhileSubscribed(5000) optimiza recursos al pausar el flujo si la app va a background
+        started = SharingStarted.WhileSubscribed(5_000), 
+        initialValue = HomeUiState.Loading
+    )
 
     private fun calculateWeeklyStats(purchases: List<Pair<Long, Long>>): List<Long> {
         val now = System.currentTimeMillis()
@@ -201,6 +224,9 @@ class HomeViewModel(
     }
 
     init {
+        // 8️⃣ CORRUTINAS - viewModelScope
+        // Lanzamos una corrutina bound al ciclo de vida del ViewModel.
+        // Se cancelará automáticamente si el usuario sale de esta pantalla.
         viewModelScope.launch {
             repository.seedIfEmpty()
         }

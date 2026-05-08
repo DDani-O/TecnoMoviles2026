@@ -10,6 +10,11 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.undef.fintrackmobile.R
 
+/*
+ * 3️⃣ NAVIGATION COMPOSE - Rutas y Destinos
+ * Usamos Sealed Classes para definir destinos de navegación de forma Type-Safe.
+ * Esto garantiza que el compilador verifique las rutas y nos permite asociar metadatos (iconos, labels).
+ */
 sealed class FintrackDestination(
     val route: String,
     @param:StringRes val labelRes: Int,
@@ -26,6 +31,7 @@ sealed class FintrackDestination(
     }
 }
 
+// Constantes para rutas que no están en la barra de navegación inferior
 object Routes {
     const val SPLASH = "splash"
     const val WELCOME = "welcome"

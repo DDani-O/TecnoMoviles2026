@@ -41,7 +41,11 @@ fun FintrackApp(container: AppContainer) {
     val appStateViewModel: AppStateViewModel = viewModel(factory = viewModelFactory)
     val preferences by appStateViewModel.preferences.collectAsStateWithLifecycle()
 
+    // 3️⃣ NAVIGATION COMPOSE - NavController
+    // Mantiene el estado de la pila de navegación y permite disparar transiciones.
     val navController = rememberNavController()
+    
+    // Observamos la ruta actual para actualizar componentes UI como la Bottom Bar
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route
     val showBottomBar = FintrackDestination.bottomItems.any { it.route == currentRoute }
@@ -54,6 +58,8 @@ fun FintrackApp(container: AppContainer) {
                 }
             }
         ) { innerPadding ->
+            // 3️⃣ NAVIGATION COMPOSE - NavHost
+            // Actúa como el orquestador que decide qué pantalla (Composable) mostrar según la ruta.
             NavHost(
                 navController = navController,
                 startDestination = Routes.SPLASH,
@@ -63,6 +69,7 @@ fun FintrackApp(container: AppContainer) {
                     SplashScreen(
                         isLoggedIn = preferences.isLoggedIn,
                         onFinished = { destination ->
+                            // popUpTo remueve el Splash del backstack para que no se pueda volver atrás
                             navController.navigate(destination) {
                                 popUpTo(Routes.SPLASH) { inclusive = true }
                             }
@@ -141,7 +148,12 @@ fun FintrackApp(container: AppContainer) {
                     val viewModel: ProfileViewModel = viewModel(factory = viewModelFactory)
                     ProfileScreen(
                         viewModel = viewModel,
-                        onOpenSettings = { navController.context.startActivity(SettingsActivity.intent(navController.context)) },
+                        onOpenSettings = { 
+                            // 4️⃣ INTENTS - Navegación entre Activities
+                            // Usamos un Intent explícito para lanzar SettingsActivity, saliendo del flujo
+                            // de Navigation Compose y usando el backstack del sistema Android.
+                            navController.context.startActivity(SettingsActivity.intent(navController.context)) 
+                        },
                         onLoggedOut = {
                             navController.navigate(Routes.WELCOME) {
                                 popUpTo(navController.graph.id) { inclusive = true }
