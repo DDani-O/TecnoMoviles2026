@@ -6,7 +6,6 @@ data class UserPreferences(
     val email: String,
     val birthDate: String = "",
     val currencyCode: String,
-    val darkTheme: Boolean,
     val isLoggedIn: Boolean
 ) {
     companion object {
@@ -14,7 +13,6 @@ data class UserPreferences(
             displayName = "",
             email = "",
             currencyCode = "ARS",
-            darkTheme = false,
             isLoggedIn = false
         )
     }

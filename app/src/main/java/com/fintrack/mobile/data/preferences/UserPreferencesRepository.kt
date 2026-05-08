@@ -17,7 +17,6 @@ class UserPreferencesRepository(private val context: Context) {
         val email = stringPreferencesKey("email")
         val birthDate = stringPreferencesKey("birth_date")
         val currencyCode = stringPreferencesKey("currency_code")
-        val darkTheme = booleanPreferencesKey("dark_theme")
         val isLoggedIn = booleanPreferencesKey("is_logged_in")
     }
 
@@ -28,7 +27,6 @@ class UserPreferencesRepository(private val context: Context) {
             email = prefs[Keys.email] ?: "",
             birthDate = prefs[Keys.birthDate] ?: "",
             currencyCode = prefs[Keys.currencyCode] ?: UserPreferences.DEFAULT.currencyCode,
-            darkTheme = prefs[Keys.darkTheme] ?: UserPreferences.DEFAULT.darkTheme,
             isLoggedIn = prefs[Keys.isLoggedIn] ?: UserPreferences.DEFAULT.isLoggedIn
         )
     }
@@ -60,12 +58,6 @@ class UserPreferencesRepository(private val context: Context) {
     suspend fun updateCurrencyCode(value: String) {
         context.dataStore.edit { prefs ->
             prefs[Keys.currencyCode] = value
-        }
-    }
-
-    suspend fun updateDarkTheme(enabled: Boolean) {
-        context.dataStore.edit { prefs ->
-            prefs[Keys.darkTheme] = enabled
         }
     }
 

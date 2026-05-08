@@ -1,11 +1,5 @@
 package com.fintrack.mobile.ui.screens
 
-import android.content.Intent
-import android.net.Uri
-import androidx.core.net.toUri
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -21,10 +15,7 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -35,6 +26,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.fintrack.mobile.R
 import com.fintrack.mobile.ui.theme.FintrackTheme
 import com.fintrack.mobile.ui.viewmodel.*
+import com.fintrack.mobile.ui.components.explore.*
 import kotlinx.coroutines.delay
 
 /**
@@ -60,7 +52,7 @@ fun ExploreScreen(
                     text = stringResource(R.string.explore_title),
                     style = MaterialTheme.typography.headlineMedium,
                     fontWeight = FontWeight.ExtraBold,
-                    color = colors.celesteDeep
+                    color = colors.celesteDeep,
                 )
                 Text(
                     text = "Encuentra las mejores ofertas y supermercados cerca de ti",
@@ -112,18 +104,25 @@ fun ExploreScreen(
 
 @Composable
 private fun ContenidoExplore(datos: DatosExplore) {
+    val colors = FintrackTheme.colors
+
+    // 1. Optimizamos el filtrado para evitar crear nuevas listas innecesariamente
+    val seccionesFiltradas = remember(datos.seccionesOfertas) {
+        datos.seccionesOfertas.filter { it.titulo != "🕒 Últimas ofertas agregadas" }
+    }
+
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(bottom = 24.dp),
         verticalArrangement = Arrangement.spacedBy(24.dp)
     ) {
-        // 3. Mapa de locales cercanos
-        item {
+        // 3. Mapa de locales cercanos (con key para estabilidad)
+        item(key = "seccion_mapa") {
             SeccionMapa()
         }
 
-        // Banner de Evento: Feria de Descuentos (Añadido según requerimiento)
-        item {
+        // Banner de Evento (con key para estabilidad)
+        item(key = "banner_evento") {
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -148,31 +147,34 @@ private fun ContenidoExplore(datos: DatosExplore) {
             }
         }
 
-        // 4. Sección de Noticias (Banner Informativo)
+        // 4. Sección de Noticias
         if (datos.noticias.isNotEmpty()) {
-            item {
+            item(key = "seccion_noticias") {
                 SeccionNoticiasExplore(noticias = datos.noticias)
             }
         }
 
-        // 5. Catálogo de Supermercados (Carrusel Estático centrado)
-        item {
+        // 5. Catálogo de Supermercados
+        item(key = "seccion_supermercados") {
             SeccionSupermercados(supermercados = datos.supermercados)
         }
 
-        // 6. Carruseles de Ofertas con movimiento (Simplificado: Sin últimas ofertas)
-        items(datos.seccionesOfertas.filter { it.titulo != "🕒 Últimas ofertas agregadas" }) { seccion ->
+        // 6. Carruseles de Ofertas (usamos keys únicos basados en el título)
+        items(
+            items = seccionesFiltradas,
+            key = { it.titulo }
+        ) { seccion ->
             SeccionCarruselOfertasConMovimiento(seccion = seccion)
         }
 
-        // 7. Sugerencias Personalizadas basadas en historial
+        // 7. Sugerencias Personalizadas
         if (datos.sugerencias.isNotEmpty()) {
-            item {
+            item(key = "seccion_sugerencias") {
                 SeccionSugerenciasExplore(sugerencias = datos.sugerencias)
             }
         }
-        
-        item {
+
+        item(key = "footer_explore") {
             Box(modifier = Modifier.fillMaxWidth().padding(16.dp), contentAlignment = Alignment.Center) {
                 Text(
                     text = "¡Eso es todo por ahora, ahorrador experto! 💸",
@@ -239,12 +241,18 @@ private fun SeccionNoticiasExplore(noticias: List<NoticiaExplore>) {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun SeccionSupermercados(supermercados: List<SupermercadoExplore>) {
     val colors = FintrackTheme.colors
     var seleccionadoId by remember { mutableStateOf<Int?>(null) }
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    
+    val alTocarItem = remember {
+        { id: Int -> seleccionadoId = id }
+    }
 
-    Column {
+    Column(modifier = Modifier.fillMaxWidth()) {
         Text(
             text = "🛒 Supermercados amigos",
             style = MaterialTheme.typography.titleMedium,
@@ -252,151 +260,35 @@ private fun SeccionSupermercados(supermercados: List<SupermercadoExplore>) {
             modifier = Modifier.padding(horizontal = 16.dp),
             color = colors.celesteInk
         )
-        Spacer(modifier = Modifier.height(12.dp))
+        
+        Spacer(modifier = Modifier.height(16.dp))
+
         LazyRow(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterHorizontally),
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
             contentPadding = PaddingValues(horizontal = 16.dp)
         ) {
-            items(supermercados) { superm ->
-                TarjetaSupermercadoExplore(
+            items(
+                items = supermercados,
+                key = { it.id }
+            ) { superm ->
+                SupermercadoCard(
                     supermercado = superm,
                     estaSeleccionado = seleccionadoId == superm.id,
-                    alTocar = {
-                        seleccionadoId = if (seleccionadoId == superm.id) null else superm.id
-                    }
+                    alTocar = { alTocarItem(superm.id) }
                 )
             }
         }
 
-        supermercados.find { it.id == seleccionadoId }?.let { seleccionado ->
-            AnimatedVisibility(
-                visible = true,
-                enter = expandVertically(),
-                exit = shrinkVertically()
-            ) {
-                DetalleSupermercadoExplore(supermercado = seleccionado)
+        if (seleccionadoId != null) {
+            supermercados.find { it.id == seleccionadoId }?.let { seleccionado ->
+                SupermercadoBottomSheet(
+                    supermercado = seleccionado,
+                    onDismiss = { seleccionadoId = null },
+                    sheetState = sheetState
+                )
             }
         }
-    }
-}
-
-@Composable
-private fun TarjetaSupermercadoExplore(
-    supermercado: SupermercadoExplore,
-    estaSeleccionado: Boolean,
-    alTocar: () -> Unit
-) {
-    val colors = FintrackTheme.colors
-    val accent = when {
-        supermercado.nombre.contains("Carrefour") -> colors.supermarketCarrefourAccent
-        supermercado.nombre.contains("Coto") -> colors.supermarketCotoAccent
-        supermercado.nombre.contains("Jumbo") -> colors.supermarketJumboAccent
-        else -> colors.celesteBase
-    }
-
-    // Usamos Surface en lugar de Card para tener un control más directo sobre el ripple y evitar glitches visuales
-    Surface(
-        onClick = alTocar,
-        modifier = Modifier
-            .size(170.dp, 210.dp)
-            .padding(horizontal = 4.dp)
-            .clip(RoundedCornerShape(28.dp)), // Forzamos el clip aquí para asegurar que el ripple sea circular
-        shape = RoundedCornerShape(28.dp),
-        color = if (estaSeleccionado) accent.copy(alpha = 0.35f) else colors.neutralWhite,
-        shadowElevation = if (estaSeleccionado) 6.dp else 2.dp,
-        border = if (estaSeleccionado) androidx.compose.foundation.BorderStroke(2.dp, accent) else null
-    ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center,
-            modifier = Modifier.fillMaxSize()
-        ) {
-            Surface(
-                modifier = Modifier.size(100.dp), // Aumentado para mejor impacto visual
-                shape = CircleShape,
-                color = if (estaSeleccionado) colors.neutralWhite else accent.copy(alpha = 0.15f)
-            ) {
-                Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
-                    Image(
-                        painter = painterResource(id = supermercado.imagenRes),
-                        contentDescription = null,
-                        modifier = Modifier
-                            .size(65.dp) // Imagen un poco más grande y centrada
-                            .clip(CircleShape),
-                        contentScale = ContentScale.Fit
-                    )
-                }
-            }
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(
-                text = supermercado.nombre,
-                style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.ExtraBold,
-                textAlign = TextAlign.Center,
-                color = colors.celesteInk,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 8.dp) // Padding interno para evitar que el texto toque los bordes
-            )
-        }
-    }
-}
-
-@Composable
-private fun DetalleSupermercadoExplore(supermercado: SupermercadoExplore) {
-    val colors = FintrackTheme.colors
-    val contexto = LocalContext.current
-    val accent = when {
-        supermercado.nombre.contains("Carrefour") -> colors.supermarketCarrefourAccent
-        supermercado.nombre.contains("Coto") -> colors.supermarketCotoAccent
-        supermercado.nombre.contains("Jumbo") -> colors.supermarketJumboAccent
-        else -> colors.celesteDeep
-    }
-
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp),
-        shape = RoundedCornerShape(28.dp),
-        colors = CardDefaults.cardColors(containerColor = colors.neutralWhite),
-        border = androidx.compose.foundation.BorderStroke(1.dp, accent.copy(alpha = 0.3f))
-    ) {
-        Column(modifier = Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-            Text(
-                text = "Detalles de ${supermercado.nombre}",
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold,
-                color = accent
-            )
-            
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                DetalleIconoTexto(icon = Icons.Default.LocationOn, text = supermercado.ubicacion, iconColor = accent)
-                DetalleIconoTexto(icon = Icons.Default.Star, text = "${supermercado.puntuacion} - ${supermercado.comentarios}", iconColor = colors.medalGold)
-                DetalleIconoTexto(icon = Icons.Default.AccessTime, text = "Horario: ${supermercado.horario}", iconColor = colors.neutralDarkGray)
-            }
-
-            Button(
-                onClick = {
-                    val intent = Intent(Intent.ACTION_VIEW, supermercado.webUrl.toUri())
-                    contexto.startActivity(intent)
-                },
-                colors = ButtonDefaults.buttonColors(containerColor = accent),
-                shape = RoundedCornerShape(16.dp),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("Visitar web oficial 🌐", fontWeight = FontWeight.Bold, color = colors.neutralWhite)
-            }
-        }
-    }
-}
-
-@Composable
-private fun DetalleIconoTexto(icon: androidx.compose.ui.graphics.vector.ImageVector, text: String, iconColor: Color) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Icon(icon, null, tint = iconColor, modifier = Modifier.size(20.dp))
-        Spacer(modifier = Modifier.width(12.dp))
-        Text(text = text, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
 
@@ -405,11 +297,12 @@ private fun SeccionCarruselOfertasConMovimiento(seccion: SeccionOfertasExplore) 
     val colors = FintrackTheme.colors
     val listState = rememberLazyListState()
     
-    // Efecto de movimiento (auto-scroll suave)
+    // Efecto de movimiento optimizado
     LaunchedEffect(key1 = seccion.titulo) {
         while (true) {
             delay(4000)
-            if (seccion.items.isNotEmpty()) {
+            // Solo animar si la lista tiene items y el usuario no está interactuando
+            if (seccion.items.isNotEmpty() && !listState.isScrollInProgress) {
                 val nextIndex = (listState.firstVisibleItemIndex + 1) % seccion.items.size
                 listState.animateScrollToItem(nextIndex)
             }
@@ -429,7 +322,10 @@ private fun SeccionCarruselOfertasConMovimiento(seccion: SeccionOfertasExplore) 
             horizontalArrangement = Arrangement.spacedBy(16.dp),
             contentPadding = PaddingValues(horizontal = 16.dp)
         ) {
-            items(seccion.items) { item ->
+            items(
+                items = seccion.items,
+                key = { it.nombreProducto + it.precio } // Key compuesta si no hay ID
+            ) { item ->
                 TarjetaOfertaExplore(item = item)
             }
         }

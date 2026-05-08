@@ -110,8 +110,6 @@ val LightBrandColors = FintrackBrandColors(
     supermarketDefaultAccent = SupermarketDefaultAccent,
 )
 
-val DarkBrandColors = LightBrandColors
-
 val LocalFintrackBrandColors = staticCompositionLocalOf { LightBrandColors }
 
 object FintrackTheme {

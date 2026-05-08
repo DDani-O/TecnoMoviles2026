@@ -1,5 +1,6 @@
 package com.fintrack.mobile.ui.viewmodel
 
+import androidx.compose.runtime.Immutable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.fintrack.mobile.R
@@ -20,6 +21,7 @@ sealed class ExploreUiState {
 /**
  * Datos que consume la pantalla de Explorar.
  */
+@Immutable
 data class DatosExplore(
     val supermercados: List<SupermercadoExplore>,
     val seccionesOfertas: List<SeccionOfertasExplore>,
@@ -27,6 +29,7 @@ data class DatosExplore(
     val sugerencias: List<SugerenciaExplore>
 )
 
+@Immutable
 data class SupermercadoExplore(
     val id: Int,
     val nombre: String,
@@ -35,35 +38,41 @@ data class SupermercadoExplore(
     val puntuacion: Float,
     val comentarios: String,
     val horario: String,
-    val webUrl: String
+    val webUrl: String,
+    val descripcionCorta: String = "Tu supermercado de confianza",
+    val promociones: List<String> = emptyList(),
+    val metodosPago: List<String> = emptyList(),
+    val beneficios: List<String> = emptyList()
 )
 
+@Immutable
 data class SeccionOfertasExplore(
     val titulo: String,
     val items: List<OfertaItemExplore>
 )
 
+@Immutable
 data class OfertaItemExplore(
     val nombreProducto: String,
     val precio: String,
     val tienda: String
 )
 
+@Immutable
 data class NoticiaExplore(
     val id: Int,
     val titulo: String,
     val descripcion: String
 )
 
+@Immutable
 data class SugerenciaExplore(
     val id: Int,
     val titulo: String,
     val descripcion: String
 )
 
-class ExploreViewModel(
-    private val exploreRepository: com.fintrack.mobile.data.repository.ExploreRepository
-) : ViewModel() {
+class ExploreViewModel : ViewModel() {
     private val _state = MutableStateFlow<ExploreUiState>(ExploreUiState.Cargando)
     val state: StateFlow<ExploreUiState> = _state.asStateFlow()
 
@@ -90,7 +99,11 @@ class ExploreViewModel(
                         puntuacion = 4.5f,
                         comentarios = "¡Excelente atención y frescura!",
                         horario = "08:00 - 22:00",
-                        webUrl = "https://www.carrefour.com.ar"
+                        webUrl = "https://www.carrefour.com.ar",
+                        descripcionCorta = "Precios bajos todos los días",
+                        promociones = listOf("2x1 en lácteos", "70% 2da unidad vinos"),
+                        metodosPago = listOf("Tarjeta Mi Carrefour", "Todas las tarjetas"),
+                        beneficios = listOf("Puntos Mi Carrefour", "Envío gratis > $30.000")
                     ),
                     SupermercadoExplore(
                         id = 2,
@@ -100,7 +113,11 @@ class ExploreViewModel(
                         puntuacion = 4.2f,
                         comentarios = "Las mejores ofertas en carnicería.",
                         horario = "08:30 - 21:30",
-                        webUrl = "https://www.coto.com.ar"
+                        webUrl = "https://www.coto.com.ar",
+                        descripcionCorta = "Yo te conozco",
+                        promociones = listOf("Miércoles 15% Comunidad Coto", "OFERTAS de carne"),
+                        metodosPago = listOf("Comunidad Coto", "Mercado Pago"),
+                        beneficios = listOf("Descuentos en carnes", "Cuotas sin interés")
                     ),
                     SupermercadoExplore(
                         id = 3,
@@ -110,7 +127,11 @@ class ExploreViewModel(
                         puntuacion = 4.8f,
                         comentarios = "Calidad premium asegurada.",
                         horario = "09:00 - 21:00",
-                        webUrl = "https://www.jumbo.com.ar"
+                        webUrl = "https://www.jumbo.com.ar",
+                        descripcionCorta = "Calidad para tu familia",
+                        promociones = listOf("Descuento con Jumbo Mas", "Especial Gourmet"),
+                        metodosPago = listOf("Jumbo Mas", "Tarjetas Bancarias"),
+                        beneficios = listOf("Puntos Jumbo Mas", "Atención preferencial")
                     )
                 )
 

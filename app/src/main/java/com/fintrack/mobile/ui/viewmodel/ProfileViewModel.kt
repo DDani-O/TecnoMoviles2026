@@ -27,12 +27,6 @@ class ProfileViewModel(
         }
     }
 
-    fun updateDarkTheme(value: Boolean) {
-        viewModelScope.launch {
-            repository.updateDarkTheme(value)
-        }
-    }
-
     fun logout() {
         viewModelScope.launch {
             repository.setLoggedIn(false)

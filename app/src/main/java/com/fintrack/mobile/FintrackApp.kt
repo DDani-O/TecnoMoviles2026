@@ -46,7 +46,7 @@ fun FintrackApp(container: AppContainer) {
     val currentRoute = backStackEntry?.destination?.route
     val showBottomBar = FintrackDestination.bottomItems.any { it.route == currentRoute }
 
-    FintrackMobileTheme(darkTheme = preferences.darkTheme, dynamicColor = false) {
+    FintrackMobileTheme(dynamicColor = false) {
         Scaffold(
             bottomBar = {
                 if (showBottomBar) {

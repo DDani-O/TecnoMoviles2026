@@ -16,8 +16,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -44,6 +44,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -163,15 +164,6 @@ fun ProfileScreen(
                 )
             }
 
-            // MODO OSCURO
-            item {
-                SettingToggleCard(
-                    title = stringResource(R.string.profile_theme_dark),
-                    isChecked = preferences.darkTheme,
-                    onToggle = { viewModel.updateDarkTheme(it) }
-                )
-            }
-
             // NOTIFICACIONES
             item {
                 SettingToggleCard(
@@ -215,7 +207,7 @@ fun ProfileScreen(
                     shape = RoundedCornerShape(16.dp)
                 ) {
                     Icon(
-                        imageVector = Icons.Filled.Logout,
+                        imageVector = Icons.AutoMirrored.Filled.Logout,
                         contentDescription = null,
                         modifier = Modifier.size(20.dp)
                     )
