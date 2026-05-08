@@ -5,7 +5,7 @@ plugins {
 }
 
 android {
-    namespace = "com.fintrack.mobile"
+    namespace = "com.undef.fintrackmobile"
     compileSdk {
         version = release(36) {
             minorApiLevel = 1
@@ -13,7 +13,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.fintrack.mobile"
+        applicationId = "com.undef.fintrackmobile"
         minSdk = 24
         targetSdk = 36
         versionCode = 1
