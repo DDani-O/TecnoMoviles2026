@@ -17,6 +17,7 @@ class UserPreferencesRepository(private val context: Context) {
         val email = stringPreferencesKey("email")
         val birthDate = stringPreferencesKey("birth_date")
         val currencyCode = stringPreferencesKey("currency_code")
+        val profileImageUri = stringPreferencesKey("profile_image_uri")
         val isLoggedIn = booleanPreferencesKey("is_logged_in")
     }
 
@@ -27,6 +28,7 @@ class UserPreferencesRepository(private val context: Context) {
             email = prefs[Keys.email] ?: "",
             birthDate = prefs[Keys.birthDate] ?: "",
             currencyCode = prefs[Keys.currencyCode] ?: UserPreferences.DEFAULT.currencyCode,
+            profileImageUri = prefs[Keys.profileImageUri],
             isLoggedIn = prefs[Keys.isLoggedIn] ?: UserPreferences.DEFAULT.isLoggedIn
         )
     }
@@ -58,6 +60,13 @@ class UserPreferencesRepository(private val context: Context) {
     suspend fun updateCurrencyCode(value: String) {
         context.dataStore.edit { prefs ->
             prefs[Keys.currencyCode] = value
+        }
+    }
+
+    suspend fun updateProfileImageUri(value: String?) {
+        context.dataStore.edit { prefs ->
+            if (value == null) prefs.remove(Keys.profileImageUri)
+            else prefs[Keys.profileImageUri] = value
         }
     }
 

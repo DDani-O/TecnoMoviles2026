@@ -21,6 +21,20 @@ class ProfileViewModel(
         }
     }
 
+    fun updatePersonalData(lastName: String, email: String, birthDate: String) {
+        viewModelScope.launch {
+            repository.updateLastName(lastName)
+            repository.updateEmail(email)
+            repository.updateBirthDate(birthDate)
+        }
+    }
+
+    fun updateProfileImage(uri: String?) {
+        viewModelScope.launch {
+            repository.updateProfileImageUri(uri)
+        }
+    }
+
     fun updateCurrencyCode(value: String) {
         viewModelScope.launch {
             repository.updateCurrencyCode(value)

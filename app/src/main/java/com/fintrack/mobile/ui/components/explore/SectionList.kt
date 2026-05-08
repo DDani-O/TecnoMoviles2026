@@ -16,7 +16,7 @@ import androidx.compose.ui.unit.dp
  */
 @Composable
 fun SectionList(
-    titulo: String,
+    title: String,
     items: List<String>,
     color: Color,
     modifier: Modifier = Modifier
@@ -26,7 +26,7 @@ fun SectionList(
         verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
         Text(
-            text = titulo,
+            text = title,
             style = MaterialTheme.typography.labelLarge,
             fontWeight = FontWeight.Bold,
             color = color

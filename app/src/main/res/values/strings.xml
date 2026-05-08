@@ -9,10 +9,10 @@
     <string name="nav_profile">Yo</string>
 
     <string name="splash_title">FintrackMobile</string>
-    <string name="splash_subtitle">Cargando tu resumen</string>
+    <string name="splash_subtitle">¡Estamos llenando tu carrito!</string>
 
-    <string name="welcome_title">¡Tu billetera te lo va a agradecer! 🚀</string>
-    <string name="welcome_subtitle">Dominá tus gastos, encontrá las mejores ofertas y hacé que cada centavo rinda más.</string>
+    <string name="welcome_title">¡Tu billetera te lo va a agradecer!</string>
+    <string name="welcome_subtitle">Dominá tus gastos, encontrá las mejores ofertas y hacé que cada peso rinda más.</string>
 
     <string name="login_title">Inicia sesion</string>
     <string name="register_title">Crea tu cuenta</string>

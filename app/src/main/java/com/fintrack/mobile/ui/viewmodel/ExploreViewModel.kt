@@ -10,168 +10,180 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 /**
- * Estados para la pantalla de Explorar.
+ * ExploreUiState: Estados para la pantalla de Explorar.
  */
 sealed class ExploreUiState {
-    object Cargando : ExploreUiState()
-    data class Exito(val datos: DatosExplore) : ExploreUiState()
-    data class Error(val mensaje: String) : ExploreUiState()
+    object Loading : ExploreUiState()
+    data class Success(val data: ExploreData) : ExploreUiState()
+    data class Error(val message: String) : ExploreUiState()
 }
 
 /**
- * Datos que consume la pantalla de Explorar.
+ * ExploreData: Datos que consume la pantalla de Explorar.
  */
 @Immutable
-data class DatosExplore(
-    val supermercados: List<SupermercadoExplore>,
-    val seccionesOfertas: List<SeccionOfertasExplore>,
-    val noticias: List<NoticiaExplore>,
-    val sugerencias: List<SugerenciaExplore>
+data class ExploreData(
+    val supermarkets: List<SupermarketExplore>,
+    val offerSections: List<OfferSectionExplore>,
+    val news: List<NewsExplore>,
+    val suggestions: List<SuggestionExplore>
 )
 
+/**
+ * SupermarketExplore: Información detallada de un supermercado para la sección de exploración.
+ */
 @Immutable
-data class SupermercadoExplore(
+data class SupermarketExplore(
     val id: Int,
-    val nombre: String,
-    val imagenRes: Int,
-    val ubicacion: String,
-    val puntuacion: Float,
-    val comentarios: String,
-    val horario: String,
+    val name: String,
+    val imageRes: Int,
+    val location: String,
+    val rating: Float,
+    val comments: String,
+    val hours: String,
     val webUrl: String,
-    val descripcionCorta: String = "Tu supermercado de confianza",
-    val promociones: List<String> = emptyList(),
-    val metodosPago: List<String> = emptyList(),
-    val beneficios: List<String> = emptyList()
+    val shortDescription: String = "Tu supermercado de confianza",
+    val promotions: List<String> = emptyList(),
+    val paymentMethods: List<String> = emptyList(),
+    val benefits: List<String> = emptyList()
 )
 
+/**
+ * OfferSectionExplore: Sección que agrupa un conjunto de ítems de oferta.
+ */
 @Immutable
-data class SeccionOfertasExplore(
-    val titulo: String,
-    val items: List<OfertaItemExplore>
+data class OfferSectionExplore(
+    val title: String,
+    val items: List<OfferItemExplore>
 )
 
+/**
+ * OfferItemExplore: Ítem individual de una oferta con título, descripción y tienda.
+ */
 @Immutable
-data class OfertaItemExplore(
-    val nombreProducto: String,
-    val precio: String,
-    val tienda: String
+data class OfferItemExplore(
+    val title: String,
+    val description: String,
+    val store: String
 )
 
+/**
+ * NewsExplore: Noticia o aviso relevante para la pantalla de exploración.
+ */
 @Immutable
-data class NoticiaExplore(
+data class NewsExplore(
     val id: Int,
-    val titulo: String,
-    val descripcion: String
+    val title: String,
+    val description: String
 )
 
+/**
+ * SuggestionExplore: Sugerencia personalizada basada en el consumo del usuario.
+ */
 @Immutable
-data class SugerenciaExplore(
+data class SuggestionExplore(
     val id: Int,
-    val titulo: String,
-    val descripcion: String
+    val title: String,
+    val description: String
 )
 
-class ExploreViewModel : ViewModel() {
-    private val _state = MutableStateFlow<ExploreUiState>(ExploreUiState.Cargando)
+/**
+ * ExploreViewModel: Gestiona el estado y la lógica de la pantalla de exploración.
+ */
+class ExploreViewModel(
+    private val exploreRepository: com.fintrack.mobile.data.repository.ExploreRepository
+) : ViewModel() {
+    private val _state = MutableStateFlow<ExploreUiState>(ExploreUiState.Loading)
     val state: StateFlow<ExploreUiState> = _state.asStateFlow()
 
     init {
-        cargarDatos()
+        loadData()
     }
 
     /**
-     * Carga datos iniciales para la pantalla.
+     * loadData: Carga datos iniciales para la pantalla.
      * En una app real vendrían de un repositorio.
      */
-    fun cargarDatos() {
+    fun loadData() {
         viewModelScope.launch {
             try {
                 // Simulamos una demora de red para mostrar el estado de carga
-                _state.value = ExploreUiState.Cargando
+                _state.value = ExploreUiState.Loading
                 
-                val supermercados = listOf(
-                    SupermercadoExplore(
+                val supermarkets = listOf(
+                    SupermarketExplore(
                         id = 1,
-                        nombre = "Carrefour",
-                        imagenRes = R.drawable.logo_carrefour,
-                        ubicacion = "Av. Santa Fe 1234, CABA",
-                        puntuacion = 4.5f,
-                        comentarios = "¡Excelente atención y frescura!",
-                        horario = "08:00 - 22:00",
+                        name = "Carrefour",
+                        imageRes = R.drawable.logo_carrefour,
+                        location = "Av. Santa Fe 1234, CABA",
+                        rating = 4.5f,
+                        comments = "¡Excelente atención y frescura!",
+                        hours = "08:00 - 22:00",
                         webUrl = "https://www.carrefour.com.ar",
-                        descripcionCorta = "Precios bajos todos los días",
-                        promociones = listOf("2x1 en lácteos", "70% 2da unidad vinos"),
-                        metodosPago = listOf("Tarjeta Mi Carrefour", "Todas las tarjetas"),
-                        beneficios = listOf("Puntos Mi Carrefour", "Envío gratis > $30.000")
+                        shortDescription = "Precios bajos todos los días",
+                        promotions = listOf("2x1 en lácteos", "70% 2da unidad vinos"),
+                        paymentMethods = listOf("Tarjeta Mi Carrefour", "Todas las tarjetas"),
+                        benefits = listOf("Puntos Mi Carrefour", "Envío gratis > $30.000")
                     ),
-                    SupermercadoExplore(
+                    SupermarketExplore(
                         id = 2,
-                        nombre = "Coto",
-                        imagenRes = R.drawable.logo_coto,
-                        ubicacion = "Pueyrredón 2501, CABA",
-                        puntuacion = 4.2f,
-                        comentarios = "Las mejores ofertas en carnicería.",
-                        horario = "08:30 - 21:30",
+                        name = "Coto",
+                        imageRes = R.drawable.logo_coto,
+                        location = "Pueyrredón 2501, CABA",
+                        rating = 4.2f,
+                        comments = "Las mejores ofertas en carnicería.",
+                        hours = "08:30 - 21:30",
                         webUrl = "https://www.coto.com.ar",
-                        descripcionCorta = "Yo te conozco",
-                        promociones = listOf("Miércoles 15% Comunidad Coto", "OFERTAS de carne"),
-                        metodosPago = listOf("Comunidad Coto", "Mercado Pago"),
-                        beneficios = listOf("Descuentos en carnes", "Cuotas sin interés")
+                        shortDescription = "Yo te conozco",
+                        promotions = listOf("Miércoles 15% Comunidad Coto", "OFERTAS de carne"),
+                        paymentMethods = listOf("Comunidad Coto", "Mercado Pago"),
+                        benefits = listOf("Descuentos en carnes", "Cuotas sin interés")
                     ),
-                    SupermercadoExplore(
+                    SupermarketExplore(
                         id = 3,
-                        nombre = "Jumbo",
-                        imagenRes = R.drawable.logo_jumbo,
-                        ubicacion = "Bullrich 345, CABA",
-                        puntuacion = 4.8f,
-                        comentarios = "Calidad premium asegurada.",
-                        horario = "09:00 - 21:00",
+                        name = "Jumbo",
+                        imageRes = R.drawable.logo_jumbo,
+                        location = "Bullrich 345, CABA",
+                        rating = 4.8f,
+                        comments = "Calidad premium asegurada.",
+                        hours = "09:00 - 21:00",
                         webUrl = "https://www.jumbo.com.ar",
-                        descripcionCorta = "Calidad para tu familia",
-                        promociones = listOf("Descuento con Jumbo Mas", "Especial Gourmet"),
-                        metodosPago = listOf("Jumbo Mas", "Tarjetas Bancarias"),
-                        beneficios = listOf("Puntos Jumbo Mas", "Atención preferencial")
+                        shortDescription = "Calidad para tu familia",
+                        promotions = listOf("Descuento con Jumbo Mas", "Especial Gourmet"),
+                        paymentMethods = listOf("Jumbo Mas", "Tarjetas Bancarias"),
+                        benefits = listOf("Puntos Jumbo Mas", "Atención preferencial")
                     )
                 )
 
-                val secciones = listOf(
-                    SeccionOfertasExplore(
-                        titulo = "🔥 Ofertas explosivas",
+                val sections = listOf(
+                    OfferSectionExplore(
+                        title = "Ofertas explosivas",
                         items = listOf(
-                            OfertaItemExplore("Asado de Novillo", "$8900 kg", "Coto"),
-                            OfertaItemExplore("Yerba Mate 1kg", "$3200", "Carrefour"),
-                            OfertaItemExplore("Aceite Girasol", "$1450", "Jumbo")
+                            OfferItemExplore("20% de ahorro", "Usando Mercado Pago", "Coto"),
+                            OfferItemExplore("15% de descuento", "En carnicería los martes", "Carrefour"),
+                            OfferItemExplore("3x2 en galletitas", "Llevando marcas elegidas", "Jumbo")
                         )
                     ),
-                    SeccionOfertasExplore(
-                        titulo = "🕒 Últimas ofertas agregadas",
+                    OfferSectionExplore(
+                        title = "Productos más buscados",
                         items = listOf(
-                            OfertaItemExplore("Leche Entera", "$1100", "Carrefour"),
-                            OfertaItemExplore("Pan Lactal", "$2400", "Jumbo"),
-                            OfertaItemExplore("Queso Cremoso", "$4500 kg", "Coto")
-                        )
-                    ),
-                    SeccionOfertasExplore(
-                        titulo = "🥛 Productos más buscados",
-                        items = listOf(
-                            OfertaItemExplore("Yogur Firme", "$950", "Carrefour"),
-                            OfertaItemExplore("Manteca 200g", "$1800", "Coto"),
-                            OfertaItemExplore("Crema de Leche", "$1300", "Jumbo")
+                            OfferItemExplore("Yogur Firme", "$950", "Carrefour"),
+                            OfferItemExplore("Manteca 200g", "$1800", "Coto"),
+                            OfferItemExplore("Crema de Leche", "$1300", "Jumbo")
                         )
                     )
                 )
 
-                val noticias = listOf(
-                    NoticiaExplore(1, "¡Aviso importante!", "Jumbo cierra este viernes debido al feriado. ¡Corré que se acaba todo!")
+                val news = listOf(
+                    NewsExplore(1, "¡Aviso importante!", "Jumbo cierra este viernes debido al feriado. ¡Corré que se acaba todo!")
                 )
 
-                val sugerencias = listOf(
-                    SugerenciaExplore(1, "Basado en tu consumo", "Sueles comprar mucho café. ¡Hay un descuento del 20% en Starbucks de Carrefour!")
+                val suggestions = listOf(
+                    SuggestionExplore(1, "Basado en tu consumo", "Sueles comprar mucho café. ¡Hay un descuento del 20% en Starbucks de Carrefour!")
                 )
 
-                _state.value = ExploreUiState.Exito(
-                    DatosExplore(supermercados, secciones, noticias, sugerencias)
+                _state.value = ExploreUiState.Success(
+                    ExploreData(supermarkets, sections, news, suggestions)
                 )
             } catch (e: Exception) {
                 _state.value = ExploreUiState.Error("¡Ups! Algo salió mal: ${e.message}")

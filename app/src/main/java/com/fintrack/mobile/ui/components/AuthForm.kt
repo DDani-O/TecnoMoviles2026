@@ -1,27 +1,29 @@
 package com.fintrack.mobile.ui.components
 
 import androidx.annotation.StringRes
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.fintrack.mobile.R
+import com.fintrack.mobile.ui.theme.FintrackTheme
+import com.fintrack.mobile.ui.util.formatDate
+import com.fintrack.mobile.ui.util.showDatePicker
 
+/**
+ * AuthForm: Componente base para formularios de autenticación (Login y Registro).
+ * Proporciona una estructura consistente con validación básica y diseño pastel.
+ */
 @Composable
 fun AuthForm(
     @StringRes titleRes: Int,
@@ -29,80 +31,118 @@ fun AuthForm(
     @StringRes secondaryLabelRes: Int,
     isRegister: Boolean = false,
     onPrimary: (name: String, email: String, lastName: String?, birthDate: String?) -> Unit,
-    onSecondary: () -> Unit
+    onSecondary: () -> Unit,
 ) {
     var displayName by rememberSaveable { mutableStateOf("") }
     var lastName by rememberSaveable { mutableStateOf("") }
     var email by rememberSaveable { mutableStateOf("") }
     var birthDate by rememberSaveable { mutableStateOf("") }
     
-    // Error state for validation
-    var showError by rememberSaveable { mutableStateOf(false) }
+    var showError by rememberSaveable { mutableStateOf(value = false) }
+    val colors = FintrackTheme.colors
+    val scrollState = rememberScrollState()
+    val context = LocalContext.current
 
-    Surface(modifier = Modifier.fillMaxSize()) {
+    Surface(
+        modifier = Modifier.fillMaxSize(),
+        color = colors.celesteMist
+    ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .verticalScroll(scrollState)
                 .padding(24.dp),
-            verticalArrangement = Arrangement.Center
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.Start
         ) {
+            // Título de la pantalla
             Text(
-                text = androidx.compose.ui.res.stringResource(titleRes),
-                style = MaterialTheme.typography.headlineMedium
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-            
-            LabeledTextField(
-                value = displayName,
-                onValueChange = { displayName = it; showError = false },
-                labelRes = R.string.label_name,
-                placeholderRes = R.string.placeholder_name,
-                modifier = Modifier.fillMaxWidth()
+                text = stringResource(titleRes),
+                style = MaterialTheme.typography.headlineLarge,
+                fontWeight = FontWeight.ExtraBold,
+                color = colors.celesteDeep,
             )
             
-            if (isRegister) {
-                Spacer(modifier = Modifier.height(12.dp))
-                LabeledTextField(
-                    value = lastName,
-                    onValueChange = { lastName = it; showError = false },
-                    labelRes = R.string.label_last_name,
-                    placeholderRes = R.string.placeholder_last_name,
-                    modifier = Modifier.fillMaxWidth()
-                )
-            }
+            Spacer(modifier = Modifier.height(8.dp))
             
-            Spacer(modifier = Modifier.height(12.dp))
-            LabeledTextField(
-                value = email,
-                onValueChange = { email = it; showError = false },
-                labelRes = R.string.label_email,
-                placeholderRes = R.string.placeholder_email,
-                keyboardType = KeyboardType.Email,
-                modifier = Modifier.fillMaxWidth()
+            Text(
+                text = if (isRegister) "Únete a la comunidad Fintrack" else "¡Qué bueno verte de nuevo!",
+                style = MaterialTheme.typography.bodyLarge,
+                color = colors.celesteInk.copy(alpha = 0.7f)
             )
+
+            Spacer(modifier = Modifier.height(32.dp))
             
-            if (isRegister) {
-                Spacer(modifier = Modifier.height(12.dp))
-                LabeledTextField(
-                    value = birthDate,
-                    onValueChange = { birthDate = it; showError = false },
-                    labelRes = R.string.label_birth_date,
-                    placeholderRes = R.string.placeholder_birth_date,
-                    modifier = Modifier.fillMaxWidth()
-                )
+            // Tarjeta contenedora del formulario
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(24.dp),
+                colors = CardDefaults.cardColors(containerColor = colors.neutralWhite),
+                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+            ) {
+                Column(
+                    modifier = Modifier.padding(20.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    LabeledTextField(
+                        value = displayName,
+                        onValueChange = { displayName = it; showError = false },
+                        labelRes = R.string.label_name,
+                        placeholderRes = R.string.placeholder_name,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    
+                    if (isRegister) {
+                        LabeledTextField(
+                            value = lastName,
+                            onValueChange = { lastName = it; showError = false },
+                            labelRes = R.string.label_last_name,
+                            placeholderRes = R.string.placeholder_last_name,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
+                    
+                    LabeledTextField(
+                        value = email,
+                        onValueChange = { email = it; showError = false },
+                        labelRes = R.string.label_email,
+                        placeholderRes = R.string.placeholder_email,
+                        keyboardType = KeyboardType.Email,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    
+                    if (isRegister) {
+                        // Campo de fecha de nacimiento con selector de calendario (igual que en compras)
+                        LabeledTextField(
+                            value = birthDate,
+                            onValueChange = { birthDate = it; showError = false },
+                            labelRes = R.string.label_birth_date,
+                            placeholderRes = R.string.placeholder_birth_date,
+                            modifier = Modifier.fillMaxWidth(),
+                            readOnly = true,
+                            onClick = {
+                                showDatePicker(context, System.currentTimeMillis()) { millis ->
+                                    birthDate = formatDate(millis)
+                                    showError = false
+                                }
+                            },
+                        )
+                    }
+                    
+                    if (showError) {
+                        Text(
+                            text = "Por favor, completa todos los campos obligatorios.",
+                            color = MaterialTheme.colorScheme.error,
+                            style = MaterialTheme.typography.bodySmall,
+                            fontWeight = FontWeight.Medium
+                        )
+                    }
+                }
             }
             
-            if (showError) {
-                Text(
-                    text = "Por favor, completa todos los campos obligatorios.",
-                    color = MaterialTheme.colorScheme.error,
-                    style = MaterialTheme.typography.bodySmall,
-                    modifier = Modifier.padding(top = 8.dp)
-                )
-            }
+            Spacer(modifier = Modifier.height(32.dp))
             
-            Spacer(modifier = Modifier.height(24.dp))
-            
+            // Acciones principales
             PrimarySecondaryActions(
                 primaryLabelRes = primaryLabelRes,
                 secondaryLabelRes = secondaryLabelRes,
@@ -119,19 +159,26 @@ fun AuthForm(
                         showError = true
                     }
                 },
-                onSecondary = onSecondary
+                onSecondary = onSecondary,
+                modifier = Modifier.fillMaxWidth(),
+                buttonModifier = Modifier.fillMaxWidth()
             )
             
             if (!isRegister) {
+                Spacer(modifier = Modifier.height(16.dp))
                 TextButton(
                     onClick = {
-                        displayName = "Juan"
-                        email = "juan@fintrack.com"
+                        displayName = "Michael"
+                        email = "mj@gmail.com"
                         showError = false
                     },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.align(Alignment.CenterHorizontally),
+                    colors = ButtonDefaults.textButtonColors(contentColor = colors.celesteSoft)
                 ) {
-                    Text("Usar cuenta de prueba (Mock)")
+                    Text(
+                        text = "Usar cuenta de prueba (Mock)",
+                        fontWeight = FontWeight.Bold
+                    )
                 }
             }
         }

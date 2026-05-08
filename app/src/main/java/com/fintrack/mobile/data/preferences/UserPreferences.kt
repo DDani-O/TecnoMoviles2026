@@ -6,6 +6,7 @@ data class UserPreferences(
     val email: String,
     val birthDate: String = "",
     val currencyCode: String,
+    val profileImageUri: String? = null,
     val isLoggedIn: Boolean
 ) {
     companion object {

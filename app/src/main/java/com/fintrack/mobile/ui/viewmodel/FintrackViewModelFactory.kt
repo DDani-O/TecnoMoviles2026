@@ -17,7 +17,7 @@ class FintrackViewModelFactory(
                 AuthViewModel(container.preferencesRepository) as T
             }
             modelClass.isAssignableFrom(ExploreViewModel::class.java) -> {
-                ExploreViewModel() as T
+                ExploreViewModel(container.exploreRepository) as T
             }
             modelClass.isAssignableFrom(HomeViewModel::class.java) -> {
                 HomeViewModel(container.purchaseRepository) as T

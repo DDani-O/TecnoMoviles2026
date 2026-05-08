@@ -42,7 +42,7 @@ fun ExploreScreen(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val colors = FintrackTheme.colors
-    var textoBusqueda by rememberSaveable { mutableStateOf("") }
+    var searchText by rememberSaveable { mutableStateOf("") }
 
     Surface(modifier = modifier.fillMaxSize(), color = colors.celesteMist) {
         Column(modifier = Modifier.fillMaxSize()) {
@@ -58,14 +58,14 @@ fun ExploreScreen(
                     text = "Encuentra las mejores ofertas y supermercados cerca de ti",
                     style = MaterialTheme.typography.bodyMedium,
                     color = colors.celesteInk.copy(alpha = 0.7f),
-                    fontWeight = FontWeight.Medium
+                    fontWeight = FontWeight.Medium,
                 )
             }
 
             // 2. Buscador optimizado
             OutlinedTextField(
-                value = textoBusqueda,
-                onValueChange = { textoBusqueda = it },
+                value = searchText,
+                onValueChange = { searchText = it },
                 placeholder = { Text("¿Qué buscamos hoy, genio?", color = colors.celesteInk.copy(alpha = 0.5f)) },
                 modifier = Modifier
                     .fillMaxWidth()
@@ -77,107 +77,106 @@ fun ExploreScreen(
                     unfocusedBorderColor = colors.celesteSoft.copy(alpha = 0.5f),
                     focusedContainerColor = colors.neutralWhite,
                     unfocusedContainerColor = colors.neutralWhite,
-                    cursorColor = colors.celesteDeep
+                    cursorColor = colors.celesteDeep,
                 )
             )
 
             Spacer(modifier = Modifier.height(16.dp))
 
             when (val current = state) {
-                is ExploreUiState.Cargando -> {
+                is ExploreUiState.Loading -> {
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         CircularProgressIndicator(color = colors.celesteDeep)
                     }
                 }
                 is ExploreUiState.Error -> {
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Text(text = current.mensaje, color = MaterialTheme.colorScheme.error, textAlign = TextAlign.Center)
+                        Text(text = current.message, color = MaterialTheme.colorScheme.error, textAlign = TextAlign.Center)
                     }
                 }
-                is ExploreUiState.Exito -> {
-                    ContenidoExplore(datos = current.datos)
+                is ExploreUiState.Success -> {
+                    ExploreContent(data = current.data)
                 }
             }
         }
     }
 }
 
+/**
+ * ExploreContent: Contenedor de la lista de elementos en la pantalla de exploración.
+ */
 @Composable
-private fun ContenidoExplore(datos: DatosExplore) {
+private fun ExploreContent(data: ExploreData) {
     val colors = FintrackTheme.colors
-
-    // 1. Optimizamos el filtrado para evitar crear nuevas listas innecesariamente
-    val seccionesFiltradas = remember(datos.seccionesOfertas) {
-        datos.seccionesOfertas.filter { it.titulo != "🕒 Últimas ofertas agregadas" }
-    }
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(bottom = 24.dp),
         verticalArrangement = Arrangement.spacedBy(24.dp)
     ) {
-        // 3. Mapa de locales cercanos (con key para estabilidad)
-        item(key = "seccion_mapa") {
-            SeccionMapa()
+        // 3. Mapa de locales cercanos
+        item(key = "map_section") {
+            MapSection()
         }
 
-        // Banner de Evento (con key para estabilidad)
-        item(key = "banner_evento") {
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp),
-                shape = RoundedCornerShape(20.dp),
-                colors = CardDefaults.cardColors(containerColor = colors.pastelBlue.copy(alpha = 0.3f)),
-                border = androidx.compose.foundation.BorderStroke(2.dp, colors.pastelBlue)
-            ) {
-                Row(
-                    modifier = Modifier.padding(16.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+        // Banner de Evento
+        item(key = "event_banner") {
+            ExploreNewsCard(
+                title = "¡Feria de Descuentos!",
+                description = "El 10/6 todo al 50% en locales adheridos.",
+                icon = Icons.Default.Celebration,
+                containerColor = colors.pastelBlue,
+                contentColor = colors.celesteInk,
+                borderColor = colors.pastelBlue,
+                modifier = Modifier.padding(horizontal = 16.dp)
+            )
+        }
+
+        // 4. Sección de Noticias
+        if (data.news.isNotEmpty()) {
+            item(key = "news_section") {
+                Column(
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    Icon(Icons.Default.Celebration, contentDescription = null, tint = colors.celesteDeep)
-                    Text(
-                        text = "¡Atención! El 10/6 Feria de Descuentos con todo al 50%",
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.Bold,
-                        color = colors.celesteInk
-                    )
+                    data.news.forEach { item ->
+                        ExploreNewsCard(
+                            title = item.title,
+                            description = item.description,
+                            icon = Icons.Default.Info,
+                            containerColor = colors.pastelRed,
+                            contentColor = colors.celesteInk,
+                            borderColor = colors.pastelRed
+                        )
+                    }
                 }
             }
         }
 
-        // 4. Sección de Noticias
-        if (datos.noticias.isNotEmpty()) {
-            item(key = "seccion_noticias") {
-                SeccionNoticiasExplore(noticias = datos.noticias)
-            }
-        }
-
         // 5. Catálogo de Supermercados
-        item(key = "seccion_supermercados") {
-            SeccionSupermercados(supermercados = datos.supermercados)
+        item(key = "supermarkets_section") {
+            SupermarketsSection(supermarkets = data.supermarkets)
         }
 
-        // 6. Carruseles de Ofertas (usamos keys únicos basados en el título)
+        // 6. Carruseles de Ofertas
         items(
-            items = seccionesFiltradas,
-            key = { it.titulo }
-        ) { seccion ->
-            SeccionCarruselOfertasConMovimiento(seccion = seccion)
+            items = data.offerSections,
+            key = { it.title }
+        ) { section ->
+            OfferCarouselWithMotionSection(section = section)
         }
 
         // 7. Sugerencias Personalizadas
-        if (datos.sugerencias.isNotEmpty()) {
-            item(key = "seccion_sugerencias") {
-                SeccionSugerenciasExplore(sugerencias = datos.sugerencias)
+        if (data.suggestions.isNotEmpty()) {
+            item(key = "suggestions_section") {
+                SuggestionsSectionExplore(suggestions = data.suggestions)
             }
         }
 
-        item(key = "footer_explore") {
+        item(key = "explore_footer") {
             Box(modifier = Modifier.fillMaxWidth().padding(16.dp), contentAlignment = Alignment.Center) {
                 Text(
-                    text = "¡Eso es todo por ahora, ahorrador experto! 💸",
+                    text = "¡Eso es todo por ahora, ahorrador experto!",
                     style = MaterialTheme.typography.bodySmall,
                     color = colors.celesteInk.copy(alpha = 0.5f)
                 )
@@ -186,12 +185,15 @@ private fun ContenidoExplore(datos: DatosExplore) {
     }
 }
 
+/**
+ * MapSection: Muestra un marcador de posición de mapa para locales cercanos.
+ */
 @Composable
-private fun SeccionMapa() {
+private fun MapSection() {
     val colors = FintrackTheme.colors
     Column(modifier = Modifier.padding(horizontal = 16.dp)) {
         Text(
-            text = "📍 Locales cercanos",
+            text = "Locales cercanos",
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold,
             color = colors.celesteInk
@@ -214,53 +216,29 @@ private fun SeccionMapa() {
     }
 }
 
-@Composable
-private fun SeccionNoticiasExplore(noticias: List<NoticiaExplore>) {
-    val colors = FintrackTheme.colors
-    Column(modifier = Modifier.padding(horizontal = 16.dp)) {
-        noticias.forEach { noticia ->
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(20.dp),
-                colors = CardDefaults.cardColors(containerColor = colors.pastelRed.copy(alpha = 0.2f)),
-                border = androidx.compose.foundation.BorderStroke(1.dp, colors.pastelRed.copy(alpha = 0.5f))
-            ) {
-                Row(
-                    modifier = Modifier.padding(16.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    Icon(Icons.Default.Info, contentDescription = null, tint = colors.pastelRed)
-                    Column {
-                        Text(text = noticia.titulo, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
-                        Text(text = noticia.descripcion, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    }
-                }
-            }
-        }
-    }
-}
-
+/**
+ * SupermarketsSection: Muestra una fila horizontal de tarjetas de supermercado.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun SeccionSupermercados(supermercados: List<SupermercadoExplore>) {
+private fun SupermarketsSection(supermarkets: List<SupermarketExplore>) {
     val colors = FintrackTheme.colors
-    var seleccionadoId by remember { mutableStateOf<Int?>(null) }
+    var selectedId by remember { mutableStateOf<Int?>(null) }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    
-    val alTocarItem = remember {
-        { id: Int -> seleccionadoId = id }
+
+    val onSupermarketClick = remember {
+        { id: Int -> selectedId = id }
     }
 
     Column(modifier = Modifier.fillMaxWidth()) {
         Text(
-            text = "🛒 Supermercados amigos",
+            text = "Supermercados amigos",
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold,
             modifier = Modifier.padding(horizontal = 16.dp),
             color = colors.celesteInk
         )
-        
+
         Spacer(modifier = Modifier.height(16.dp))
 
         LazyRow(
@@ -269,41 +247,44 @@ private fun SeccionSupermercados(supermercados: List<SupermercadoExplore>) {
             contentPadding = PaddingValues(horizontal = 16.dp)
         ) {
             items(
-                items = supermercados,
+                items = supermarkets,
                 key = { it.id }
-            ) { superm ->
-                SupermercadoCard(
-                    supermercado = superm,
-                    estaSeleccionado = seleccionadoId == superm.id,
-                    alTocar = { alTocarItem(superm.id) }
+            ) { supermarket ->
+                SupermarketCard(
+                    supermarket = supermarket,
+                    isSelected = selectedId == supermarket.id,
+                    onClick = { onSupermarketClick(supermarket.id) }
                 )
             }
         }
 
-        if (seleccionadoId != null) {
-            supermercados.find { it.id == seleccionadoId }?.let { seleccionado ->
-                SupermercadoBottomSheet(
-                    supermercado = seleccionado,
-                    onDismiss = { seleccionadoId = null },
-                    sheetState = sheetState
+        if (selectedId != null) {
+            supermarkets.find { it.id == selectedId }?.let { selected ->
+                SupermarketBottomSheet(
+                    supermarket = selected,
+                    onDismiss = { selectedId = null },
+                    sheetState = sheetState,
                 )
             }
         }
     }
 }
 
+/**
+ * OfferCarouselWithMotionSection: Sección de carrusel animado para ofertas.
+ */
 @Composable
-private fun SeccionCarruselOfertasConMovimiento(seccion: SeccionOfertasExplore) {
+private fun OfferCarouselWithMotionSection(section: OfferSectionExplore) {
     val colors = FintrackTheme.colors
     val listState = rememberLazyListState()
-    
+
     // Efecto de movimiento optimizado
-    LaunchedEffect(key1 = seccion.titulo) {
+    LaunchedEffect(key1 = section.title) {
         while (true) {
             delay(4000)
             // Solo animar si la lista tiene items y el usuario no está interactuando
-            if (seccion.items.isNotEmpty() && !listState.isScrollInProgress) {
-                val nextIndex = (listState.firstVisibleItemIndex + 1) % seccion.items.size
+            if (section.items.isNotEmpty() && !listState.isScrollInProgress) {
+                val nextIndex = (listState.firstVisibleItemIndex + 1) % section.items.size
                 listState.animateScrollToItem(nextIndex)
             }
         }
@@ -311,7 +292,7 @@ private fun SeccionCarruselOfertasConMovimiento(seccion: SeccionOfertasExplore) 
 
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Text(
-            text = seccion.titulo,
+            text = section.title,
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold,
             modifier = Modifier.padding(horizontal = 16.dp),
@@ -323,32 +304,39 @@ private fun SeccionCarruselOfertasConMovimiento(seccion: SeccionOfertasExplore) 
             contentPadding = PaddingValues(horizontal = 16.dp)
         ) {
             items(
-                items = seccion.items,
-                key = { it.nombreProducto + it.precio } // Key compuesta si no hay ID
+                items = section.items,
+                key = { it.title + it.description }
             ) { item ->
-                TarjetaOfertaExplore(item = item)
+                OfferCardExplore(item = item)
             }
         }
     }
 }
 
+/**
+ * OfferCardExplore: Tarjeta individual para mostrar detalles de una oferta.
+ */
 @Composable
-private fun TarjetaOfertaExplore(item: OfertaItemExplore) {
+private fun OfferCardExplore(item: OfferItemExplore) {
     val colors = FintrackTheme.colors
     Card(
-        modifier = Modifier.width(200.dp),
+        modifier = Modifier.width(220.dp),
         shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(containerColor = colors.neutralWhite),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
         border = androidx.compose.foundation.BorderStroke(1.dp, colors.celestePale)
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
+        Column(
+            modifier = Modifier
+                .padding(16.dp)
+                .fillMaxWidth()
+        ) {
             Surface(
                 color = colors.pastelGreenPale,
                 shape = RoundedCornerShape(12.dp)
             ) {
                 Text(
-                    text = item.tienda,
+                    text = item.store,
                     modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
                     style = MaterialTheme.typography.labelSmall,
                     fontWeight = FontWeight.Bold,
@@ -357,40 +345,47 @@ private fun TarjetaOfertaExplore(item: OfertaItemExplore) {
             }
             Spacer(modifier = Modifier.height(12.dp))
             Text(
-                text = item.nombreProducto,
-                style = MaterialTheme.typography.bodyMedium,
-                fontWeight = FontWeight.Bold,
+                text = item.title,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.ExtraBold,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
-                color = MaterialTheme.colorScheme.onSurface
+                color = colors.celesteDeep
             )
             Text(
-                text = item.precio,
-                style = MaterialTheme.typography.titleLarge,
-                color = colors.celesteDeep,
-                fontWeight = FontWeight.ExtraBold
+                text = item.description,
+                style = MaterialTheme.typography.bodyMedium,
+                color = colors.celesteInk.copy(alpha = 0.8f),
+                fontWeight = FontWeight.SemiBold,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+                minLines = 2
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = "¡Aprovechá! ⚡",
+                text = "¡Aprovechá!",
                 style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = colors.celesteSoft,
+                fontWeight = FontWeight.Bold
             )
         }
     }
 }
 
+/**
+ * SuggestionsSectionExplore: Sección para mostrar sugerencias personalizadas al usuario.
+ */
 @Composable
-private fun SeccionSugerenciasExplore(sugerencias: List<SugerenciaExplore>) {
+private fun SuggestionsSectionExplore(suggestions: List<SuggestionExplore>) {
     val colors = FintrackTheme.colors
     Column(modifier = Modifier.padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Text(
-            text = "✨ Recomendados solo para vos",
+            text = "Recomendados solo para vos",
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold,
             color = colors.celesteInk
         )
-        sugerencias.forEach { sugerencia ->
+        suggestions.forEach { suggestion ->
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(24.dp),
@@ -412,12 +407,11 @@ private fun SeccionSugerenciasExplore(sugerencias: List<SugerenciaExplore>) {
                         }
                     }
                     Column {
-                        Text(text = sugerencia.titulo, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.bodyLarge, color = colors.pastelGreenDeep)
-                        Text(text = sugerencia.descripcion, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(text = suggestion.title, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.bodyLarge, color = colors.pastelGreenDeep)
+                        Text(text = suggestion.description, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
             }
         }
     }
 }
-

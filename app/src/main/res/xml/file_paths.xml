@@ -3,4 +3,7 @@
     <cache-path
         name="tickets"
         path="tickets/" />
+    <cache-path
+        name="profile"
+        path="profile/" />
 </paths>

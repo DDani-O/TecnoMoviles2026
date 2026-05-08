@@ -57,7 +57,7 @@ fun FintrackApp(container: AppContainer) {
             NavHost(
                 navController = navController,
                 startDestination = Routes.SPLASH,
-                modifier = Modifier.padding(innerPadding)
+                modifier = Modifier.padding(innerPadding),
             ) {
                 composable(Routes.SPLASH) {
                     SplashScreen(
@@ -72,7 +72,7 @@ fun FintrackApp(container: AppContainer) {
                 composable(Routes.WELCOME) {
                     WelcomeScreen(
                         onLogin = { navController.navigate(Routes.LOGIN) },
-                        onRegister = { navController.navigate(Routes.REGISTER) }
+                        onRegister = { navController.navigate(Routes.REGISTER) },
                     )
                 }
                 composable(Routes.LOGIN) {
@@ -84,8 +84,7 @@ fun FintrackApp(container: AppContainer) {
                                 popUpTo(Routes.WELCOME) { inclusive = true }
                             }
                         },
-                        onRegister = { navController.navigate(Routes.REGISTER) }
-                    )
+                    ) { navController.navigate(Routes.REGISTER) }
                 }
                 composable(Routes.REGISTER) {
                     val viewModel: AuthViewModel = viewModel(factory = viewModelFactory)
@@ -96,16 +95,16 @@ fun FintrackApp(container: AppContainer) {
                                 popUpTo(Routes.WELCOME) { inclusive = true }
                             }
                         },
-                        onLogin = { navController.navigate(Routes.LOGIN) }
-                    )
+                    ) { navController.navigate(Routes.LOGIN) }
                 }
                 composable(FintrackDestination.Home.route) {
                     val viewModel: HomeViewModel = viewModel(factory = viewModelFactory)
                     HomeScreen(
                         displayName = preferences.displayName,
                         currencyCode = preferences.currencyCode,
+                        profileImageUri = preferences.profileImageUri,
                         viewModel = viewModel,
-                        onProfileClick = { navController.navigate(FintrackDestination.Profile.route) }
+                        onProfileClick = { navController.navigate(FintrackDestination.Profile.route) },
                     )
                 }
                 composable(FintrackDestination.Explore.route) {
@@ -135,7 +134,7 @@ fun FintrackApp(container: AppContainer) {
                     val viewModel: RecordsViewModel = viewModel(factory = viewModelFactory)
                     RecordsScreen(
                         currencyCode = preferences.currencyCode,
-                        viewModel = viewModel
+                        viewModel = viewModel,
                     )
                 }
                 composable(FintrackDestination.Profile.route) {

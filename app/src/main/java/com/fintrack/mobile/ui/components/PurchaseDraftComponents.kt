@@ -36,6 +36,9 @@ import com.fintrack.mobile.ui.util.formatCurrency
 import com.fintrack.mobile.ui.util.parseCents
 import com.fintrack.mobile.ui.viewmodel.EditableProductDraft
 
+/**
+ * PurchaseTotals: Representa el desglose financiero de una compra.
+ */
 data class PurchaseTotals(
     val subtotalCents: Long,
     val discountCents: Long,
@@ -43,6 +46,9 @@ data class PurchaseTotals(
     val totalCents: Long,
 )
 
+/**
+ * calculatePurchaseTotals: Función de utilidad para calcular subtotales y totales a partir de borradores de productos.
+ */
 fun calculatePurchaseTotals(products: List<EditableProductDraft>): PurchaseTotals {
     val subtotalCents = products.sumOf { product ->
         val qty = product.quantity.toIntOrNull()?.coerceAtLeast(0) ?: 0
@@ -64,6 +70,9 @@ fun calculatePurchaseTotals(products: List<EditableProductDraft>): PurchaseTotal
     )
 }
 
+/**
+ * PurchaseDataSection: Sección de formulario para editar los datos generales de la compra (Supermercado, motivo, fecha).
+ */
 @Composable
 fun PurchaseDataSection(
     title: String,
@@ -151,6 +160,9 @@ fun PurchaseDataSection(
     }
 }
 
+/**
+ * EditableProductCard: Tarjeta expandible para editar los detalles de un producto (nombre, cantidad, precio, descuento).
+ */
 @Composable
 fun EditableProductCard(
     index: Int,
@@ -253,6 +265,9 @@ fun EditableProductCard(
     }
 }
 
+/**
+ * PurchaseBreakdownCard: Tarjeta que resume los totales de la compra (subtotal, descuentos, impuestos y total final).
+ */
 @Composable
 fun PurchaseBreakdownCard(
     totals: PurchaseTotals,

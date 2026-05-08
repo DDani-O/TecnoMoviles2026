@@ -16,6 +16,10 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
+/**
+ * TitleSubtitleCard: Tarjeta simple diseñada para mostrar un título y un subtítulo.
+ * Permite personalizar colores, estilos de texto y rellenos.
+ */
 @Composable
 fun TitleSubtitleCard(
     title: String,

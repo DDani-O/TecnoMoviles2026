@@ -1,35 +1,38 @@
 package com.fintrack.mobile.ui.screens
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Savings
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.fintrack.mobile.R
 import com.fintrack.mobile.ui.components.PrimarySecondaryActions
+import com.fintrack.mobile.ui.theme.FintrackTheme
 
+/**
+ * WelcomeScreen: Pantalla de bienvenida para usuarios no autenticados.
+ * Presenta la propuesta de valor de la app con un diseño limpio y moderno.
+ */
 @Composable
 fun WelcomeScreen(
     onLogin: () -> Unit,
     onRegister: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Surface(modifier = modifier.fillMaxSize()) {
+    val colors = FintrackTheme.colors
+    
+    Surface(
+        modifier = modifier.fillMaxSize(),
+        color = colors.celesteMist
+    ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -37,23 +40,46 @@ fun WelcomeScreen(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            Image(
-                imageVector = Icons.Default.Savings,
-                contentDescription = null,
-                modifier = Modifier.size(120.dp),
-                colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary),
-            )
-            Spacer(modifier = Modifier.height(32.dp))
+            // Icono representativo con fondo pastel
+            Surface(
+                modifier = Modifier.size(160.dp),
+                shape = androidx.compose.foundation.shape.CircleShape,
+                color = colors.celestePale
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Image(
+                        imageVector = Icons.Default.Savings,
+                        contentDescription = null,
+                        modifier = Modifier.size(80.dp),
+                        colorFilter = ColorFilter.tint(colors.celesteDeep),
+                    )
+                }
+            }
+            
+            Spacer(modifier = Modifier.height(48.dp))
+            
+            // Textos de bienvenida
             Text(
                 text = stringResource(R.string.welcome_title),
-                style = MaterialTheme.typography.headlineMedium,
+                style = MaterialTheme.typography.headlineLarge,
+                fontWeight = FontWeight.ExtraBold,
+                color = colors.celesteInk,
+                textAlign = TextAlign.Center
             )
-            Spacer(modifier = Modifier.height(8.dp))
+            
+            Spacer(modifier = Modifier.height(12.dp))
+            
             Text(
                 text = stringResource(R.string.welcome_subtitle),
                 style = MaterialTheme.typography.bodyLarge,
+                color = colors.celesteInk.copy(alpha = 0.7f),
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(horizontal = 16.dp)
             )
-            Spacer(modifier = Modifier.height(48.dp))
+            
+            Spacer(modifier = Modifier.height(64.dp))
+            
+            // Acciones de navegación
             PrimarySecondaryActions(
                 primaryLabelRes = R.string.action_login,
                 secondaryLabelRes = R.string.action_register,

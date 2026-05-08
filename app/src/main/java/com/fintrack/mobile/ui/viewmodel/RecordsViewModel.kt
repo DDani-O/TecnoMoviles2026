@@ -18,7 +18,7 @@ sealed class RecordsUiState {
     object Loading : RecordsUiState()
     data class Success(
         val purchases: List<PurchaseWithProducts>,
-        val filteredStats: StatsData
+        val filteredStats: StatsData,
     ) : RecordsUiState()
     data class Error(val message: String) : RecordsUiState()
 }
@@ -28,7 +28,7 @@ data class StatsData(
     val averageSpentCents: Long,
     val ticketCount: Int,
     val supermarketDistribution: List<Pair<String, Long>>,
-    val productRanking: List<ProductRank>
+    val productRanking: List<ProductRank>,
 )
 
 data class ProductRank(
@@ -44,8 +44,8 @@ class RecordsViewModel(
 ) : ViewModel() {
 
     private val _selectedPeriod = MutableStateFlow(PeriodFilter.MONTH)
-    private val _selectedMonth = MutableStateFlow(Calendar.getInstance().get(Calendar.MONTH))
-    private val _selectedYear = MutableStateFlow(Calendar.getInstance().get(Calendar.YEAR))
+    private val _selectedMonth = MutableStateFlow(Calendar.getInstance()[Calendar.MONTH])
+    private val _selectedYear = MutableStateFlow(Calendar.getInstance()[Calendar.YEAR])
 
     val uiState: StateFlow<RecordsUiState> = combine(
         repository.observePurchasesWithProducts(),
@@ -84,8 +84,8 @@ class RecordsViewModel(
         return all.filter { item ->
             val cal = Calendar.getInstance().apply { timeInMillis = item.purchase.dateMillis }
             when (period) {
-                PeriodFilter.WEEK -> item.purchase.dateMillis >= now - (7L * 24 * 60 * 60 * 1000)
-                PeriodFilter.MONTH -> cal.get(Calendar.MONTH) == month && cal.get(Calendar.YEAR) == year
+                PeriodFilter.WEEK -> item.purchase.dateMillis >= (now - (7L * 24 * 60 * 60 * 1000))
+                PeriodFilter.MONTH -> (cal[Calendar.MONTH] == month && cal[Calendar.YEAR] == year)
                 PeriodFilter.YEAR -> cal.get(Calendar.YEAR) == year
             }
         }
@@ -97,8 +97,11 @@ class RecordsViewModel(
         
         val distribution = filtered.groupBy { it.purchase.supermarketName }
             .mapValues { it.value.sumOf { p -> p.purchase.totalCents } }
+            .entries
+            .asSequence()
+            .sortedByDescending { it.value }
+            .map { it.toPair() }
             .toList()
-            .sortedByDescending { it.second }
 
         val ranking = filtered.asSequence()
             .flatMap { it.products }

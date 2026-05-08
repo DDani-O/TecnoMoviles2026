@@ -20,7 +20,7 @@ class SettingsActivity : ComponentActivity() {
                 // Usamos el nombre del parámetro para evitar confusiones
                 SettingsScreen(
                     onBack = { finish() },
-                    modifier = Modifier.fillMaxSize() // Opcional: añade el modificador aquí
+                    modifier = Modifier.fillMaxSize(), // Opcional: añade el modificador aquí
                 )
             }
         }

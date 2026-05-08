@@ -13,6 +13,10 @@ import androidx.navigation.NavHostController
 import com.fintrack.mobile.ui.navigation.FintrackDestination
 import com.fintrack.mobile.ui.theme.FintrackTheme
 
+/**
+ * FintrackBottomBar: Barra de navegación inferior de la aplicación.
+ * Utiliza los destinos definidos en FintrackDestination para generar los items.
+ */
 @Composable
 fun FintrackBottomBar(
     navController: NavHostController,

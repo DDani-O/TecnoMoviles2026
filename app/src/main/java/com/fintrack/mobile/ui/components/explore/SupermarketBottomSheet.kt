@@ -18,18 +18,18 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import com.fintrack.mobile.ui.theme.FintrackTheme
-import com.fintrack.mobile.ui.viewmodel.SupermercadoExplore
+import com.fintrack.mobile.ui.viewmodel.SupermarketExplore
 
 /**
- * SupermercadoBottomSheet: Detalle del supermercado mostrado en una hoja modal.
+ * SupermarketBottomSheet: Detalle del supermercado mostrado en una hoja modal.
  * Sigue la arquitectura declarativa y modular.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SupermercadoBottomSheet(
-    supermercado: SupermercadoExplore,
+fun SupermarketBottomSheet(
+    supermarket: SupermarketExplore,
     onDismiss: () -> Unit,
-    sheetState: SheetState
+    sheetState: SheetState,
 ) {
     val colors = FintrackTheme.colors
 
@@ -48,22 +48,22 @@ fun SupermercadoBottomSheet(
             )
         }
     ) {
-        DetalleSupermercadoContent(supermercado = supermercado)
+        SupermarketDetailContent(supermarket = supermarket)
     }
 }
 
 @Composable
-private fun DetalleSupermercadoContent(
-    supermercado: SupermercadoExplore
+private fun SupermarketDetailContent(
+    supermarket: SupermarketExplore,
 ) {
     val colors = FintrackTheme.colors
-    val contexto = LocalContext.current
+    val context = LocalContext.current
     
-    val accent = remember(supermercado.nombre) {
+    val accent = remember(supermarket.name) {
         when {
-            supermercado.nombre.contains("Carrefour", ignoreCase = true) -> colors.supermarketCarrefourAccent
-            supermercado.nombre.contains("Coto", ignoreCase = true) -> colors.supermarketCotoAccent
-            supermercado.nombre.contains("Jumbo", ignoreCase = true) -> colors.supermarketJumboAccent
+            supermarket.name.contains("Carrefour", ignoreCase = true) -> colors.supermarketCarrefourAccent
+            supermarket.name.contains("Coto", ignoreCase = true) -> colors.supermarketCotoAccent
+            supermarket.name.contains("Jumbo", ignoreCase = true) -> colors.supermarketJumboAccent
             else -> colors.celesteDeep
         }
     }
@@ -83,13 +83,13 @@ private fun DetalleSupermercadoContent(
         ) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = supermercado.nombre,
+                    text = supermarket.name,
                     style = MaterialTheme.typography.headlineMedium,
                     fontWeight = FontWeight.ExtraBold,
                     color = accent
                 )
                 Text(
-                    text = supermercado.descripcionCorta,
+                    text = supermarket.shortDescription,
                     style = MaterialTheme.typography.bodyMedium,
                     color = colors.celesteInk.copy(alpha = 0.6f)
                 )
@@ -116,9 +116,9 @@ private fun DetalleSupermercadoContent(
                 modifier = Modifier.padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                InfoItem(icon = Icons.Default.LocationOn, text = supermercado.ubicacion, tint = accent)
-                InfoItem(icon = Icons.Default.AccessTime, text = "Abierto: ${supermercado.horario}", tint = colors.neutralDarkGray)
-                InfoItem(icon = Icons.Default.Star, text = "${supermercado.puntuacion} - ${supermercado.comentarios}", tint = colors.medalGold)
+                InfoItem(icon = Icons.Default.LocationOn, text = supermarket.location, tint = accent)
+                InfoItem(icon = Icons.Default.AccessTime, text = "Abierto: ${supermarket.hours}", tint = colors.neutralDarkGray)
+                InfoItem(icon = Icons.Default.Star, text = "${supermarket.rating} - ${supermarket.comments}", tint = colors.medalGold)
             }
         }
 
@@ -128,14 +128,14 @@ private fun DetalleSupermercadoContent(
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             SectionList(
-                titulo = "🔥 Promos",
-                items = supermercado.promociones,
+                title = "Promos",
+                items = supermarket.promotions,
                 modifier = Modifier.weight(1f),
                 color = accent
             )
             SectionList(
-                titulo = "💳 Pagos",
-                items = supermercado.metodosPago,
+                title = "Pagos",
+                items = supermarket.paymentMethods,
                 modifier = Modifier.weight(1f),
                 color = colors.celesteDeep
             )
@@ -144,8 +144,8 @@ private fun DetalleSupermercadoContent(
         // Botón Web Oficial
         Button(
             onClick = {
-                val intent = Intent(Intent.ACTION_VIEW, supermercado.webUrl.toUri())
-                contexto.startActivity(intent)
+                val intent = Intent(Intent.ACTION_VIEW, supermarket.webUrl.toUri())
+                context.startActivity(intent)
             },
             modifier = Modifier
                 .fillMaxWidth()

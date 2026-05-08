@@ -12,13 +12,14 @@ import kotlinx.coroutines.launch
 import java.util.Locale
 
 data class EditableProductDraft(
-    val id: Long,
-    val name: String,
-    val code: String,
-    val description: String,
-    val quantity: String,
-    val price: String,
-    val discount: String,
+    val id: Long = 0,
+    val name: String = "",
+    val code: String = "",
+    val description: String = "",
+    val quantity: String = "",
+    val price: String = "",
+    val discount: String = "",
+    val purchaseId: Long = 0,
 )
 
 class PurchaseViewModel(

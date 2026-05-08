@@ -2,10 +2,10 @@ package com.fintrack.mobile.ui.navigation
 
 import androidx.annotation.StringRes
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ReceiptLong
 import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.ReceiptLong
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.fintrack.mobile.R
@@ -18,7 +18,7 @@ sealed class FintrackDestination(
     data object Home : FintrackDestination("home", R.string.nav_home, Icons.Filled.Home)
     data object Explore : FintrackDestination("explore", R.string.nav_explore, Icons.Filled.Search)
     data object NewPurchase : FintrackDestination("new_purchase", R.string.nav_new_purchase, Icons.Filled.AddCircle)
-    data object Records : FintrackDestination("records", R.string.nav_records, Icons.Filled.ReceiptLong)
+    data object Records : FintrackDestination("records", R.string.nav_records, Icons.AutoMirrored.Filled.ReceiptLong)
     data object Profile : FintrackDestination("profile", R.string.nav_profile, Icons.Filled.Person)
 
     companion object {
