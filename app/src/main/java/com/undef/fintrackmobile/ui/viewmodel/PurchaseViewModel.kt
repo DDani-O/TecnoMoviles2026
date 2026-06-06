@@ -2,14 +2,24 @@ package com.undef.fintrackmobile.ui.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.undef.fintrackmobile.data.local.entity.PurchaseEntity
+import com.undef.fintrackmobile.data.network.dto.CompraRemotaDto
 import com.undef.fintrackmobile.data.repository.NewProduct
 import com.undef.fintrackmobile.data.repository.PurchaseRepository
+import com.undef.fintrackmobile.data.repository.SincronizacionRepository
 import com.undef.fintrackmobile.ui.util.parseCents
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import java.util.Locale
+
+sealed class SincronizacionEstado {
+    object Inactivo : SincronizacionEstado()
+    object Cargando : SincronizacionEstado()
+    object Exito : SincronizacionEstado()
+    data class Error(val mensaje: String) : SincronizacionEstado()
+}
 
 data class EditableProductDraft(
     val id: Long = 0,
@@ -24,6 +34,7 @@ data class EditableProductDraft(
 
 class PurchaseViewModel(
     private val repository: PurchaseRepository,
+    private val sincronizacionRepository: SincronizacionRepository
 ) : ViewModel() {
     // Estado para los datos generales de la compra
     private val _supermarket = MutableStateFlow("")
@@ -41,6 +52,9 @@ class PurchaseViewModel(
     // Lista de productos en borrador
     private val _products = MutableStateFlow<List<EditableProductDraft>>(emptyList())
     val products: StateFlow<List<EditableProductDraft>> = _products.asStateFlow()
+
+    private val _estadoSincronizacion = MutableStateFlow<SincronizacionEstado>(SincronizacionEstado.Inactivo)
+    val estadoSincronizacion: StateFlow<SincronizacionEstado> = _estadoSincronizacion.asStateFlow()
 
     private var nextProductId = 1L
 
@@ -101,6 +115,26 @@ class PurchaseViewModel(
             repository.addPurchase(supermarketName, totalCents, dateMillis, reason, products)
             clearDraft()
         }
+    }
+
+    fun sincronizarCompra(compra: PurchaseEntity) {
+        viewModelScope.launch {
+            _estadoSincronizacion.value = SincronizacionEstado.Cargando
+            val dto = CompraRemotaDto(
+                titulo = compra.supermarketName,
+                detalle = "Compra por valor de ${compra.totalCents / 100.0}"
+            )
+            val result = sincronizacionRepository.sincronizarCompra(dto)
+            result.onSuccess {
+                _estadoSincronizacion.value = SincronizacionEstado.Exito
+            }.onFailure {
+                _estadoSincronizacion.value = SincronizacionEstado.Error(it.message ?: "Error desconocido")
+            }
+        }
+    }
+
+    fun resetearEstadoSincronizacion() {
+        _estadoSincronizacion.value = SincronizacionEstado.Inactivo
     }
 
     private fun buildEmptyProduct(): EditableProductDraft {
