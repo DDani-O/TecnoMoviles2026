@@ -32,6 +32,13 @@ interface PurchaseDao {
     @Query("SELECT * FROM purchases ORDER BY dateMillis DESC")
     fun observePurchasesWithProducts(): Flow<List<PurchaseWithProducts>>
 
+    @Transaction
+    @Query("SELECT * FROM purchases WHERE id = :purchaseId")
+    suspend fun obtenerCompraConProductosPorId(purchaseId: Long): PurchaseWithProducts?
+
+    @Query("SELECT * FROM purchases WHERE dateMillis BETWEEN :startMillis AND :endMillis ORDER BY dateMillis DESC")
+    fun observarComprasPorPeriodo(startMillis: Long, endMillis: Long): Flow<List<PurchaseEntity>>
+
     // 'suspend' indica que la operación es asincrónica y debe ejecutarse en un hilo de I/O
     @Insert
     suspend fun insertPurchase(purchase: PurchaseEntity): Long
