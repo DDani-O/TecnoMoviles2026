@@ -26,4 +26,11 @@ object NetworkModule {
         .client(okHttpClient)
         .build()
         .create(ExploreApiService::class.java)
+
+    val superAhorroApiService: SuperAhorroApiService = Retrofit.Builder()
+        .baseUrl("https://jsonplaceholder.typicode.com/")
+        .addConverterFactory(MoshiConverterFactory.create(moshi))
+        .client(okHttpClient)
+        .build()
+        .create(SuperAhorroApiService::class.java)
 }
