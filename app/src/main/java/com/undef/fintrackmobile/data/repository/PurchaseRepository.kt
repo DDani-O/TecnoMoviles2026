@@ -3,6 +3,7 @@ package com.undef.fintrackmobile.data.repository
 import android.content.Context
 import androidx.annotation.StringRes
 import com.undef.fintrackmobile.R
+import com.undef.fintrackmobile.data.local.dao.ProductDao
 import com.undef.fintrackmobile.data.local.dao.PurchaseDao
 import com.undef.fintrackmobile.data.local.entity.ProductEntity
 import com.undef.fintrackmobile.data.local.entity.PurchaseEntity
@@ -24,6 +25,7 @@ data class NewProduct(
 
 class PurchaseRepository(
     private val purchaseDao: PurchaseDao,
+    private val productDao: ProductDao,
     private val context: Context
 ) {
     private val seedMutex = Mutex()
@@ -70,14 +72,14 @@ class PurchaseRepository(
                     discountCents = product.discountCents
                 )
             }
-            purchaseDao.insertProducts(entities)
+            productDao.insertProducts(entities)
         }
     }
 
     suspend fun updatePurchase(purchase: PurchaseEntity, products: List<ProductEntity>) = withContext(Dispatchers.IO) {
         purchaseDao.updatePurchase(purchase)
-        purchaseDao.deleteProductsByPurchaseId(purchase.id)
-        purchaseDao.insertProducts(products)
+        productDao.deleteProductsByPurchaseId(purchase.id)
+        productDao.insertProducts(products)
     }
 
     suspend fun deletePurchase(purchase: PurchaseEntity) = withContext(Dispatchers.IO) {
@@ -89,7 +91,7 @@ class PurchaseRepository(
             if (!force && purchaseDao.countPurchases() > 0) return@withLock
             if (force) {
                 purchaseDao.deleteAllPurchases()
-                purchaseDao.deleteAllProducts()
+                productDao.deleteAllProducts()
             }
             seedPurchases().forEach { seed ->
                 val purchaseId = purchaseDao.insertPurchase(
@@ -100,7 +102,7 @@ class PurchaseRepository(
                     )
                 )
                 if (seed.products.isNotEmpty()) {
-                    purchaseDao.insertProducts(
+                    productDao.insertProducts(
                         seed.products.map { product ->
                             ProductEntity(
                                 purchaseId = purchaseId,

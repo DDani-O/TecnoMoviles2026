@@ -8,7 +8,6 @@ import androidx.room.Transaction
 import androidx.room.Update
 import com.undef.fintrackmobile.data.local.entity.PurchaseEntity
 import com.undef.fintrackmobile.data.local.entity.PurchaseWithProducts
-import com.undef.fintrackmobile.data.local.entity.ProductEntity
 import kotlinx.coroutines.flow.Flow
 
 /*
@@ -43,31 +42,15 @@ interface PurchaseDao {
     @Insert
     suspend fun insertPurchase(purchase: PurchaseEntity): Long
 
-    @Insert
-    suspend fun insertProducts(products: List<ProductEntity>)
-
     @Update
     suspend fun updatePurchase(purchase: PurchaseEntity)
 
     @Delete
     suspend fun deletePurchase(purchase: PurchaseEntity)
     
-    // ... otros métodos CRUD
     @Query("SELECT COUNT(*) FROM purchases")
     suspend fun countPurchases(): Int
     
-    @Update
-    suspend fun updateProducts(products: List<ProductEntity>)
-
     @Query("DELETE FROM purchases")
     suspend fun deleteAllPurchases()
-
-    @Query("DELETE FROM products")
-    suspend fun deleteAllProducts()
-
-    @Delete
-    suspend fun deleteProduct(product: ProductEntity)
-
-    @Query("DELETE FROM products WHERE purchaseId = :purchaseId")
-    suspend fun deleteProductsByPurchaseId(purchaseId: Long)
 }
