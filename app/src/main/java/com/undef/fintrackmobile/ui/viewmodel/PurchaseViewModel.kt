@@ -3,7 +3,7 @@ package com.undef.fintrackmobile.ui.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.undef.fintrackmobile.data.local.entity.PurchaseEntity
-import com.undef.fintrackmobile.data.network.dto.CompraRemotaDto
+import com.undef.fintrackmobile.data.network.dto.RemotePurchaseDto
 import com.undef.fintrackmobile.data.repository.NewProduct
 import com.undef.fintrackmobile.data.repository.PurchaseRepository
 import com.undef.fintrackmobile.data.repository.SincronizacionRepository
@@ -12,6 +12,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.Date
 import java.util.Locale
 
 sealed class SincronizacionEstado {
@@ -117,14 +119,31 @@ class PurchaseViewModel(
         }
     }
 
-    fun sincronizarCompra(compra: PurchaseEntity) {
+    /**
+     * syncPurchase: Sincroniza la compra con el servidor (MockAPI) usando el esquema profesional.
+     */
+    fun syncPurchase(purchase: PurchaseEntity, products: List<EditableProductDraft>) {
         viewModelScope.launch {
             _estadoSincronizacion.value = SincronizacionEstado.Cargando
-            val dto = CompraRemotaDto(
-                titulo = compra.supermarketName,
-                detalle = "Compra por valor de ${compra.totalCents / 100.0}"
+            
+            // Formateo de fecha para la API (YYYY-MM-DD)
+            val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+            val formattedDate = sdf.format(Date(purchase.dateMillis))
+
+            // Calculamos la cantidad total de productos (sumando cantidades individuales)
+            val totalProductsCount = products.sumOf { it.quantity.toIntOrNull() ?: 0 }
+
+            // Mapeo al DTO profesional con nombres en inglés
+            val dto = RemotePurchaseDto(
+                storeName = purchase.supermarketName,
+                totalAmount = purchase.totalCents / 100.0,
+                purchaseDate = formattedDate,
+                reason = purchase.reason,
+                productsCount = totalProductsCount,
+                userId = 1
             )
-            val result = sincronizacionRepository.sincronizarCompra(dto)
+
+            val result = sincronizacionRepository.syncPurchase(dto)
             result.onSuccess {
                 _estadoSincronizacion.value = SincronizacionEstado.Exito
             }.onFailure {
@@ -133,7 +152,7 @@ class PurchaseViewModel(
         }
     }
 
-    fun resetearEstadoSincronizacion() {
+    fun resetSyncStatus() {
         _estadoSincronizacion.value = SincronizacionEstado.Inactivo
     }
 
@@ -159,9 +178,5 @@ class PurchaseViewModel(
             priceCents = parseCents(price).coerceAtLeast(0),
             discountCents = parseCents(discount).coerceAtLeast(0)
         )
-    }
-
-    private fun formatCents(cents: Long): String {
-        return String.format(Locale.US, "%.2f", cents / 100.0)
     }
 }

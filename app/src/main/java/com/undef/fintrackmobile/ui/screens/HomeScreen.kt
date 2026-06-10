@@ -4,8 +4,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -17,12 +15,10 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.undef.fintrackmobile.R
 import com.undef.fintrackmobile.ui.components.FintrackSectionHeader
 import com.undef.fintrackmobile.ui.components.home.*
-import com.undef.fintrackmobile.ui.theme.FintrackTheme
 import com.undef.fintrackmobile.ui.util.formatCurrency
 import com.undef.fintrackmobile.ui.viewmodel.HomeViewModel
 import com.undef.fintrackmobile.ui.viewmodel.HomeUiState
 import com.undef.fintrackmobile.ui.viewmodel.HomeUiData
-import kotlinx.coroutines.delay
 
 /**
  * HomeScreen: Dashboard principal de la aplicación.
@@ -103,23 +99,6 @@ private fun HomeScreenContent(
     onProfileClick: () -> Unit,
 ) {
     val greetingName = displayName.ifBlank { stringResource(R.string.default_user_name) }
-    val colors = FintrackTheme.colors
-
-    // Configuración de ofertas estáticas
-    val offers = remember(colors) { getStaticOffers(colors) }
-    val offerListState = rememberLazyListState()
-    var offerIndex by remember { mutableIntStateOf(0) }
-
-    // Efecto de carrusel automático para ofertas.
-    LaunchedEffect(offers.size) {
-        while (true) {
-            delay(3200)
-            if (offers.isNotEmpty()) {
-                offerIndex = (offerIndex + 1) % offers.size
-                offerListState.animateScrollToItem(offerIndex)
-            }
-        }
-    }
 
     /**
      * 🎯 COMPOSABLES Y LAZY LISTS
@@ -183,16 +162,6 @@ private fun HomeScreenContent(
             }
         }
 
-        // 5. Carrusel de ofertas
-        item(key = "home_offers") {
-            FintrackSectionHeader(
-                title = R.string.home_offers_title, 
-                subtitle = R.string.home_offers_subtitle
-            )
-            Spacer(modifier = Modifier.height(12.dp))
-            HomeOfferCarousel(items = offers, state = offerListState)
-        }
-
         // 6. Compras recientes (Tickets)
         item(key = "home_recent_history") {
             FintrackSectionHeader(
@@ -202,40 +171,6 @@ private fun HomeScreenContent(
             Spacer(modifier = Modifier.height(12.dp))
             HomeTicketCarousel(purchases = data.recentPurchases, currencyCode = currencyCode)
         }
-
-        // 7. Desglose por categorías
-        item(key = "home_categories") {
-            FintrackSectionHeader(title = R.string.home_expenses_category)
-            CategorySpendingSection()
-        }
-
-        // 8. Gastos por supermercado (Gráfico de barras)
-        item(key = "home_supermarket_spending") {
-            Spacer(modifier = Modifier.height(16.dp))
-            FintrackSectionHeader(
-                title = R.string.home_supermarket_spending_title, 
-                subtitle = R.string.home_supermarket_spending_subtitle
-            )
-            Spacer(modifier = Modifier.height(12.dp))
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(containerColor = colors.celesteIce),
-                shape = RoundedCornerShape(24.dp),
-                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-            ) {
-                Box(modifier = Modifier.padding(16.dp)) {
-                    SupermarketSpendingSection(
-                        stats = data.supermarketMonthlyStats, 
-                        currencyCode = currencyCode
-                    )
-                }
-            }
-        }
     }
 }
 
-private fun getStaticOffers(colors: com.undef.fintrackmobile.ui.theme.FintrackBrandColors) = listOf(
-    OfferCardState(R.string.home_offer_1_title, R.string.home_offer_1_subtitle, R.string.home_offer_1_detail, colors.offerPeach),
-    OfferCardState(R.string.home_offer_2_title, R.string.home_offer_2_subtitle, R.string.home_offer_2_detail, colors.offerLavender),
-    OfferCardState(R.string.home_offer_3_title, R.string.home_offer_3_subtitle, R.string.home_offer_3_detail, colors.offerSand),
-)

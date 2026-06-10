@@ -20,17 +20,23 @@ object NetworkModule {
         )
         .build()
 
-    val apiService: ExploreApiService = Retrofit.Builder()
-        .baseUrl("https://open.er-api.com/v6/")
-        .addConverterFactory(MoshiConverterFactory.create(moshi))
-        .client(okHttpClient)
-        .build()
-        .create(ExploreApiService::class.java)
-
+    /**
+     * superAhorroApiService: Cliente para MockAPI Proyecto 1 (Supermercados y Ofertas).
+     */
     val superAhorroApiService: SuperAhorroApiService = Retrofit.Builder()
-        .baseUrl("https://jsonplaceholder.typicode.com/")
+        .baseUrl("https://6a2878d04e1e783349a58dab.mockapi.io/api/v1/")
         .addConverterFactory(MoshiConverterFactory.create(moshi))
         .client(okHttpClient)
         .build()
         .create(SuperAhorroApiService::class.java)
+
+    /**
+     * syncApiService: Cliente para MockAPI Proyecto 2 (Sincronización de Compras).
+     */
+    val syncApiService: SyncApiService = Retrofit.Builder()
+        .baseUrl("https://6a288bf14e1e783349a59edf.mockapi.io/api/v1/")
+        .addConverterFactory(MoshiConverterFactory.create(moshi))
+        .client(okHttpClient)
+        .build()
+        .create(SyncApiService::class.java)
 }

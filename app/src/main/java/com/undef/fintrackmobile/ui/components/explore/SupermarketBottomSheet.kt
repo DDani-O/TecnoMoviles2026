@@ -119,10 +119,20 @@ private fun SupermarketDetailContent(
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 InfoItem(icon = Icons.Default.LocationOn, text = supermarket.location, tint = accent)
-                InfoItem(icon = Icons.Default.AccessTime, text = stringResource(R.string.supermarket_open_hours, supermarket.hours), tint = colors.neutralDarkGray)
+                
+                /**
+                 * Mostramos el horario directamente desde la API para evitar repeticiones de prefijos
+                 * (Ya que la API de Córdoba ya incluye el estado 'Abierto' o 'Cerrado').
+                 */
+                InfoItem(
+                    icon = Icons.Default.AccessTime, 
+                    text = supermarket.hours, 
+                    tint = colors.neutralDarkGray
+                )
+
                 InfoItem(
                     icon = Icons.Default.Star,
-                    text = stringResource(R.string.rating_with_comments, supermarket.rating, supermarket.comments),
+                    text = stringResource(R.string.rating_format, supermarket.rating),
                     tint = colors.medalGold
                 )
             }
@@ -147,7 +157,7 @@ private fun SupermarketDetailContent(
             )
         }
 
-        // Botón Web Oficial
+        // Botón Ver en Mapas
         Button(
             onClick = {
                 val intent = Intent(Intent.ACTION_VIEW, supermarket.webUrl.toUri())
@@ -160,7 +170,7 @@ private fun SupermarketDetailContent(
             colors = ButtonDefaults.buttonColors(containerColor = accent),
             elevation = ButtonDefaults.buttonElevation(defaultElevation = 0.dp)
         ) {
-            Icon(Icons.Default.Language, contentDescription = null, modifier = Modifier.size(20.dp))
+            Icon(Icons.Default.Map, contentDescription = null, modifier = Modifier.size(20.dp))
             Spacer(modifier = Modifier.width(10.dp))
             Text(
                 text = stringResource(R.string.supermarket_visit_web),

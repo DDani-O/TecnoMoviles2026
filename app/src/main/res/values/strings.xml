@@ -349,7 +349,7 @@
     <string name="supermarket_open_hours">Abierto: %1$s</string>
     <string name="supermarket_promos_title">Promos</string>
     <string name="supermarket_payments_title">Pagos</string>
-    <string name="supermarket_visit_web">Visitar Web Oficial</string>
+    <string name="supermarket_visit_web">Ver en Mapas</string>
     <string name="supermarket_logo_desc">Logo %1$s</string>
 
     <string name="chart_week_label">S%1$d</string>
@@ -418,7 +418,23 @@
     <string name="default_initials">U</string>
     <string name="quantity_x">x%1$d</string>
     <string name="discount_negative_value">-%1$s</string>
-    <string name="rating_with_comments">%1$.1f - %2$s</string>
+    <string name="rating_format">%1$.1f</string>
     <string name="bullet_item">&#8226; %1$s</string>
     <string name="percent_format">%1$d%%</string>
+    <!-- Nuevos strings Fase 2 -->
+    <string name="share_purchase_title">Compartir compra</string>
+    <string name="action_share">Compartir</string>
+    <string name="records_action_more">Más opciones</string>
+    <string name="sync_success">Compra sincronizada correctamente</string>
+    <string name="sync_error">Error al sincronizar: %1$s</string>
+    <string name="action_sync">Sincronizar</string>
+    <string name="purchase_error_no_products">Agrega al menos un producto para guardar.</string>
+    <string name="purchase_error_no_supermarket">Ingresa el nombre del supermercado.</string>
+
+    <!-- Fallbacks para Explore -->
+    <string name="explore_fallback_location">Av. Siempre Viva %1$d</string>
+    <string name="explore_fallback_hours">08:00 &#8211; 21:00</string>
+    <string name="explore_fallback_promo">Oferta Web #%1$d</string>
+    <string name="explore_fallback_payments">Todas las tarjetas</string>
+    <string name="explore_fallback_benefits">Sincronización online</string>
 </resources>

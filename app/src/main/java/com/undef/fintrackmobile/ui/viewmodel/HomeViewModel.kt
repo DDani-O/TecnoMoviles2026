@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import java.util.Calendar
 
 /**
  * 🔟 SEALED CLASSES - UI State
@@ -69,16 +70,25 @@ class HomeViewModel(
     val uiState: StateFlow<HomeUiState> = combine(
         repository.observePurchasesWithProducts(),
         repository.observePurchases()
-    ) { purchasesWithProducts, purchases ->
+    ) { purchasesWithProducts, allPurchases ->
         try {
-            // Lógica de Negocio: Transformamos datos crudos de BD en información útil para la UI
-            val totalCents = purchases.sumOf { it.totalCents }
-            val avgCents = if (purchases.isEmpty()) 0L else totalCents / purchases.size
+            // Lógica de Negocio: Filtramos solo las compras del mes actual
+            val calendar = Calendar.getInstance()
+            val currentMonth = calendar[Calendar.MONTH]
+            val currentYear = calendar[Calendar.YEAR]
+
+            val monthPurchases = allPurchases.filter {
+                val pCal = Calendar.getInstance().apply { timeInMillis = it.dateMillis }
+                pCal[Calendar.MONTH] == currentMonth && pCal[Calendar.YEAR] == currentYear
+            }
+
+            val totalCents = monthPurchases.sumOf { it.totalCents }
+            val avgCents = if (monthPurchases.isEmpty()) 0L else totalCents / monthPurchases.size
             
-            val weekly = calculateWeeklyStats(purchases.map { it.dateMillis to it.totalCents })
-            val supermarketStats = calculateSupermarketStats(purchases)
-            val insights = generateInsights(purchases, purchasesWithProducts, totalCents)
-            val history = generateHistoryStats(purchases, totalCents, avgCents)
+            val weekly = calculateWeeklyStats(allPurchases.map { it.dateMillis to it.totalCents })
+            val supermarketStats = calculateSupermarketStats(monthPurchases)
+            val insights = generateInsights(allPurchases, purchasesWithProducts, totalCents)
+            val history = generateHistoryStats(monthPurchases, totalCents, avgCents)
 
             // Retornamos el estado de Éxito con los datos procesados
             HomeUiState.Success(
@@ -107,20 +117,31 @@ class HomeViewModel(
     )
 
     private fun calculateWeeklyStats(purchases: List<Pair<Long, Long>>): List<Long> {
-        val now = System.currentTimeMillis()
-        val weekMillis = 7 * 24 * 60 * 60 * 1000L
-        val stats = (0..3).map { weekIndex ->
-            val end = now - (weekIndex * weekMillis)
-            val start = end - weekMillis
-            purchases.asSequence()
-                .filter { it.first in (start until end) }
-                .sumOf { it.second }
+        // Obtenemos los últimos 4 domingos (o inicios de semana)
+        val stats = (0..3).map { weeksAgo ->
+            val cal = Calendar.getInstance()
+            cal.add(Calendar.WEEK_OF_YEAR, -weeksAgo)
+            
+            // Setear al inicio de esa semana (Domingo 00:00)
+            cal.set(Calendar.DAY_OF_WEEK, cal.firstDayOfWeek)
+            cal.set(Calendar.HOUR_OF_DAY, 0)
+            cal.set(Calendar.MINUTE, 0)
+            cal.set(Calendar.SECOND, 0)
+            cal.set(Calendar.MILLISECOND, 0)
+            val start = cal.timeInMillis
+            
+            // Setear al final de esa semana (Sábado 23:59)
+            cal.add(Calendar.DAY_OF_WEEK, 6)
+            cal.set(Calendar.HOUR_OF_DAY, 23)
+            cal.set(Calendar.MINUTE, 59)
+            cal.set(Calendar.SECOND, 59)
+            cal.set(Calendar.MILLISECOND, 999)
+            val end = cal.timeInMillis
+            
+            purchases.filter { it.first in start..end }.sumOf { it.second }
         }.reversed()
 
-        // Fallback para datos vacíos (mejor manejarlo en la UI, pero mantenemos lógica de negocio aquí)
-        return if (stats.all { it == 0L } || stats.count { it > 0 } < 2) {
-            listOf(145000L, 0L, 210000L, 385000L)
-        } else stats
+        return stats
     }
 
     private fun calculateSupermarketStats(purchases: List<com.undef.fintrackmobile.data.local.entity.PurchaseEntity>): List<Pair<String, Long>> {

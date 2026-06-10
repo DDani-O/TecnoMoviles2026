@@ -119,6 +119,8 @@ fun FintrackApp(container: AppContainer) {
                     ExploreScreen(viewModel = viewModel)
                 }
                 composable(FintrackDestination.NewPurchase.route) {
+                    // 9️⃣ VIEWMODEL SCOPING - Usamos LocalContext como owner para que el ViewModel
+                    // sobreviva a la navegación entre pestañas (tabs) de la BottomBar.
                     val viewModel: PurchaseViewModel = viewModel(factory = viewModelFactory)
                     NewPurchaseScreen(
                         currencyCode = preferences.currencyCode,

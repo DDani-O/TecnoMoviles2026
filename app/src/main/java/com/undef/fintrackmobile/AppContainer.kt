@@ -4,7 +4,6 @@ import android.content.Context
 import com.undef.fintrackmobile.data.local.AppDatabase
 import com.undef.fintrackmobile.data.network.NetworkModule
 import com.undef.fintrackmobile.data.preferences.UserPreferencesRepository
-import com.undef.fintrackmobile.data.repository.ExploreRepository
 import com.undef.fintrackmobile.data.repository.PurchaseRepository
 import com.undef.fintrackmobile.data.repository.SincronizacionRepository
 
@@ -16,6 +15,8 @@ class AppContainer(context: Context) {
     private val database: AppDatabase = AppDatabase.getDatabase(appContext)
 
     val purchaseRepository = PurchaseRepository(database.purchaseDao(), database.productDao(), appContext)
-    val exploreRepository = ExploreRepository(NetworkModule.apiService)
-    val sincronizacionRepository = SincronizacionRepository(NetworkModule.superAhorroApiService)
+    val sincronizacionRepository = SincronizacionRepository(
+        NetworkModule.superAhorroApiService,
+        NetworkModule.syncApiService
+    )
 }

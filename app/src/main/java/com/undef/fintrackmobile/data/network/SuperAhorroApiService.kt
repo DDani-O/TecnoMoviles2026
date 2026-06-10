@@ -1,16 +1,13 @@
 package com.undef.fintrackmobile.data.network
 
-import com.undef.fintrackmobile.data.network.dto.CompraRemotaDto
-import com.undef.fintrackmobile.data.network.dto.CompraRemotaRespuestaDto
-import com.undef.fintrackmobile.data.network.dto.SupermercadoDto
-import retrofit2.http.Body
+import com.undef.fintrackmobile.data.network.dto.OfferDto
+import com.undef.fintrackmobile.data.network.dto.SupermarketDto
 import retrofit2.http.GET
-import retrofit2.http.POST
 
 interface SuperAhorroApiService {
-    @GET("posts")
-    suspend fun obtenerSupermercados(): List<SupermercadoDto>
+    @GET("supermarkets")
+    suspend fun getSupermarkets(): List<SupermarketDto>
 
-    @POST("posts")
-    suspend fun sincronizarCompra(@Body compra: CompraRemotaDto): CompraRemotaRespuestaDto
+    @GET("offers")
+    suspend fun getOffers(): List<OfferDto>
 }

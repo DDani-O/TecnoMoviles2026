@@ -24,11 +24,13 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.undef.fintrackmobile.R
+import com.undef.fintrackmobile.data.local.entity.PurchaseEntity
 import com.undef.fintrackmobile.ui.components.*
 import com.undef.fintrackmobile.ui.components.purchase.*
 import com.undef.fintrackmobile.ui.theme.FintrackTheme
 import com.undef.fintrackmobile.ui.util.*
 import com.undef.fintrackmobile.ui.viewmodel.PurchaseViewModel
+import com.undef.fintrackmobile.ui.viewmodel.SincronizacionEstado
 import kotlinx.coroutines.launch
 import java.io.File
 
@@ -48,6 +50,7 @@ fun NewPurchaseScreen(
     val reason by viewModel.reason.collectAsStateWithLifecycle()
     val dateMillis by viewModel.dateMillis.collectAsStateWithLifecycle()
     val products by viewModel.products.collectAsStateWithLifecycle()
+    val synchronizationState by viewModel.estadoSincronizacion.collectAsStateWithLifecycle()
     val colors = FintrackTheme.colors
 
     val totals = calculatePurchaseTotals(products)
@@ -58,6 +61,32 @@ fun NewPurchaseScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     val listState = rememberLazyListState()
+
+    val syncSuccessMsg = stringResource(R.string.sync_success)
+    val syncErrorMsg = stringResource(R.string.sync_error)
+
+    /**
+     * LaunchedEffect: Monitorea el estado de sincronización y muestra el feedback visual correspondiente.
+     */
+    LaunchedEffect(synchronizationState) {
+        when (val state = synchronizationState) {
+            is SincronizacionEstado.Exito -> {
+                snackbarHostState.showSnackbar(
+                    message = syncSuccessMsg,
+                    duration = SnackbarDuration.Short
+                )
+                viewModel.resetSyncStatus()
+            }
+            is SincronizacionEstado.Error -> {
+                snackbarHostState.showSnackbar(
+                    message = syncErrorMsg.format(state.mensaje),
+                    duration = SnackbarDuration.Long
+                )
+                viewModel.resetSyncStatus()
+            }
+            else -> Unit
+        }
+    }
 
     // Gestión de Galería
     val galleryLauncher = rememberLauncherForActivityResult(
@@ -160,12 +189,40 @@ fun NewPurchaseScreen(
 
             item(key = "save_action") {
                 val saveSuccessMsg = stringResource(R.string.purchase_save_success)
+                val errorNoProducts = stringResource(R.string.purchase_error_no_products)
+                val errorNoSupermarket = stringResource(R.string.purchase_error_no_supermarket)
+                val actionSyncLabel = stringResource(R.string.action_sync)
+
                 Button(
                     onClick = {
-                        if (totals.totalCents > 0L && supermarket.isNotBlank()) {
+                        if (supermarket.isBlank()) {
+                            scope.launch { snackbarHostState.showSnackbar(errorNoSupermarket) }
+                        } else if (products.isEmpty() || totals.totalCents <= 0L) {
+                            scope.launch { snackbarHostState.showSnackbar(errorNoProducts) }
+                        } else {
+                            /**
+                             * Capturamos los datos actuales para la sincronización antes de limpiar el formulario.
+                             */
+                            val currentPurchase = PurchaseEntity(
+                                supermarketName = supermarket,
+                                dateMillis = dateMillis,
+                                totalCents = totals.totalCents,
+                                reason = reason
+                            )
+
+                            // Guardado local
                             viewModel.savePurchase(totals.totalCents)
+                            
+                            // Mostrar Snackbar con acción de Sincronizar (Networking POST)
                             scope.launch {
-                                snackbarHostState.showSnackbar(saveSuccessMsg)
+                                val result = snackbarHostState.showSnackbar(
+                                    message = saveSuccessMsg,
+                                    actionLabel = actionSyncLabel,
+                                    duration = SnackbarDuration.Long
+                                )
+                                if (result == SnackbarResult.ActionPerformed) {
+                                    viewModel.syncPurchase(currentPurchase, products)
+                                }
                             }
                         }
                     },

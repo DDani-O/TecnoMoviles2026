@@ -1,5 +1,6 @@
 package com.undef.fintrackmobile.ui.screens
 
+import android.content.Intent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -16,12 +17,14 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.core.net.toUri
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.undef.fintrackmobile.R
 import com.undef.fintrackmobile.ui.theme.FintrackTheme
@@ -191,8 +194,10 @@ private fun ExploreContent(data: ExploreData) {
 /**
  * MapSection: Muestra un marcador de posición de mapa para locales cercanos.
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun MapSection() {
+    val context = LocalContext.current
     val colors = FintrackTheme.colors
     Column(modifier = Modifier.padding(horizontal = 16.dp)) {
         Text(
@@ -203,6 +208,20 @@ private fun MapSection() {
         )
         Spacer(modifier = Modifier.height(8.dp))
         Card(
+            onClick = {
+                // Intent para abrir Google Maps buscando supermercados cercanos
+                val gmmIntentUri = "geo:0,0?q=supermercados".toUri()
+                val mapIntent = Intent(Intent.ACTION_VIEW, gmmIntentUri)
+                mapIntent.setPackage("com.google.android.apps.maps")
+                
+                // Intenta abrir la app de Maps, si no, usa el navegador como fallback
+                try {
+                    context.startActivity(mapIntent)
+                } catch (_: Exception) {
+                    val webIntent = Intent(Intent.ACTION_VIEW, "https://www.google.com/maps/search/supermercados".toUri())
+                    context.startActivity(webIntent)
+                }
+            },
             shape = RoundedCornerShape(24.dp),
             elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
             border = androidx.compose.foundation.BorderStroke(2.dp, colors.celesteDeep.copy(alpha = 0.1f))

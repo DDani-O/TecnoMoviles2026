@@ -64,7 +64,7 @@ class RecordsViewModel(
 
     init {
         viewModelScope.launch {
-            repository.seedIfEmpty(force = true)
+            repository.seedIfEmpty()
         }
     }
 

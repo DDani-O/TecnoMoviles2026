@@ -1,5 +1,6 @@
 package com.undef.fintrackmobile.ui.components.records
 
+import android.content.Intent
 import androidx.annotation.StringRes
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
@@ -13,6 +14,7 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -39,15 +41,41 @@ fun HistoryRecordCard(
     modifier: Modifier = Modifier,
 ) {
     val colors = FintrackTheme.colors
+    val context = LocalContext.current
     var expanded by rememberSaveable(purchase.purchase.id) { mutableStateOf(value = false) }
+    var menuExpanded by remember { mutableStateOf(false) }
     val subtitleColor = MaterialTheme.colorScheme.onSurfaceVariant
     val displayReason = purchase.purchase.reason.ifBlank { stringResource(inferReasonRes(purchase)) }
     
-    // Cálculos (Podrían estar en un UseCase o ViewModel, pero para UI se mantienen aquí)
+    val shareTitle = stringResource(R.string.share_purchase_title)
+    
+    /**
+     * sharePurchaseDetails: Crea un Intent implícito para compartir los datos de la compra.
+     */
+    fun sharePurchaseDetails(purchase: PurchaseWithProducts) {
+        val shareText = buildString {
+            appendLine("🛒 Compra en ${purchase.purchase.supermarketName}")
+            appendLine("📅 ${formatDate(purchase.purchase.dateMillis)}")
+            appendLine("💰 Total: ${formatCurrency(purchase.purchase.totalCents, currencyCode)}")
+            if (purchase.products.isNotEmpty()) {
+                appendLine("📦 Incluye ${purchase.products.size} productos")
+            }
+            appendLine("Registrado con SUPER AHORRO 🏷️")
+        }
+        
+        val intent = Intent(Intent.ACTION_SEND).apply {
+            type = "text/plain"
+            putExtra(Intent.EXTRA_TEXT, shareText)
+            putExtra(Intent.EXTRA_SUBJECT, "Detalle de Compra")
+        }
+        context.startActivity(Intent.createChooser(intent, shareTitle))
+    }
+    
+    // Cálculos basados en los datos reales de la compra
     val subtotalCents = purchase.products.sumOf { it.priceCents * it.quantity.toLong() }
-    val discountCents = (subtotalCents * 0.06f).toLong() // Descuento estático para visualización
-    val taxesCents = ((subtotalCents - discountCents) * 0.21f).toLong()
-    val totalFinalCents = (subtotalCents - discountCents) + taxesCents
+    val totalFinalCents = purchase.purchase.totalCents
+    val taxesCents = (totalFinalCents * (0.21f / 1.21f)).toLong()
+    val discountCents = (subtotalCents + (subtotalCents * 0.21f).toLong()) - totalFinalCents
     
     val accent = getSupermarketPastelColor(purchase.purchase.supermarketName, colors)
 
@@ -130,12 +158,45 @@ fun HistoryRecordCard(
                     }
                 }
 
-                Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                    IconButton(onClick = onEdit) {
-                        Icon(Icons.Filled.Edit, stringResource(R.string.records_action_edit), tint = colors.celesteInk)
+                Box {
+                    IconButton(onClick = { menuExpanded = true }) {
+                        Icon(
+                            imageVector = Icons.Default.MoreVert,
+                            contentDescription = stringResource(R.string.records_action_more),
+                            tint = subtitleColor
+                        )
                     }
-                    IconButton(onClick = onDelete) {
-                        Icon(Icons.Filled.Delete, stringResource(R.string.records_action_delete), tint = colors.pastelRed)
+                    /**
+                     * DropdownMenu: Menú contextual para Editar, Compartir y Eliminar.
+                     */
+                    DropdownMenu(
+                        expanded = menuExpanded,
+                        onDismissRequest = { menuExpanded = false }
+                    ) {
+                        DropdownMenuItem(
+                            text = { Text(stringResource(R.string.records_action_edit)) },
+                            onClick = { 
+                                menuExpanded = false
+                                onEdit() 
+                            },
+                            leadingIcon = { Icon(Icons.Default.Edit, null) }
+                        )
+                        DropdownMenuItem(
+                            text = { Text(stringResource(R.string.action_share)) },
+                            onClick = { 
+                                menuExpanded = false
+                                sharePurchaseDetails(purchase) 
+                            },
+                            leadingIcon = { Icon(Icons.Default.Share, null) }
+                        )
+                        DropdownMenuItem(
+                            text = { Text(stringResource(R.string.records_action_delete), color = colors.pastelRed) },
+                            onClick = { 
+                                menuExpanded = false
+                                onDelete() 
+                            },
+                            leadingIcon = { Icon(Icons.Default.Delete, null, tint = colors.pastelRed) }
+                        )
                     }
                 }
             }

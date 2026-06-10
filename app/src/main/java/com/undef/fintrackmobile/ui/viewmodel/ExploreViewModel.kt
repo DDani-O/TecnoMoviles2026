@@ -91,7 +91,7 @@ data class SuggestionExplore(
  * ExploreViewModel: Gestiona el estado y la lógica de la pantalla de exploración.
  */
 class ExploreViewModel(
-    private val exploreRepository: com.undef.fintrackmobile.data.repository.ExploreRepository
+    private val sincronizacionRepository: com.undef.fintrackmobile.data.repository.SincronizacionRepository
 ) : ViewModel() {
     private val _state = MutableStateFlow<ExploreUiState>(ExploreUiState.Loading)
     val state: StateFlow<ExploreUiState> = _state.asStateFlow()
@@ -101,90 +101,83 @@ class ExploreViewModel(
     }
 
     /**
-     * loadData: Carga datos iniciales para la pantalla.
-     * En una app real vendrían de un repositorio.
+     * loadData: Carga datos reales desde la API a través del repositorio de sincronización.
+     * Implementa la TAREA B-4 (Networking GET real).
      */
     fun loadData() {
         viewModelScope.launch {
             try {
-                // Simulamos una demora de red para mostrar el estado de carga
                 _state.value = ExploreUiState.Loading
                 
-                val supermarkets = listOf(
-                    SupermarketExplore(
-                        id = 1,
-                        name = "Carrefour",
-                        imageRes = R.drawable.logo_carrefour,
-                        location = "Av. Santa Fe 1234, CABA",
-                        rating = 4.5f,
-                        comments = "¡Excelente atención y frescura!",
-                        hours = "08:00 - 22:00",
-                        webUrl = "https://www.carrefour.com.ar",
-                        shortDescription = "Precios bajos todos los días",
-                        promotions = listOf("2x1 en lácteos", "70% 2da unidad vinos"),
-                        paymentMethods = listOf("Tarjeta Mi Carrefour", "Todas las tarjetas"),
-                        benefits = listOf("Puntos Mi Carrefour", "Envío gratis > $30.000")
-                    ),
-                    SupermarketExplore(
-                        id = 2,
-                        name = "Coto",
-                        imageRes = R.drawable.logo_coto,
-                        location = "Pueyrredón 2501, CABA",
-                        rating = 4.2f,
-                        comments = "Las mejores ofertas en carnicería.",
-                        hours = "08:30 - 21:30",
-                        webUrl = "https://www.coto.com.ar",
-                        shortDescription = "Yo te conozco",
-                        promotions = listOf("Miércoles 15% Comunidad Coto", "OFERTAS de carne"),
-                        paymentMethods = listOf("Comunidad Coto", "Mercado Pago"),
-                        benefits = listOf("Descuentos en carnes", "Cuotas sin interés")
-                    ),
-                    SupermarketExplore(
-                        id = 3,
-                        name = "Jumbo",
-                        imageRes = R.drawable.logo_jumbo,
-                        location = "Bullrich 345, CABA",
-                        rating = 4.8f,
-                        comments = "Calidad premium asegurada.",
-                        hours = "09:00 - 21:00",
-                        webUrl = "https://www.jumbo.com.ar",
-                        shortDescription = "Calidad para tu familia",
-                        promotions = listOf("Descuento con Jumbo Mas", "Especial Gourmet"),
-                        paymentMethods = listOf("Jumbo Mas", "Tarjetas Bancarias"),
-                        benefits = listOf("Puntos Jumbo Mas", "Atención preferencial")
-                    )
-                )
+                // Realizamos la llamada real a tu MockAPI (GET)
+                val supermarketsResult = sincronizacionRepository.getRemoteSupermarkets()
+                val offersResult = sincronizacionRepository.getRemoteOffers()
+                
+                if (supermarketsResult.isSuccess && offersResult.isSuccess) {
+                    val supermarketsDto = supermarketsResult.getOrThrow()
+                    val offersDto = offersResult.getOrThrow()
 
-                val sections = listOf(
-                    OfferSectionExplore(
-                        title = "Ofertas explosivas",
-                        items = listOf(
-                            OfferItemExplore("20% de ahorro", "Usando Mercado Pago", "Coto"),
-                            OfferItemExplore("15% de descuento", "En carnicería los martes", "Carrefour"),
-                            OfferItemExplore("3x2 en galletitas", "Llevando marcas elegidas", "Jumbo")
+                    /**
+                     * Mapeamos los datos reales de tu MockAPI a la UI de Fintrack.
+                     * Usamos el nombre para determinar el logo correcto.
+                     */
+                    val supermarkets = supermarketsDto.map { dto ->
+                        val (realLogo, brandDescription) = when {
+                            dto.name.contains("Carrefour", ignoreCase = true) -> 
+                                R.drawable.logo_carrefour to "Precios bajos todos los días"
+                            dto.name.contains("Coto", ignoreCase = true) -> 
+                                R.drawable.logo_coto to "Yo te conozco"
+                            dto.name.contains("Jumbo", ignoreCase = true) -> 
+                                R.drawable.logo_jumbo to "Calidad para tu familia"
+                            else -> R.drawable.logo_carrefour to "Tu supermercado amigo"
+                        }
+
+                        SupermarketExplore(
+                            id = dto.id.toIntOrNull() ?: 0,
+                            name = dto.name,
+                            imageRes = realLogo,
+                            location = dto.address,
+                            rating = dto.rating,
+                            comments = "Sucursal con excelentes ofertas en Córdoba",
+                            hours = dto.schedule,
+                            webUrl = "https://www.google.com/maps/search/${dto.address}",
+                            shortDescription = brandDescription,
+                            promotions = listOf("Oferta Web en Córdoba"),
+                            paymentMethods = listOf("Todas las tarjetas", "Mercado Pago"),
+                            benefits = listOf("Puntos de Lealtad", "Descuentos Locales")
                         )
-                    ),
-                    OfferSectionExplore(
-                        title = "Productos más buscados",
-                        items = listOf(
-                            OfferItemExplore("Yogur Firme", "$950", "Carrefour"),
-                            OfferItemExplore("Manteca 200g", "$1800", "Coto"),
-                            OfferItemExplore("Crema de Leche", "$1300", "Jumbo")
+                    }
+
+                    // Mapeo de Ofertas reales desde MockAPI
+                    val sections = listOf(
+                        OfferSectionExplore(
+                            title = "Ofertas en Córdoba",
+                            items = offersDto.map { dto ->
+                                OfferItemExplore(
+                                    title = dto.title,
+                                    description = dto.description,
+                                    store = dto.store
+                                )
+                            }
                         )
                     )
-                )
 
-                val news = listOf(
-                    NewsExplore(1, "¡Aviso importante!", "Jumbo cierra este viernes debido al feriado. ¡Corré que se acaba todo!")
-                )
-
-                val suggestions = listOf(
-                    SuggestionExplore(1, "Basado en tu consumo", "Sueles comprar mucho café. ¡Hay un descuento del 20% en Starbucks de Carrefour!")
-                )
-
-                _state.value = ExploreUiState.Success(
-                    ExploreData(supermarkets, sections, news, suggestions)
-                )
+                    _state.value = ExploreUiState.Success(
+                        ExploreData(
+                            supermarkets = supermarkets,
+                            offerSections = sections,
+                            news = emptyList(),
+                            suggestions = emptyList()
+                        )
+                    )
+                } else {
+                    val error = supermarketsResult.exceptionOrNull() ?: offersResult.exceptionOrNull()
+                    _state.value = ExploreUiState.Error(
+                        message = error?.message,
+                        messageRes = R.string.explore_error_loading,
+                        messageArgs = listOf(error?.message ?: "")
+                    )
+                }
             } catch (e: Exception) {
                 _state.value = ExploreUiState.Error(
                     message = e.message,
