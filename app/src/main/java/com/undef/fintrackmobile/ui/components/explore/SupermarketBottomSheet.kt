@@ -160,8 +160,18 @@ private fun SupermarketDetailContent(
         // Botón Ver en Mapas
         Button(
             onClick = {
-                val intent = Intent(Intent.ACTION_VIEW, supermarket.webUrl.toUri())
-                context.startActivity(intent)
+                // Intent para abrir Google Maps con la ubicación específica del supermercado
+                val gmmIntentUri = "geo:0,0?q=${supermarket.location}".toUri()
+                val mapIntent = Intent(Intent.ACTION_VIEW, gmmIntentUri)
+                mapIntent.setPackage("com.google.android.apps.maps")
+
+                try {
+                    context.startActivity(mapIntent)
+                } catch (_: Exception) {
+                    // Fallback al navegador si no está Maps instalado
+                    val webIntent = Intent(Intent.ACTION_VIEW, "https://www.google.com/maps/search/${supermarket.location}".toUri())
+                    context.startActivity(webIntent)
+                }
             },
             modifier = Modifier
                 .fillMaxWidth()
@@ -173,7 +183,7 @@ private fun SupermarketDetailContent(
             Icon(Icons.Default.Map, contentDescription = null, modifier = Modifier.size(20.dp))
             Spacer(modifier = Modifier.width(10.dp))
             Text(
-                text = stringResource(R.string.supermarket_visit_web),
+                text = stringResource(R.string.explore_map_title),
                 fontWeight = FontWeight.Bold,
                 style = MaterialTheme.typography.titleMedium
             )

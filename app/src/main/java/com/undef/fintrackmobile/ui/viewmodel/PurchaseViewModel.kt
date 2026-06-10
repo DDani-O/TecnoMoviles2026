@@ -122,7 +122,7 @@ class PurchaseViewModel(
     /**
      * syncPurchase: Sincroniza la compra con el servidor (MockAPI) usando el esquema profesional.
      */
-    fun syncPurchase(purchase: PurchaseEntity, products: List<EditableProductDraft>) {
+    fun syncPurchase(purchase: PurchaseEntity) {
         viewModelScope.launch {
             _estadoSincronizacion.value = SincronizacionEstado.Cargando
             
@@ -130,16 +130,12 @@ class PurchaseViewModel(
             val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
             val formattedDate = sdf.format(Date(purchase.dateMillis))
 
-            // Calculamos la cantidad total de productos (sumando cantidades individuales)
-            val totalProductsCount = products.sumOf { it.quantity.toIntOrNull() ?: 0 }
-
             // Mapeo al DTO profesional con nombres en inglés
             val dto = RemotePurchaseDto(
                 storeName = purchase.supermarketName,
                 totalAmount = purchase.totalCents / 100.0,
                 purchaseDate = formattedDate,
                 reason = purchase.reason,
-                productsCount = totalProductsCount,
                 userId = 1
             )
 
