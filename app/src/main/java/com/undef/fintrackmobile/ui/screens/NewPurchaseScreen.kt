@@ -221,7 +221,7 @@ fun NewPurchaseScreen(
                                     duration = SnackbarDuration.Long
                                 )
                                 if (result == SnackbarResult.ActionPerformed) {
-                                    viewModel.syncPurchase(currentPurchase, products)
+                                    viewModel.syncPurchase(currentPurchase)
                                 }
                             }
                         }
