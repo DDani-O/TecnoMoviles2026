@@ -63,11 +63,14 @@ fun HomeSummaryCard(
                     SummaryMetric(label = stringResource(R.string.home_month_total_label), value = totalFormatted, emphasized = true)
                     SummaryMetric(label = stringResource(R.string.home_month_average_label), value = averageFormatted)
                 }
-                val weekLabelTemplate = stringResource(R.string.chart_week_label)
+                
+                // Etiquetas fijas cortas para las 4 semanas del mes según requerimiento (S1, S2, S3, S4)
+                val fixedWeeklyLabels = listOf("S1", "S2", "S3", "S4")
+                
                 Box(modifier = Modifier.weight(0.5f)) {
                     BarChart(
                         values = weeklyStats.map { it.toFloat() },
-                        labels = (1..weeklyStats.size).map { weekLabelTemplate.format(it) },
+                        labels = fixedWeeklyLabels,
                         amounts = weeklyStats.map { formatCurrency(it, currencyCode) }
                     )
                 }

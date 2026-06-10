@@ -10,6 +10,10 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.util.Calendar
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.transformLatest
+import kotlinx.coroutines.withContext
 
 /**
  * 🔟 SEALED CLASSES - UI State
@@ -63,14 +67,17 @@ class HomeViewModel(
 ) : ViewModel() {
 
     /**
-     * combine() orquesta múltiples flujos de datos. Cada vez que cambie algo
-     * en la BD (purchases) o en las relaciones (purchasesWithProducts),
-     * este bloque se re-ejecuta automáticamente.
+     * combine() orquesta múltiples flujos de datos.
+     * transformLatest() permite realizar procesamiento asincrónico (suspend) cada vez que los flujos emiten.
      */
+    @OptIn(ExperimentalCoroutinesApi::class)
     val uiState: StateFlow<HomeUiState> = combine(
         repository.observePurchasesWithProducts(),
         repository.observePurchases()
     ) { purchasesWithProducts, allPurchases ->
+        purchasesWithProducts to allPurchases
+    }.transformLatest { (purchasesWithProducts, allPurchases) ->
+        emit(HomeUiState.Loading)
         try {
             // Lógica de Negocio: Filtramos solo las compras del mes actual
             val calendar = Calendar.getInstance()
@@ -79,35 +86,39 @@ class HomeViewModel(
 
             val monthPurchases = allPurchases.filter {
                 val pCal = Calendar.getInstance().apply { timeInMillis = it.dateMillis }
-                pCal[Calendar.MONTH] == currentMonth && pCal[Calendar.YEAR] == currentYear
+                (pCal[Calendar.MONTH] == currentMonth && pCal[Calendar.YEAR] == currentYear)
             }
 
             val totalCents = monthPurchases.sumOf { it.totalCents }
             val avgCents = if (monthPurchases.isEmpty()) 0L else totalCents / monthPurchases.size
             
-            val weekly = calculateWeeklyStats(allPurchases.map { it.dateMillis to it.totalCents })
+            // Procesamiento pesado del gráfico en un hilo de cómputo (Default)
+            val weekly = groupPurchasesByFourWeeks(allPurchases.map { it.dateMillis to it.totalCents })
+            
             val supermarketStats = calculateSupermarketStats(monthPurchases)
             val insights = generateInsights(allPurchases, purchasesWithProducts, totalCents)
             val history = generateHistoryStats(monthPurchases, totalCents, avgCents)
 
             // Retornamos el estado de Éxito con los datos procesados
-            HomeUiState.Success(
-                HomeUiData(
-                    monthlyTotalCents = totalCents,
-                    monthAverageCents = avgCents,
-                    weeklyStats = weekly,
-                    supermarketMonthlyStats = supermarketStats,
-                    recentPurchases = purchasesWithProducts.take(4),
-                    insights = insights,
-                    historyStats = history
+            emit(
+                HomeUiState.Success(
+                    HomeUiData(
+                        monthlyTotalCents = totalCents,
+                        monthAverageCents = avgCents,
+                        weeklyStats = weekly,
+                        supermarketMonthlyStats = supermarketStats,
+                        recentPurchases = purchasesWithProducts.take(4),
+                        insights = insights,
+                        historyStats = history
+                    )
                 )
             )
         } catch (e: Exception) {
             // Si algo falla en el cálculo, emitimos el estado de Error
-            HomeUiState.Error(
+            emit(HomeUiState.Error(
                 message = e.message,
                 messageRes = com.undef.fintrackmobile.R.string.error_home_loading
-            )
+            ))
         }
     }.stateIn(
         scope = viewModelScope, 
@@ -116,32 +127,39 @@ class HomeViewModel(
         initialValue = HomeUiState.Loading
     )
 
-    private fun calculateWeeklyStats(purchases: List<Pair<Long, Long>>): List<Long> {
-        // Obtenemos los últimos 4 domingos (o inicios de semana)
-        val stats = (0..3).map { weeksAgo ->
-            val cal = Calendar.getInstance()
-            cal.add(Calendar.WEEK_OF_YEAR, -weeksAgo)
-            
-            // Setear al inicio de esa semana (Domingo 00:00)
-            cal.set(Calendar.DAY_OF_WEEK, cal.firstDayOfWeek)
-            cal.set(Calendar.HOUR_OF_DAY, 0)
-            cal.set(Calendar.MINUTE, 0)
-            cal.set(Calendar.SECOND, 0)
-            cal.set(Calendar.MILLISECOND, 0)
-            val start = cal.timeInMillis
-            
-            // Setear al final de esa semana (Sábado 23:59)
-            cal.add(Calendar.DAY_OF_WEEK, 6)
-            cal.set(Calendar.HOUR_OF_DAY, 23)
-            cal.set(Calendar.MINUTE, 59)
-            cal.set(Calendar.SECOND, 59)
-            cal.set(Calendar.MILLISECOND, 999)
-            val end = cal.timeInMillis
-            
-            purchases.filter { it.first in start..end }.sumOf { it.second }
-        }.reversed()
+    /**
+     * groupPurchasesByFourWeeks: Groups purchases into exactly 4 blocks based on the day of the month.
+     * Week 1: 1-7, Week 2: 8-14, Week 3: 15-21, Week 4: 22-end.
+     * Uses withContext(Dispatchers.Default) for asynchronous processing as requested.
+     */
+    private suspend fun groupPurchasesByFourWeeks(purchases: List<Pair<Long, Long>>): List<Long> = withContext(Dispatchers.Default) {
+        // Inicializamos los 4 acumuladores para cada semana fija del mes
+        var week1Amount = 0L // Días 1 al 7
+        var week2Amount = 0L // Días 8 al 14
+        var week3Amount = 0L // Días 15 al 21
+        var week4Amount = 0L // Días 22 hasta fin de mes
 
-        return stats
+        val calendar = Calendar.getInstance()
+        val currentMonth = calendar[Calendar.MONTH]
+        val currentYear = calendar[Calendar.YEAR]
+
+        purchases.forEach { (dateMillis, amount) ->
+            calendar.timeInMillis = dateMillis
+            
+            // Validamos que la compra pertenezca estrictamente al mes y año actual
+            if (calendar[Calendar.MONTH] == currentMonth && calendar[Calendar.YEAR] == currentYear) {
+                // Clasificación por rangos de días fijos según requerimiento técnico
+                when (calendar[Calendar.DAY_OF_MONTH]) {
+                    in 1..7 -> week1Amount += amount
+                    in 8..14 -> week2Amount += amount
+                    in 15..21 -> week3Amount += amount
+                    else -> week4Amount += amount // Día 22 en adelante hasta el final del mes
+                }
+            }
+        }
+
+        // Retornamos la lista con exactamente los 4 valores requeridos para el gráfico
+        listOf(week1Amount, week2Amount, week3Amount, week4Amount)
     }
 
     private fun calculateSupermarketStats(purchases: List<com.undef.fintrackmobile.data.local.entity.PurchaseEntity>): List<Pair<String, Long>> {
