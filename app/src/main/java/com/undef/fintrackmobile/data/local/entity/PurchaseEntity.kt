@@ -7,6 +7,7 @@ import androidx.room.PrimaryKey
 data class PurchaseEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,
+    val userEmail: String = "", // Default para facilitar la creación de objetos transitorios en la UI
     val supermarketName: String,
     val dateMillis: Long,
     val totalCents: Long,

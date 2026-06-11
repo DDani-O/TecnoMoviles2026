@@ -17,26 +17,25 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface PurchaseDao {
     /**
-     * Al retornar Flow, Room notifica automáticamente a la UI cuando los datos cambian.
-     * Reactividad desde la fuente de verdad.
+     * Retorna el flujo de compras filtradas por el email del usuario.
      */
-    @Query("SELECT * FROM purchases ORDER BY dateMillis DESC")
-    fun observePurchases(): Flow<List<PurchaseEntity>>
+    @Query("SELECT * FROM purchases WHERE userEmail = :email ORDER BY dateMillis DESC")
+    fun observePurchasesByUser(email: String): Flow<List<PurchaseEntity>>
 
     /**
-     * @Transaction garantiza que la consulta de la compra y sus productos relacionados
-     * ocurra de forma atómica.
+     * Retorna las compras con sus productos, filtradas por usuario.
+     * @Transaction garantiza atomicidad en la consulta relacional.
      */
     @Transaction
-    @Query("SELECT * FROM purchases ORDER BY dateMillis DESC")
-    fun observePurchasesWithProducts(): Flow<List<PurchaseWithProducts>>
+    @Query("SELECT * FROM purchases WHERE userEmail = :email ORDER BY dateMillis DESC")
+    fun observePurchasesWithProductsByUser(email: String): Flow<List<PurchaseWithProducts>>
 
     @Transaction
     @Query("SELECT * FROM purchases WHERE id = :purchaseId")
     suspend fun getPurchaseWithProductsById(purchaseId: Long): PurchaseWithProducts?
 
-    @Query("SELECT * FROM purchases WHERE dateMillis BETWEEN :startMillis AND :endMillis ORDER BY dateMillis DESC")
-    fun observePurchasesByPeriod(startMillis: Long, endMillis: Long): Flow<List<PurchaseEntity>>
+    @Query("SELECT * FROM purchases WHERE userEmail = :email AND dateMillis BETWEEN :startMillis AND :endMillis ORDER BY dateMillis DESC")
+    fun observePurchasesByPeriod(email: String, startMillis: Long, endMillis: Long): Flow<List<PurchaseEntity>>
 
     // 'suspend' indica que la operación es asincrónica y debe ejecutarse en un hilo de I/O
     @Insert
@@ -48,8 +47,8 @@ interface PurchaseDao {
     @Delete
     suspend fun deletePurchase(purchase: PurchaseEntity)
     
-    @Query("SELECT COUNT(*) FROM purchases")
-    suspend fun countPurchases(): Int
+    @Query("SELECT COUNT(*) FROM purchases WHERE userEmail = :email")
+    suspend fun countPurchasesByUser(email: String): Int
     
     @Query("DELETE FROM purchases")
     suspend fun deleteAllPurchases()

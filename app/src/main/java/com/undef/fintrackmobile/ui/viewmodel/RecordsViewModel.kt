@@ -6,10 +6,13 @@ import com.undef.fintrackmobile.data.local.entity.PurchaseEntity
 import com.undef.fintrackmobile.data.local.entity.PurchaseWithProducts
 import com.undef.fintrackmobile.data.local.entity.ProductEntity
 import com.undef.fintrackmobile.data.repository.PurchaseRepository
+import com.undef.fintrackmobile.data.preferences.UserPreferencesRepository
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.util.Calendar
@@ -40,31 +43,40 @@ data class ProductRank(
 enum class PeriodFilter { WEEK, MONTH, YEAR }
 
 class RecordsViewModel(
-    private val repository: PurchaseRepository
+    private val repository: PurchaseRepository,
+    private val userPreferencesRepository: UserPreferencesRepository
 ) : ViewModel() {
 
     private val _selectedPeriod = MutableStateFlow(PeriodFilter.MONTH)
     private val _selectedMonth = MutableStateFlow(Calendar.getInstance()[Calendar.MONTH])
     private val _selectedYear = MutableStateFlow(Calendar.getInstance()[Calendar.YEAR])
 
-    val uiState: StateFlow<RecordsUiState> = combine(
-        repository.observePurchasesWithProducts(),
-        _selectedPeriod,
-        _selectedMonth,
-        _selectedYear
-    ) { purchases, period, month, year ->
-        try {
-            val filtered = filterPurchases(purchases, period, month, year)
-            val stats = calculateStats(filtered)
-            RecordsUiState.Success(purchases, stats)
-        } catch (e: Exception) {
-            RecordsUiState.Error(message = e.message, messageRes = com.undef.fintrackmobile.R.string.error_unknown)
-        }
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), RecordsUiState.Loading)
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val uiState: StateFlow<RecordsUiState> = userPreferencesRepository.preferencesFlow
+        .flatMapLatest { userPrefs ->
+            val email = userPrefs.email
+            combine(
+                repository.observePurchasesWithProducts(email),
+                _selectedPeriod,
+                _selectedMonth,
+                _selectedYear
+            ) { purchases, period, month, year ->
+                try {
+                    val filtered = filterPurchases(purchases, period, month, year)
+                    val stats = calculateStats(filtered)
+                    RecordsUiState.Success(purchases, stats)
+                } catch (e: Exception) {
+                    RecordsUiState.Error(
+                        message = e.message,
+                        messageRes = com.undef.fintrackmobile.R.string.error_unknown
+                    )
+                }
+            }
+        }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), RecordsUiState.Loading)
 
     init {
         viewModelScope.launch {
-            repository.seedIfEmpty()
+            // Se eliminó la carga automática de datos semilla (seedIfEmpty)
         }
     }
 

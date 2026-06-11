@@ -20,7 +20,7 @@ class FintrackViewModelFactory(
                 ExploreViewModel(container.sincronizacionRepository) as T
             }
             modelClass.isAssignableFrom(HomeViewModel::class.java) -> {
-                HomeViewModel(container.purchaseRepository) as T
+                HomeViewModel(container.purchaseRepository, container.preferencesRepository) as T
             }
             modelClass.isAssignableFrom(ProfileViewModel::class.java) -> {
                 ProfileViewModel(container.preferencesRepository) as T
@@ -29,7 +29,7 @@ class FintrackViewModelFactory(
                 PurchaseViewModel(container.purchaseRepository, container.sincronizacionRepository) as T
             }
             modelClass.isAssignableFrom(RecordsViewModel::class.java) -> {
-                RecordsViewModel(container.purchaseRepository) as T
+                RecordsViewModel(container.purchaseRepository, container.preferencesRepository) as T
             }
             else -> error("Unknown ViewModel class: ${modelClass.name}")
         }

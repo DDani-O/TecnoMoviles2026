@@ -4,9 +4,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.undef.fintrackmobile.data.local.entity.PurchaseWithProducts
 import com.undef.fintrackmobile.data.repository.PurchaseRepository
+import com.undef.fintrackmobile.data.preferences.UserPreferencesRepository
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.util.Calendar
@@ -64,19 +66,24 @@ data class HistoryStat(
  */
 class HomeViewModel(
     private val repository: PurchaseRepository,
+    private val userPreferencesRepository: UserPreferencesRepository
 ) : ViewModel() {
 
     /**
-     * combine() orquesta múltiples flujos de datos.
-     * transformLatest() permite realizar procesamiento asincrónico (suspend) cada vez que los flujos emiten.
+     * flatMapLatest permite reaccionar al cambio de usuario (email) y reiniciar
+     * la observación de las compras filtradas por ese email.
      */
     @OptIn(ExperimentalCoroutinesApi::class)
-    val uiState: StateFlow<HomeUiState> = combine(
-        repository.observePurchasesWithProducts(),
-        repository.observePurchases()
-    ) { purchasesWithProducts, allPurchases ->
-        purchasesWithProducts to allPurchases
-    }.transformLatest { (purchasesWithProducts, allPurchases) ->
+    val uiState: StateFlow<HomeUiState> = userPreferencesRepository.preferencesFlow
+        .flatMapLatest { userPrefs ->
+            val email = userPrefs.email
+            combine(
+                repository.observePurchasesWithProducts(email),
+                repository.observePurchases(email)
+            ) { purchasesWithProducts, allPurchases ->
+                purchasesWithProducts to allPurchases
+            }
+        }.transformLatest { (purchasesWithProducts, allPurchases) ->
         emit(HomeUiState.Loading)
         try {
             // Lógica de Negocio: Filtramos solo las compras del mes actual
@@ -267,7 +274,7 @@ class HomeViewModel(
         // Lanzamos una corrutina bound al ciclo de vida del ViewModel.
         // Se cancelará automáticamente si el usuario sale de esta pantalla.
         viewModelScope.launch {
-            repository.seedIfEmpty()
+            // Se eliminó la carga automática de datos semilla (seedIfEmpty)
         }
     }
 }
