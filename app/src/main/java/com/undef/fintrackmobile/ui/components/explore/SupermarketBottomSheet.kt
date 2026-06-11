@@ -91,7 +91,7 @@ private fun SupermarketDetailContent(
                     color = accent
                 )
                 Text(
-                    text = supermarket.shortDescription,
+                    text = stringResource(supermarket.shortDescriptionRes),
                     style = MaterialTheme.typography.bodyMedium,
                     color = colors.celesteInk.copy(alpha = 0.6f)
                 )

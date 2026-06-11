@@ -1,7 +1,9 @@
 package com.undef.fintrackmobile.ui.viewmodel
 
+import android.app.Application
+import androidx.annotation.StringRes
 import androidx.compose.runtime.Immutable
-import androidx.lifecycle.ViewModel
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.undef.fintrackmobile.R
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -42,7 +44,7 @@ data class SupermarketExplore(
     val comments: String,
     val hours: String,
     val webUrl: String,
-    val shortDescription: String = "Tu supermercado de confianza",
+    @param:StringRes val shortDescriptionRes: Int = R.string.supermarket_default_description,
     val promotions: List<String> = emptyList(),
     val paymentMethods: List<String> = emptyList(),
     val benefits: List<String> = emptyList()
@@ -89,12 +91,17 @@ data class SuggestionExplore(
 
 /**
  * ExploreViewModel: Gestiona el estado y la lógica de la pantalla de exploración.
+ * Utilizamos AndroidViewModel para acceder de forma segura a los recursos (strings)
+ * sin provocar leaks de memoria, ya que utiliza el Application Context.
  */
 class ExploreViewModel(
-    private val sincronizacionRepository: com.undef.fintrackmobile.data.repository.SincronizacionRepository
-) : ViewModel() {
+    private val sincronizacionRepository: com.undef.fintrackmobile.data.repository.SincronizacionRepository,
+    application: Application
+) : AndroidViewModel(application) {
     private val _state = MutableStateFlow<ExploreUiState>(ExploreUiState.Loading)
     val state: StateFlow<ExploreUiState> = _state.asStateFlow()
+
+    private val context = getApplication<Application>()
 
     init {
         loadData()
@@ -122,14 +129,14 @@ class ExploreViewModel(
                      * Usamos el nombre para determinar el logo correcto.
                      */
                     val supermarkets = supermarketsDto.map { dto ->
-                        val (realLogo, brandDescription) = when {
+                        val (realLogo, brandDescriptionRes) = when {
                             dto.name.contains("Carrefour", ignoreCase = true) -> 
-                                R.drawable.logo_carrefour to "Precios bajos todos los días"
+                                R.drawable.logo_carrefour to R.string.supermarket_carrefour_description
                             dto.name.contains("Coto", ignoreCase = true) -> 
-                                R.drawable.logo_coto to "Yo te conozco"
+                                R.drawable.logo_coto to R.string.supermarket_coto_description
                             dto.name.contains("Jumbo", ignoreCase = true) -> 
-                                R.drawable.logo_jumbo to "Calidad para tu familia"
-                            else -> R.drawable.logo_carrefour to "Tu supermercado amigo"
+                                R.drawable.logo_jumbo to R.string.supermarket_jumbo_description
+                            else -> R.drawable.logo_carrefour to R.string.supermarket_default_description
                         }
 
                         SupermarketExplore(
@@ -138,20 +145,26 @@ class ExploreViewModel(
                             imageRes = realLogo,
                             location = dto.address,
                             rating = dto.rating,
-                            comments = "Sucursal con excelentes ofertas en Córdoba",
+                            comments = context.getString(R.string.supermarket_mock_comments),
                             hours = dto.schedule,
                             webUrl = "https://www.google.com/maps/search/${dto.address}",
-                            shortDescription = brandDescription,
-                            promotions = listOf("Oferta Web en Córdoba"),
-                            paymentMethods = listOf("Todas las tarjetas", "Mercado Pago"),
-                            benefits = listOf("Puntos de Lealtad", "Descuentos Locales")
+                            shortDescriptionRes = brandDescriptionRes,
+                            promotions = listOf(context.getString(R.string.supermarket_mock_promo)),
+                            paymentMethods = listOf(
+                                context.getString(R.string.payment_method_all_cards),
+                                context.getString(R.string.payment_method_mercado_pago)
+                            ),
+                            benefits = listOf(
+                                context.getString(R.string.benefit_mi_carrefour_points),
+                                context.getString(R.string.explore_fallback_benefits)
+                            )
                         )
                     }
 
                     // Mapeo de Ofertas reales desde MockAPI
                     val sections = listOf(
                         OfferSectionExplore(
-                            title = "Ofertas en Córdoba",
+                            title = context.getString(R.string.explore_offers_section_title),
                             items = offersDto.map { dto ->
                                 OfferItemExplore(
                                     title = dto.title,

@@ -102,7 +102,7 @@ fun SupermarketCard(
             )
             
             Text(
-                text = supermarket.shortDescription,
+                text = stringResource(supermarket.shortDescriptionRes),
                 style = MaterialTheme.typography.labelSmall,
                 color = colors.celesteInk.copy(alpha = 0.6f),
                 textAlign = TextAlign.Center,

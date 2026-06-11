@@ -7,10 +7,12 @@ import com.undef.fintrackmobile.data.network.dto.RemotePurchaseDto
 import com.undef.fintrackmobile.data.repository.NewProduct
 import com.undef.fintrackmobile.data.repository.PurchaseRepository
 import com.undef.fintrackmobile.data.repository.SincronizacionRepository
+import com.undef.fintrackmobile.data.preferences.UserPreferencesRepository
 import com.undef.fintrackmobile.ui.util.parseCents
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -36,7 +38,8 @@ data class EditableProductDraft(
 
 class PurchaseViewModel(
     private val repository: PurchaseRepository,
-    private val sincronizacionRepository: SincronizacionRepository
+    private val sincronizacionRepository: SincronizacionRepository,
+    private val userPreferencesRepository: UserPreferencesRepository
 ) : ViewModel() {
     // Estado para los datos generales de la compra
     private val _supermarket = MutableStateFlow("")
@@ -104,6 +107,7 @@ class PurchaseViewModel(
         _dateMillis.value = System.currentTimeMillis()
         _ticketUri.value = null
         _products.value = emptyList()
+        nextProductId = 1L // Reiniciamos el contador de IDs para la próxima compra
     }
 
     fun savePurchase(totalCents: Long) {
@@ -126,17 +130,20 @@ class PurchaseViewModel(
         viewModelScope.launch {
             _estadoSincronizacion.value = SincronizacionEstado.Cargando
             
+            // Obtenemos el email real del usuario actual desde DataStore
+            val currentUserEmail = userPreferencesRepository.preferencesFlow.first().email
+
             // Formateo de fecha para la API (YYYY-MM-DD)
             val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
             val formattedDate = sdf.format(Date(purchase.dateMillis))
 
-            // Mapeo al DTO profesional con nombres en inglés
+            // Mapeo al DTO profesional con nombres en inglés, incluyendo el email del usuario
             val dto = RemotePurchaseDto(
                 storeName = purchase.supermarketName,
                 totalAmount = purchase.totalCents / 100.0,
                 purchaseDate = formattedDate,
                 reason = purchase.reason,
-                userId = 1
+                userEmail = currentUserEmail // Usamos el email obtenido directamente de las preferencias
             )
 
             val result = sincronizacionRepository.syncPurchase(dto)

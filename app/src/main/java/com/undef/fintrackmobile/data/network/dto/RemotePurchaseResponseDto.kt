@@ -11,5 +11,5 @@ data class RemotePurchaseResponseDto(
     @param:Json(name = "total_amount") val totalAmount: Double,
     @param:Json(name = "purchase_date") val purchaseDate: String,
     @param:Json(name = "reason") val reason: String,
-    @param:Json(name = "user_id") val userId: Int
+    @param:Json(name = "user_email") val userEmail: String? = null
 )

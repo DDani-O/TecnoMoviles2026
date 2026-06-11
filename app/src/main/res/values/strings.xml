@@ -188,7 +188,7 @@
     <string name="records_products_title">Productos</string>
     <string name="records_breakdown_title">Desglose</string>
     <string name="records_breakdown_subtotal">Subtotal</string>
-    <string name="records_breakdown_discount">Descuento (6%)</string>
+    <string name="records_breakdown_discount">Descuento</string>
     <string name="records_breakdown_taxes">Impuestos (21%)</string>
     <string name="records_breakdown_total">Total</string>
     <string name="records_product_code">Código: %1$d</string>
@@ -346,7 +346,14 @@
     <string name="notification_welcome_title">¡Regalo de bienvenida!</string>
     <string name="notification_welcome_desc">Tienes un 10% de descuento en tu próxima compra.</string>
 
-    <string name="supermarket_open_hours">Abierto: %1$s</string>
+    <string name="supermarket_default_description">Tu supermercado de confianza</string>
+    <string name="supermarket_carrefour_description">Precios bajos todos los días</string>
+    <string name="supermarket_coto_description">Yo te conozco</string>
+    <string name="supermarket_jumbo_description">Calidad para tu familia</string>
+    <string name="supermarket_mock_comments">Sucursal con excelentes ofertas en Córdoba</string>
+    <string name="supermarket_mock_promo">Oferta Web en Córdoba</string>
+
+    <string name="explore_offers_section_title">Ofertas en Córdoba</string>
     <string name="supermarket_promos_title">Promos</string>
     <string name="supermarket_payments_title">Pagos</string>
     <string name="supermarket_visit_web">Ver en Mapas</string>

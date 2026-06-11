@@ -16,7 +16,7 @@ import com.undef.fintrackmobile.data.local.entity.PurchaseEntity
  */
 @Database(
     entities = [PurchaseEntity::class, ProductEntity::class],
-    version = 4,
+    version = 5,
     exportSchema = false,
 )
 abstract class AppDatabase : RoomDatabase() {

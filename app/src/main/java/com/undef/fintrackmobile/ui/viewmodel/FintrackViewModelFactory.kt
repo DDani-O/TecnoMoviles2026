@@ -17,7 +17,7 @@ class FintrackViewModelFactory(
                 AuthViewModel(container.preferencesRepository) as T
             }
             modelClass.isAssignableFrom(ExploreViewModel::class.java) -> {
-                ExploreViewModel(container.sincronizacionRepository) as T
+                ExploreViewModel(container.sincronizacionRepository, container.appContext) as T
             }
             modelClass.isAssignableFrom(HomeViewModel::class.java) -> {
                 HomeViewModel(container.purchaseRepository, container.preferencesRepository) as T
@@ -26,7 +26,11 @@ class FintrackViewModelFactory(
                 ProfileViewModel(container.preferencesRepository) as T
             }
             modelClass.isAssignableFrom(PurchaseViewModel::class.java) -> {
-                PurchaseViewModel(container.purchaseRepository, container.sincronizacionRepository) as T
+                PurchaseViewModel(
+                    container.purchaseRepository,
+                    container.sincronizacionRepository,
+                    container.preferencesRepository
+                ) as T
             }
             modelClass.isAssignableFrom(RecordsViewModel::class.java) -> {
                 RecordsViewModel(container.purchaseRepository, container.preferencesRepository) as T
