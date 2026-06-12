@@ -207,6 +207,7 @@ private fun MapSection() {
             color = colors.celesteInk
         )
         Spacer(modifier = Modifier.height(8.dp))
+        val mapsUrlFormat = stringResource(R.string.maps_url_search, "supermercados")
         Card(
             onClick = {
                 // Intent para abrir Google Maps buscando supermercados cercanos
@@ -218,7 +219,7 @@ private fun MapSection() {
                 try {
                     context.startActivity(mapIntent)
                 } catch (_: Exception) {
-                    val webIntent = Intent(Intent.ACTION_VIEW, "https://www.google.com/maps/search/supermercados".toUri())
+                    val webIntent = Intent(Intent.ACTION_VIEW, mapsUrlFormat.toUri())
                     context.startActivity(webIntent)
                 }
             },

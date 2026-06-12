@@ -65,6 +65,8 @@ fun NewPurchaseScreen(
     val syncSuccessMsg = stringResource(R.string.sync_success)
     val syncErrorMsg = stringResource(R.string.sync_error)
 
+    val unknownErrorMsg = stringResource(R.string.unknown_error)
+
     /**
      * LaunchedEffect: Monitorea el estado de sincronización y muestra el feedback visual correspondiente.
      */
@@ -78,8 +80,9 @@ fun NewPurchaseScreen(
                 viewModel.resetSyncStatus()
             }
             is SincronizacionEstado.Error -> {
+                val errorText = if (state.mensaje == "UNKNOWN_ERROR") unknownErrorMsg else state.mensaje
                 snackbarHostState.showSnackbar(
-                    message = syncErrorMsg.format(state.mensaje),
+                    message = syncErrorMsg.format(errorText),
                     duration = SnackbarDuration.Long
                 )
                 viewModel.resetSyncStatus()

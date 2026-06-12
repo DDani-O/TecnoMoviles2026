@@ -362,6 +362,7 @@
     <string name="chart_week_label">S%1$d</string>
     <string name="error_prefix">Error: %1$s</string>
     <string name="unknown_error">Error desconocido</string>
+    <string name="maps_url_search">https://www.google.com/maps/search/%1$s</string>
 
     <string name="language_es">Español</string>
     <string name="language_en">English</string>

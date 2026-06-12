@@ -158,6 +158,7 @@ private fun SupermarketDetailContent(
         }
 
         // Botón Ver en Mapas
+        val mapsUrlFormat = stringResource(R.string.maps_url_search, supermarket.location)
         Button(
             onClick = {
                 // Intent para abrir Google Maps con la ubicación específica del supermercado
@@ -169,7 +170,7 @@ private fun SupermarketDetailContent(
                     context.startActivity(mapIntent)
                 } catch (_: Exception) {
                     // Fallback al navegador si no está Maps instalado
-                    val webIntent = Intent(Intent.ACTION_VIEW, "https://www.google.com/maps/search/${supermarket.location}".toUri())
+                    val webIntent = Intent(Intent.ACTION_VIEW, mapsUrlFormat.toUri())
                     context.startActivity(webIntent)
                 }
             },

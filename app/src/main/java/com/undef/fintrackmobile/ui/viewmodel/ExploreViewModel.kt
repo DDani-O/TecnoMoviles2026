@@ -147,7 +147,7 @@ class ExploreViewModel(
                             rating = dto.rating,
                             comments = context.getString(R.string.supermarket_mock_comments),
                             hours = dto.schedule,
-                            webUrl = "https://www.google.com/maps/search/${dto.address}",
+                            webUrl = context.getString(R.string.maps_url_search, dto.address),
                             shortDescriptionRes = brandDescriptionRes,
                             promotions = listOf(context.getString(R.string.supermarket_mock_promo)),
                             paymentMethods = listOf(

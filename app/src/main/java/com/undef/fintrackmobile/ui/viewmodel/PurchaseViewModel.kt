@@ -150,7 +150,7 @@ class PurchaseViewModel(
             result.onSuccess {
                 _estadoSincronizacion.value = SincronizacionEstado.Exito
             }.onFailure {
-                _estadoSincronizacion.value = SincronizacionEstado.Error(it.message ?: "Error desconocido")
+                _estadoSincronizacion.value = SincronizacionEstado.Error(it.message ?: "UNKNOWN_ERROR")
             }
         }
     }
