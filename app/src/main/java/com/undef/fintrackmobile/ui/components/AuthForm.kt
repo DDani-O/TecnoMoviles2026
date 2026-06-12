@@ -163,25 +163,6 @@ fun AuthForm(
                 modifier = Modifier.fillMaxWidth(),
                 buttonModifier = Modifier.fillMaxWidth()
             )
-            
-            if (!isRegister) {
-                val mockName = stringResource(R.string.mock_user_name)
-                Spacer(modifier = Modifier.height(16.dp))
-                TextButton(
-                    onClick = {
-                        displayName = mockName
-                        email = "mj@gmail.com"
-                        showError = false
-                    },
-                    modifier = Modifier.align(Alignment.CenterHorizontally),
-                    colors = ButtonDefaults.textButtonColors(contentColor = colors.celesteSoft)
-                ) {
-                    Text(
-                        text = stringResource(R.string.auth_mock_account),
-                        fontWeight = FontWeight.Bold
-                    )
-                }
-            }
         }
     }
 }
