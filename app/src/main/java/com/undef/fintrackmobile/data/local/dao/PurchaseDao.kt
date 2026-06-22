@@ -52,4 +52,8 @@ interface PurchaseDao {
     
     @Query("DELETE FROM purchases")
     suspend fun deleteAllPurchases()
+
+    @Transaction
+    @Query("SELECT * FROM purchases WHERE isSynced = 0 AND userEmail = :email")
+    suspend fun getUnsyncedPurchasesByUser(email: String): List<PurchaseWithProducts>
 }

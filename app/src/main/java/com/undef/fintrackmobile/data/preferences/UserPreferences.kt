@@ -7,7 +7,9 @@ data class UserPreferences(
     val birthDate: String = "",
     val currencyCode: String,
     val profileImageUri: String? = null,
-    val isLoggedIn: Boolean
+    val isLoggedIn: Boolean,
+    val userId: String = "",
+    val accessToken: String = ""
 ) {
     companion object {
         val DEFAULT = UserPreferences(

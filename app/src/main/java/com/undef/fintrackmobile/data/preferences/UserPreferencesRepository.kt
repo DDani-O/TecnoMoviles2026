@@ -27,6 +27,8 @@ class UserPreferencesRepository(private val context: Context) {
         val currencyCode = stringPreferencesKey("currency_code")
         val profileImageUri = stringPreferencesKey("profile_image_uri")
         val isLoggedIn = booleanPreferencesKey("is_logged_in")
+        val userId = stringPreferencesKey("user_id")
+        val accessToken = stringPreferencesKey("access_token")
     }
 
     /**
@@ -41,7 +43,9 @@ class UserPreferencesRepository(private val context: Context) {
             birthDate = prefs[Keys.birthDate] ?: "",
             currencyCode = prefs[Keys.currencyCode] ?: UserPreferences.DEFAULT.currencyCode,
             profileImageUri = prefs[Keys.profileImageUri],
-            isLoggedIn = prefs[Keys.isLoggedIn] ?: UserPreferences.DEFAULT.isLoggedIn
+            isLoggedIn = prefs[Keys.isLoggedIn] ?: UserPreferences.DEFAULT.isLoggedIn,
+            userId = prefs[Keys.userId] ?: "",
+            accessToken = prefs[Keys.accessToken] ?: ""
         )
     }
 
@@ -86,6 +90,18 @@ class UserPreferencesRepository(private val context: Context) {
     suspend fun setLoggedIn(value: Boolean) {
         context.dataStore.edit { prefs ->
             prefs[Keys.isLoggedIn] = value
+        }
+    }
+
+    suspend fun updateUserId(value: String) {
+        context.dataStore.edit { prefs ->
+            prefs[Keys.userId] = value
+        }
+    }
+
+    suspend fun updateAccessToken(value: String) {
+        context.dataStore.edit { prefs ->
+            prefs[Keys.accessToken] = value
         }
     }
 }
