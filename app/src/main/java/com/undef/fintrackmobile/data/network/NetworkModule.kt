@@ -8,35 +8,47 @@ import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
 
 object NetworkModule {
+    private const val SUPABASE_URL = "https://ruqmvzmmuscalvihlcva.supabase.co"
+    private const val SUPABASE_ANON_KEY = "sb_publishable_mwpYPau6mCXolCSs0ny1Mw_UXM8PKzv"
+
     private val moshi = Moshi.Builder()
         .add(KotlinJsonAdapterFactory())
         .build()
 
     private val okHttpClient = OkHttpClient.Builder()
+        .addInterceptor { chain ->
+            val request = chain.request().newBuilder()
+                .addHeader("apikey", SUPABASE_ANON_KEY)
+                .addHeader("Authorization", "Bearer $SUPABASE_ANON_KEY")
+                .build()
+            chain.proceed(request)
+        }
         .addInterceptor(
             HttpLoggingInterceptor().apply {
-                level = HttpLoggingInterceptor.Level.BASIC
+                level = HttpLoggingInterceptor.Level.BODY
             },
         )
         .build()
 
     /**
-     * superAhorroApiService: Cliente para MockAPI Proyecto 1 (Supermercados y Ofertas).
+     * supabaseAuthApiService: Cliente para Supabase Auth API.
      */
-    val superAhorroApiService: SuperAhorroApiService = Retrofit.Builder()
-        .baseUrl("https://6a2878d04e1e783349a58dab.mockapi.io/api/v1/")
+    val supabaseAuthApiService: SupabaseAuthApiService = Retrofit.Builder()
+        .baseUrl("$SUPABASE_URL/auth/v1/")
         .addConverterFactory(MoshiConverterFactory.create(moshi))
         .client(okHttpClient)
         .build()
-        .create(SuperAhorroApiService::class.java)
+        .create(SupabaseAuthApiService::class.java)
 
     /**
-     * syncApiService: Cliente para MockAPI Proyecto 2 (Sincronización de Compras).
+     * supabaseDataApiService: Cliente para Supabase PostgREST API (Tablas).
      */
-    val syncApiService: SyncApiService = Retrofit.Builder()
-        .baseUrl("https://6a288bf14e1e783349a59edf.mockapi.io/api/v1/")
+    val supabaseDataApiService: SupabaseDataApiService = Retrofit.Builder()
+        .baseUrl("$SUPABASE_URL/rest/v1/")
         .addConverterFactory(MoshiConverterFactory.create(moshi))
         .client(okHttpClient)
         .build()
-        .create(SyncApiService::class.java)
+        .create(SupabaseDataApiService::class.java)
+
+    // Eliminamos los servicios antiguos de MockAPI una vez migrados
 }
