@@ -15,13 +15,15 @@ class AppContainer(context: Context) {
 
     private val database: AppDatabase = AppDatabase.getDatabase(appContext)
 
+    val sincronizacionRepository = SincronizacionRepository(
+        NetworkModule.supabaseDataApiService,
+        NetworkModule.supabaseAuthApiService
+    )
+
     val purchaseRepository = PurchaseRepository(
         purchaseDao = database.purchaseDao(),
         productDao = database.productDao(),
-        userPreferencesRepository = preferencesRepository
-    )
-    val sincronizacionRepository = SincronizacionRepository(
-        NetworkModule.superAhorroApiService,
-        NetworkModule.syncApiService
+        userPreferencesRepository = preferencesRepository,
+        sincronizacionRepository = sincronizacionRepository
     )
 }
