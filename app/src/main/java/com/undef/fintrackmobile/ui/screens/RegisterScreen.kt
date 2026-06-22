@@ -6,7 +6,7 @@ import com.undef.fintrackmobile.ui.components.AuthForm
 
 @Composable
 fun RegisterScreen(
-    onRegister: (String, String, String?, String?) -> Unit,
+    onRegister: (String, String, String) -> Unit,
     onLogin: () -> Unit,
 ) {
     AuthForm(
@@ -14,7 +14,7 @@ fun RegisterScreen(
         primaryLabelRes = R.string.action_register,
         secondaryLabelRes = R.string.action_login,
         isRegister = true,
-        onPrimary = onRegister,
+        onPrimary = { name, email, password, _, _ -> onRegister(name, email, password) },
         onSecondary = onLogin,
     )
 }

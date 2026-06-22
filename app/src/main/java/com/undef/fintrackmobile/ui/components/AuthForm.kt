@@ -30,12 +30,13 @@ fun AuthForm(
     @StringRes primaryLabelRes: Int,
     @StringRes secondaryLabelRes: Int,
     isRegister: Boolean = false,
-    onPrimary: (name: String, email: String, lastName: String?, birthDate: String?) -> Unit,
+    onPrimary: (displayName: String, email: String, password: String, lastName: String?, birthDate: String?) -> Unit,
     onSecondary: () -> Unit,
 ) {
     var displayName by rememberSaveable { mutableStateOf("") }
     var lastName by rememberSaveable { mutableStateOf("") }
     var email by rememberSaveable { mutableStateOf("") }
+    var password by rememberSaveable { mutableStateOf("") }
     var birthDate by rememberSaveable { mutableStateOf("") }
     
     var showError by rememberSaveable { mutableStateOf(value = false) }
@@ -84,15 +85,15 @@ fun AuthForm(
                     modifier = Modifier.padding(20.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    LabeledTextField(
-                        value = displayName,
-                        onValueChange = { displayName = it; showError = false },
-                        labelRes = R.string.label_name,
-                        placeholderRes = R.string.placeholder_name,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                    
                     if (isRegister) {
+                        LabeledTextField(
+                            value = displayName,
+                            onValueChange = { displayName = it; showError = false },
+                            labelRes = R.string.label_name,
+                            placeholderRes = R.string.placeholder_name,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                        
                         LabeledTextField(
                             value = lastName,
                             onValueChange = { lastName = it; showError = false },
@@ -108,6 +109,16 @@ fun AuthForm(
                         labelRes = R.string.label_email,
                         placeholderRes = R.string.placeholder_email,
                         keyboardType = KeyboardType.Email,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+
+                    LabeledTextField(
+                        value = password,
+                        onValueChange = { password = it; showError = false },
+                        labelRes = R.string.label_password,
+                        placeholderRes = R.string.placeholder_password,
+                        keyboardType = KeyboardType.Password,
+                        isPassword = true,
                         modifier = Modifier.fillMaxWidth()
                     )
                     
@@ -148,13 +159,13 @@ fun AuthForm(
                 secondaryLabelRes = secondaryLabelRes,
                 onPrimary = {
                     val isValid = if (isRegister) {
-                        displayName.isNotBlank() && lastName.isNotBlank() && email.isNotBlank() && birthDate.isNotBlank()
+                        displayName.isNotBlank() && lastName.isNotBlank() && email.isNotBlank() && password.isNotBlank() && birthDate.isNotBlank()
                     } else {
-                        displayName.isNotBlank() && email.isNotBlank()
+                        email.isNotBlank() && password.isNotBlank()
                     }
                     
                     if (isValid) {
-                        onPrimary(displayName, email, if (isRegister) lastName else null, if (isRegister) birthDate else null)
+                        onPrimary(displayName, email, password, if (isRegister) lastName else null, if (isRegister) birthDate else null)
                     } else {
                         showError = true
                     }

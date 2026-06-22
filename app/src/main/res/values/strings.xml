@@ -23,6 +23,8 @@
     <string name="placeholder_last_name">Escribe tu apellido</string>
     <string name="label_email">Correo</string>
     <string name="placeholder_email">tu@email.com</string>
+    <string name="label_password">Contraseña</string>
+    <string name="placeholder_password">Escribe tu contraseña</string>
     <string name="label_birth_date">Fecha de nacimiento</string>
     <string name="placeholder_birth_date">DD/MM/AAAA</string>
     <string name="label_supermarket">Supermercado</string>
