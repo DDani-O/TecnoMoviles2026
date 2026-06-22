@@ -8,6 +8,7 @@ import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.POST
+import retrofit2.http.PATCH
 import retrofit2.http.Query
 
 interface SupabaseDataApiService {
@@ -26,5 +27,11 @@ interface SupabaseDataApiService {
     @POST("remote_products")
     suspend fun syncProducts(
         @Body products: List<Map<String, Any>>
+    )
+
+    @PATCH("users")
+    suspend fun updateUser(
+        @Query("id") id: String,
+        @Body profile: Map<String, String>
     )
 }
