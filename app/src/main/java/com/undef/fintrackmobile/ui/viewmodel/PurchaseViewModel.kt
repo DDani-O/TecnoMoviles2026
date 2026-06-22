@@ -80,7 +80,6 @@ class PurchaseViewModel(
     }
 
     fun addEmptyProduct() {
-        // Agregamos el producto al inicio de la lista para mejorar la usabilidad (evita scroll innecesario)
         _products.value = listOf(buildEmptyProduct()) + _products.value
     }
 
@@ -101,17 +100,15 @@ class PurchaseViewModel(
     }
 
     fun clearDraft() {
-        // Limpia todos los campos del borrador
         _supermarket.value = ""
         _reason.value = ""
         _dateMillis.value = System.currentTimeMillis()
         _ticketUri.value = null
         _products.value = emptyList()
-        nextProductId = 1L // Reiniciamos el contador de IDs para la próxima compra
+        nextProductId = 1L
     }
 
     fun savePurchase(totalCents: Long) {
-        // Persiste la compra en el repositorio local
         val supermarketName = _supermarket.value.trim()
         val reason = _reason.value.trim()
         val dateMillis = _dateMillis.value
@@ -120,30 +117,35 @@ class PurchaseViewModel(
         viewModelScope.launch {
             repository.addPurchase(supermarketName, totalCents, dateMillis, reason, products)
             clearDraft()
+            // Intentar sincronizar inmediatamente después de guardar localmente
+            repository.syncWithRemote()
         }
     }
 
     /**
-     * syncPurchase: Sincroniza la compra con el servidor (MockAPI) usando el esquema profesional.
+     * syncPurchase: Sincroniza una compra específica (usado desde el historial).
      */
     fun syncPurchase(purchase: PurchaseEntity) {
         viewModelScope.launch {
             _estadoSincronizacion.value = SincronizacionEstado.Cargando
             
-            // Obtenemos el email real del usuario actual desde DataStore
-            val currentUserEmail = userPreferencesRepository.preferencesFlow.first().email
+            val prefs = userPreferencesRepository.preferencesFlow.first()
+            val userId = prefs.userId
 
-            // Formateo de fecha para la API (YYYY-MM-DD)
+            if (userId.isBlank()) {
+                _estadoSincronizacion.value = SincronizacionEstado.Error("Usuario no autenticado")
+                return@launch
+            }
+
             val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
             val formattedDate = sdf.format(Date(purchase.dateMillis))
 
-            // Mapeo al DTO profesional con nombres en inglés, incluyendo el email del usuario
             val dto = RemotePurchaseDto(
                 storeName = purchase.supermarketName,
                 totalAmount = purchase.totalCents / 100.0,
                 purchaseDate = formattedDate,
                 reason = purchase.reason,
-                userEmail = currentUserEmail // Usamos el email obtenido directamente de las preferencias
+                userId = userId
             )
 
             val result = sincronizacionRepository.syncPurchase(dto)

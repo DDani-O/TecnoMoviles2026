@@ -6,6 +6,7 @@ import androidx.compose.runtime.Immutable
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.undef.fintrackmobile.R
+import com.undef.fintrackmobile.data.repository.SincronizacionRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -95,7 +96,7 @@ data class SuggestionExplore(
  * sin provocar leaks de memoria, ya que utiliza el Application Context.
  */
 class ExploreViewModel(
-    private val sincronizacionRepository: com.undef.fintrackmobile.data.repository.SincronizacionRepository,
+    private val sincronizacionRepository: SincronizacionRepository,
     application: Application
 ) : AndroidViewModel(application) {
     private val _state = MutableStateFlow<ExploreUiState>(ExploreUiState.Loading)
@@ -109,14 +110,12 @@ class ExploreViewModel(
 
     /**
      * loadData: Carga datos reales desde la API a través del repositorio de sincronización.
-     * Implementa la TAREA B-4 (Networking GET real).
      */
     fun loadData() {
         viewModelScope.launch {
             try {
                 _state.value = ExploreUiState.Loading
                 
-                // Realizamos la llamada real a tu MockAPI (GET)
                 val supermarketsResult = sincronizacionRepository.getRemoteSupermarkets()
                 val offersResult = sincronizacionRepository.getRemoteOffers()
                 
@@ -124,10 +123,6 @@ class ExploreViewModel(
                     val supermarketsDto = supermarketsResult.getOrThrow()
                     val offersDto = offersResult.getOrThrow()
 
-                    /**
-                     * Mapeamos los datos reales de tu MockAPI a la UI de Fintrack.
-                     * Usamos el nombre para determinar el logo correcto.
-                     */
                     val supermarkets = supermarketsDto.map { dto ->
                         val (realLogo, brandDescriptionRes) = when {
                             dto.name.contains("Carrefour", ignoreCase = true) -> 
@@ -140,14 +135,14 @@ class ExploreViewModel(
                         }
 
                         SupermarketExplore(
-                            id = dto.id.toIntOrNull() ?: 0,
+                            id = dto.id,
                             name = dto.name,
                             imageRes = realLogo,
-                            location = dto.address,
-                            rating = dto.rating,
+                            location = dto.address ?: context.getString(R.string.explore_fallback_location, 123),
+                            rating = dto.rating ?: 0f,
                             comments = context.getString(R.string.supermarket_mock_comments),
-                            hours = dto.schedule,
-                            webUrl = context.getString(R.string.maps_url_search, dto.address),
+                            hours = dto.schedule ?: context.getString(R.string.explore_fallback_hours),
+                            webUrl = context.getString(R.string.maps_url_search, dto.address ?: ""),
                             shortDescriptionRes = brandDescriptionRes,
                             promotions = listOf(context.getString(R.string.supermarket_mock_promo)),
                             paymentMethods = listOf(
@@ -161,15 +156,14 @@ class ExploreViewModel(
                         )
                     }
 
-                    // Mapeo de Ofertas reales desde MockAPI
                     val sections = listOf(
                         OfferSectionExplore(
                             title = context.getString(R.string.explore_offers_section_title),
                             items = offersDto.map { dto ->
                                 OfferItemExplore(
                                     title = dto.title,
-                                    description = dto.description,
-                                    store = dto.store
+                                    description = dto.description ?: "",
+                                    store = dto.store ?: ""
                                 )
                             }
                         )

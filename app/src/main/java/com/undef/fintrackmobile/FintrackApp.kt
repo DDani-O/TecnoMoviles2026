@@ -3,6 +3,7 @@ package com.undef.fintrackmobile
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -27,6 +28,7 @@ import com.undef.fintrackmobile.ui.screens.SplashScreen
 import com.undef.fintrackmobile.ui.screens.WelcomeScreen
 import com.undef.fintrackmobile.ui.theme.FintrackMobileTheme
 import com.undef.fintrackmobile.ui.viewmodel.AppStateViewModel
+import com.undef.fintrackmobile.ui.viewmodel.AuthUiState
 import com.undef.fintrackmobile.ui.viewmodel.AuthViewModel
 import com.undef.fintrackmobile.ui.viewmodel.ExploreViewModel
 import com.undef.fintrackmobile.ui.viewmodel.FintrackViewModelFactory
@@ -41,11 +43,7 @@ fun FintrackApp(container: AppContainer) {
     val appStateViewModel: AppStateViewModel = viewModel(factory = viewModelFactory)
     val preferences by appStateViewModel.preferences.collectAsStateWithLifecycle()
 
-    // 3️⃣ NAVIGATION COMPOSE - NavController
-    // Mantiene el estado de la pila de navegación y permite disparar transiciones.
     val navController = rememberNavController()
-    
-    // Observamos la ruta actual para actualizar componentes UI como la Bottom Bar
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route
     val showBottomBar = FintrackDestination.bottomItems.any { it.route == currentRoute }
@@ -58,8 +56,6 @@ fun FintrackApp(container: AppContainer) {
                 }
             }
         ) { innerPadding ->
-            // 3️⃣ NAVIGATION COMPOSE - NavHost
-            // Actúa como el orquestador que decide qué pantalla (Composable) mostrar según la ruta.
             NavHost(
                 navController = navController,
                 startDestination = Routes.SPLASH,
@@ -69,7 +65,6 @@ fun FintrackApp(container: AppContainer) {
                     SplashScreen(
                         isLoggedIn = preferences.isLoggedIn,
                         onFinished = { destination ->
-                            // popUpTo remueve el Splash del backstack para que no se pueda volver atrás
                             navController.navigate(destination) {
                                 popUpTo(Routes.SPLASH) { inclusive = true }
                             }
@@ -84,25 +79,41 @@ fun FintrackApp(container: AppContainer) {
                 }
                 composable(Routes.LOGIN) {
                     val viewModel: AuthViewModel = viewModel(factory = viewModelFactory)
-                    LoginScreen(
-                        onLogin = { name, email ->
-                            viewModel.login(name, email)
+                    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+                    
+                    LaunchedEffect(uiState) {
+                        if (uiState is AuthUiState.Success) {
                             navController.navigate(FintrackDestination.Home.route) {
                                 popUpTo(Routes.WELCOME) { inclusive = true }
                             }
+                        }
+                    }
+
+                    LoginScreen(
+                        onLogin = { email, password ->
+                            viewModel.login(email, password)
                         },
-                    ) { navController.navigate(Routes.REGISTER) }
+                        onRegister = { navController.navigate(Routes.REGISTER) }
+                    )
                 }
                 composable(Routes.REGISTER) {
                     val viewModel: AuthViewModel = viewModel(factory = viewModelFactory)
-                    RegisterScreen(
-                        onRegister = { name, email, lastName, birthDate ->
-                            viewModel.register(name, email, lastName, birthDate)
+                    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+                    LaunchedEffect(uiState) {
+                        if (uiState is AuthUiState.Success) {
                             navController.navigate(FintrackDestination.Home.route) {
                                 popUpTo(Routes.WELCOME) { inclusive = true }
                             }
+                        }
+                    }
+
+                    RegisterScreen(
+                        onRegister = { name, email, password ->
+                            viewModel.register(name, email, password)
                         },
-                    ) { navController.navigate(Routes.LOGIN) }
+                        onLogin = { navController.navigate(Routes.LOGIN) }
+                    )
                 }
                 composable(FintrackDestination.Home.route) {
                     val viewModel: HomeViewModel = viewModel(factory = viewModelFactory)
@@ -119,8 +130,6 @@ fun FintrackApp(container: AppContainer) {
                     ExploreScreen(viewModel = viewModel)
                 }
                 composable(FintrackDestination.NewPurchase.route) {
-                    // 9️⃣ VIEWMODEL SCOPING - Usamos LocalContext como owner para que el ViewModel
-                    // sobreviva a la navegación entre pestañas (tabs) de la BottomBar.
                     val viewModel: PurchaseViewModel = viewModel(factory = viewModelFactory)
                     NewPurchaseScreen(
                         currencyCode = preferences.currencyCode,
@@ -151,9 +160,6 @@ fun FintrackApp(container: AppContainer) {
                     ProfileScreen(
                         viewModel = viewModel,
                         onOpenSettings = { 
-                            // 4️⃣ INTENTS - Navegación entre Activities
-                            // Usamos un Intent explícito para lanzar SettingsActivity, saliendo del flujo
-                            // de Navigation Compose y usando el backstack del sistema Android.
                             navController.context.startActivity(SettingsActivity.intent(navController.context)) 
                         },
                         onLoggedOut = {

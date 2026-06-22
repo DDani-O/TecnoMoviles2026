@@ -76,7 +76,7 @@ class RecordsViewModel(
 
     init {
         viewModelScope.launch {
-            // Se eliminó la carga automática de datos semilla (seedIfEmpty)
+            syncPurchases()
         }
     }
 
@@ -137,6 +137,12 @@ class RecordsViewModel(
     fun deletePurchase(purchase: PurchaseEntity) {
         viewModelScope.launch {
             repository.deletePurchase(purchase)
+        }
+    }
+
+    fun syncPurchases() {
+        viewModelScope.launch {
+            repository.syncWithRemote()
         }
     }
 }
