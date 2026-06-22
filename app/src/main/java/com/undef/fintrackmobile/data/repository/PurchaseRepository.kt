@@ -1,5 +1,6 @@
 package com.undef.fintrackmobile.data.repository
 
+import android.util.Log
 import com.undef.fintrackmobile.data.local.dao.ProductDao
 import com.undef.fintrackmobile.data.local.dao.PurchaseDao
 import com.undef.fintrackmobile.data.local.entity.ProductEntity
@@ -79,7 +80,13 @@ class PurchaseRepository(
     }
 
     suspend fun deletePurchase(purchase: PurchaseEntity) = withContext(Dispatchers.IO) {
+        // 1. Borrar localmente
         purchaseDao.deletePurchase(purchase)
+        
+        // 2. Borrar remotamente si tiene ID remoto
+        purchase.remoteId?.let { remoteId ->
+            sincronizacionRepository.deleteRemotePurchase(remoteId)
+        }
     }
 
     /**
@@ -91,9 +98,17 @@ class PurchaseRepository(
             val userId = prefs.userId
             val email = prefs.email
             
-            if (userId.isBlank()) return@withContext Result.failure(Exception("Usuario no autenticado"))
+            if (userId.isBlank()) {
+                Log.e("PurchaseRepo", "Sync failed: userId is blank")
+                return@withContext Result.failure(Exception("Usuario no autenticado (ID faltante)"))
+            }
+            if (email.isBlank()) {
+                Log.e("PurchaseRepo", "Sync failed: email is blank")
+                return@withContext Result.failure(Exception("Usuario no autenticado (Email faltante)"))
+            }
 
             val unsynced = purchaseDao.getUnsyncedPurchasesByUser(email)
+            Log.d("PurchaseRepo", "Found ${unsynced.size} unsynced purchases")
             
             for (item in unsynced) {
                 val purchase = item.purchase
@@ -107,21 +122,32 @@ class PurchaseRepository(
                     userId = userId
                 )
                 
-                val result = sincronizacionRepository.syncPurchase(dto)
-                result.onSuccess { response ->
-                    // 1. Marcar compra como sincronizada
-                    purchaseDao.updatePurchase(
-                        purchase.copy(
-                            remoteId = response.id,
-                            isSynced = true
-                        )
-                    )
-                    
-                    // 2. Sincronizar productos asociados
+                var remoteId = purchase.remoteId
+                val syncResult: Result<Int> = if (remoteId == null) {
+                    // 1. Crear nueva compra
+                    Log.d("PurchaseRepo", "Creating new remote purchase for local id ${purchase.id}")
+                    sincronizacionRepository.syncPurchase(dto).map { it.id }
+                } else {
+                    // 2. Actualizar compra existente
+                    Log.d("PurchaseRepo", "Updating existing remote purchase $remoteId for local id ${purchase.id}")
+                    sincronizacionRepository.updateRemotePurchase(remoteId, dto).map { remoteId }
+                }
+
+                syncResult.onSuccess { id ->
+                    remoteId = id
+                    var productsSynced = true
+
+                    // 3. Sincronizar productos
                     if (products.isNotEmpty()) {
+                        // Si era una actualización, primero borramos los productos remotos viejos
+                        remoteId.let { rId ->
+                            Log.d("PurchaseRepo", "Deleting old remote products for purchase $rId")
+                            sincronizacionRepository.deleteRemoteProducts(rId)
+                        }
+
                         val remoteProducts = products.map { p ->
                             mapOf(
-                                "purchase_id" to response.id,
+                                "purchase_id" to remoteId,
                                 "name" to p.name,
                                 "code" to p.code,
                                 "description" to p.description,
@@ -130,12 +156,34 @@ class PurchaseRepository(
                                 "discount_cents" to p.discountCents
                             )
                         }
-                        sincronizacionRepository.syncProducts(remoteProducts)
+                        Log.d("PurchaseRepo", "Syncing ${remoteProducts.size} products for purchase $remoteId")
+                        val productsResult = sincronizacionRepository.syncProducts(remoteProducts)
+                        if (productsResult.isFailure) {
+                            productsSynced = false
+                            Log.e("PurchaseRepo", "Failed to sync products: ${productsResult.exceptionOrNull()?.message}")
+                        }
                     }
+
+                    // 4. Marcar como sincronizado SOLO si los productos también se sincronizaron (o no había)
+                    if (productsSynced) {
+                        Log.d("PurchaseRepo", "Sync completed for purchase $remoteId")
+                        purchaseDao.updatePurchase(
+                            purchase.copy(
+                                remoteId = remoteId,
+                                isSynced = true
+                            )
+                        )
+                    } else {
+                        // Si fallaron los productos, guardamos el remoteId para la próxima pero no marcamos isSynced
+                        purchaseDao.updatePurchase(purchase.copy(remoteId = remoteId))
+                    }
+                }.onFailure { e ->
+                    Log.e("PurchaseRepo", "Failed to sync purchase header: ${e.message}")
                 }
             }
             Result.success(Unit)
         } catch (e: Exception) {
+            Log.e("PurchaseRepo", "Critical error in syncWithRemote", e)
             Result.failure(e)
         }
     }

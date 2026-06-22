@@ -1,5 +1,6 @@
 package com.undef.fintrackmobile
 
+import android.widget.Toast
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
@@ -7,6 +8,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
@@ -42,6 +44,7 @@ fun FintrackApp(container: AppContainer) {
     val viewModelFactory = remember(container) { FintrackViewModelFactory(container) }
     val appStateViewModel: AppStateViewModel = viewModel(factory = viewModelFactory)
     val preferences by appStateViewModel.preferences.collectAsStateWithLifecycle()
+    val context = LocalContext.current
 
     val navController = rememberNavController()
     val backStackEntry by navController.currentBackStackEntryAsState()
@@ -86,10 +89,13 @@ fun FintrackApp(container: AppContainer) {
                             navController.navigate(FintrackDestination.Home.route) {
                                 popUpTo(Routes.WELCOME) { inclusive = true }
                             }
+                        } else if (uiState is AuthUiState.Error) {
+                            Toast.makeText(context, (uiState as AuthUiState.Error).message, Toast.LENGTH_LONG).show()
                         }
                     }
 
                     LoginScreen(
+                        uiState = uiState,
                         onLogin = { email, password ->
                             viewModel.login(email, password)
                         },
@@ -105,12 +111,15 @@ fun FintrackApp(container: AppContainer) {
                             navController.navigate(FintrackDestination.Home.route) {
                                 popUpTo(Routes.WELCOME) { inclusive = true }
                             }
+                        } else if (uiState is AuthUiState.Error) {
+                            Toast.makeText(context, (uiState as AuthUiState.Error).message, Toast.LENGTH_LONG).show()
                         }
                     }
 
                     RegisterScreen(
-                        onRegister = { name, email, password ->
-                            viewModel.register(name, email, password)
+                        uiState = uiState,
+                        onRegister = { name, email, password, lastName, birthDate ->
+                            viewModel.register(name, email, password, lastName, birthDate)
                         },
                         onLogin = { navController.navigate(Routes.LOGIN) }
                     )

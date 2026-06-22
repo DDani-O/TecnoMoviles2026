@@ -9,5 +9,6 @@ data class AuthResponseDto(
 
 data class SupabaseUserDto(
     @param:Json(name = "id") val id: String,
-    @param:Json(name = "email") val email: String? = null
+    @param:Json(name = "email") val email: String? = null,
+    @param:Json(name = "user_metadata") val userMetadata: Map<String, Any>? = null
 )

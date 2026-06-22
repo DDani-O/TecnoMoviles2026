@@ -27,9 +27,7 @@ class FintrackViewModelFactory(
             }
             modelClass.isAssignableFrom(PurchaseViewModel::class.java) -> {
                 PurchaseViewModel(
-                    container.purchaseRepository,
-                    container.sincronizacionRepository,
-                    container.preferencesRepository
+                    container.purchaseRepository
                 ) as T
             }
             modelClass.isAssignableFrom(RecordsViewModel::class.java) -> {

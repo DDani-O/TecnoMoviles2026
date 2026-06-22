@@ -24,9 +24,26 @@ interface SupabaseDataApiService {
         @Body purchase: RemotePurchaseDto
     ): List<RemotePurchaseResponseDto>
 
+    @PATCH("remote_purchases")
+    suspend fun updatePurchase(
+        @Query("id") filter: String,
+        @Body purchase: RemotePurchaseDto
+    )
+
     @POST("remote_products")
     suspend fun syncProducts(
-        @Body products: List<Map<String, Any>>
+        @Header("Prefer") prefer: String = "return=minimal",
+        @Body products: @JvmSuppressWildcards List<Map<String, Any>>
+    )
+
+    @retrofit2.http.DELETE("remote_products")
+    suspend fun deleteProducts(
+        @Query("purchase_id") filter: String
+    )
+
+    @retrofit2.http.DELETE("remote_purchases")
+    suspend fun deletePurchase(
+        @Query("id") filter: String // Ej: "eq.123"
     )
 
     @PATCH("users")

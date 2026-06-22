@@ -44,7 +44,7 @@ enum class PeriodFilter { WEEK, MONTH, YEAR }
 
 class RecordsViewModel(
     private val repository: PurchaseRepository,
-    private val userPreferencesRepository: UserPreferencesRepository
+    userPreferencesRepository: UserPreferencesRepository
 ) : ViewModel() {
 
     private val _selectedPeriod = MutableStateFlow(PeriodFilter.MONTH)
@@ -131,6 +131,7 @@ class RecordsViewModel(
     fun updatePurchase(purchase: PurchaseEntity, products: List<ProductEntity>) {
         viewModelScope.launch {
             repository.updatePurchase(purchase, products)
+            repository.syncWithRemote()
         }
     }
 

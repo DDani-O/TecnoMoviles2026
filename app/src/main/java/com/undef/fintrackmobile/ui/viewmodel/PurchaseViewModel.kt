@@ -2,21 +2,13 @@ package com.undef.fintrackmobile.ui.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.undef.fintrackmobile.data.local.entity.PurchaseEntity
-import com.undef.fintrackmobile.data.network.dto.RemotePurchaseDto
 import com.undef.fintrackmobile.data.repository.NewProduct
 import com.undef.fintrackmobile.data.repository.PurchaseRepository
-import com.undef.fintrackmobile.data.repository.SincronizacionRepository
-import com.undef.fintrackmobile.data.preferences.UserPreferencesRepository
 import com.undef.fintrackmobile.ui.util.parseCents
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 
 sealed class SincronizacionEstado {
     object Inactivo : SincronizacionEstado()
@@ -37,9 +29,7 @@ data class EditableProductDraft(
 )
 
 class PurchaseViewModel(
-    private val repository: PurchaseRepository,
-    private val sincronizacionRepository: SincronizacionRepository,
-    private val userPreferencesRepository: UserPreferencesRepository
+    private val repository: PurchaseRepository
 ) : ViewModel() {
     // Estado para los datos generales de la compra
     private val _supermarket = MutableStateFlow("")
@@ -114,45 +104,23 @@ class PurchaseViewModel(
         val dateMillis = _dateMillis.value
         val products = _products.value.map { it.toNewProduct() }
         if (supermarketName.isBlank()) return
-        viewModelScope.launch {
-            repository.addPurchase(supermarketName, totalCents, dateMillis, reason, products)
-            clearDraft()
-            // Intentar sincronizar inmediatamente después de guardar localmente
-            repository.syncWithRemote()
-        }
-    }
-
-    /**
-     * syncPurchase: Sincroniza una compra específica (usado desde el historial).
-     */
-    fun syncPurchase(purchase: PurchaseEntity) {
+        
         viewModelScope.launch {
             _estadoSincronizacion.value = SincronizacionEstado.Cargando
-            
-            val prefs = userPreferencesRepository.preferencesFlow.first()
-            val userId = prefs.userId
-
-            if (userId.isBlank()) {
-                _estadoSincronizacion.value = SincronizacionEstado.Error("Usuario no autenticado")
-                return@launch
-            }
-
-            val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-            val formattedDate = sdf.format(Date(purchase.dateMillis))
-
-            val dto = RemotePurchaseDto(
-                storeName = purchase.supermarketName,
-                totalAmount = purchase.totalCents / 100.0,
-                purchaseDate = formattedDate,
-                reason = purchase.reason,
-                userId = userId
-            )
-
-            val result = sincronizacionRepository.syncPurchase(dto)
-            result.onSuccess {
-                _estadoSincronizacion.value = SincronizacionEstado.Exito
-            }.onFailure {
-                _estadoSincronizacion.value = SincronizacionEstado.Error(it.message ?: "UNKNOWN_ERROR")
+            try {
+                // 1. Guardar localmente
+                repository.addPurchase(supermarketName, totalCents, dateMillis, reason, products)
+                clearDraft()
+                
+                // 2. Intentar sincronizar inmediatamente
+                val result = repository.syncWithRemote()
+                result.onSuccess {
+                    _estadoSincronizacion.value = SincronizacionEstado.Exito
+                }.onFailure {
+                    _estadoSincronizacion.value = SincronizacionEstado.Error(it.message ?: "Sync failed")
+                }
+            } catch (e: Exception) {
+                _estadoSincronizacion.value = SincronizacionEstado.Error(e.message ?: "Save failed")
             }
         }
     }

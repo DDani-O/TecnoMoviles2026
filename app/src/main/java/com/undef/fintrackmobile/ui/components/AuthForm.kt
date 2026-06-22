@@ -1,5 +1,6 @@
 package com.undef.fintrackmobile.ui.components
 
+import android.util.Log
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -30,6 +31,7 @@ fun AuthForm(
     @StringRes primaryLabelRes: Int,
     @StringRes secondaryLabelRes: Int,
     isRegister: Boolean = false,
+    isLoading: Boolean = false,
     onPrimary: (displayName: String, email: String, password: String, lastName: String?, birthDate: String?) -> Unit,
     onSecondary: () -> Unit,
 ) {
@@ -154,26 +156,66 @@ fun AuthForm(
             Spacer(modifier = Modifier.height(32.dp))
             
             // Acciones principales
-            PrimarySecondaryActions(
-                primaryLabelRes = primaryLabelRes,
-                secondaryLabelRes = secondaryLabelRes,
-                onPrimary = {
-                    val isValid = if (isRegister) {
-                        displayName.isNotBlank() && lastName.isNotBlank() && email.isNotBlank() && password.isNotBlank() && birthDate.isNotBlank()
-                    } else {
-                        email.isNotBlank() && password.isNotBlank()
-                    }
-                    
-                    if (isValid) {
-                        onPrimary(displayName, email, password, if (isRegister) lastName else null, if (isRegister) birthDate else null)
-                    } else {
-                        showError = true
-                    }
-                },
-                onSecondary = onSecondary,
+            Column(
                 modifier = Modifier.fillMaxWidth(),
-                buttonModifier = Modifier.fillMaxWidth()
-            )
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Button(
+                    onClick = {
+                        Log.d("AuthForm", "Primary button clicked. isRegister=$isRegister")
+                        val isValid = if (isRegister) {
+                            displayName.isNotBlank() && lastName.isNotBlank() && email.isNotBlank() && password.isNotBlank() && birthDate.isNotBlank()
+                        } else {
+                            email.isNotBlank() && password.isNotBlank()
+                        }
+                        
+                        if (isValid) {
+                            onPrimary(displayName, email, password, if (isRegister) lastName else null, if (isRegister) birthDate else null)
+                        } else {
+                            Log.w("AuthForm", "Validation failed")
+                            showError = true
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth().height(56.dp),
+                    shape = RoundedCornerShape(16.dp),
+                    enabled = !isLoading,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = colors.celesteDeep,
+                        contentColor = colors.neutralWhite
+                    )
+                ) {
+                    if (isLoading) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(24.dp),
+                            color = colors.neutralWhite,
+                            strokeWidth = 2.dp
+                        )
+                    } else {
+                        Text(
+                            text = stringResource(primaryLabelRes),
+                            style = MaterialTheme.typography.labelLarge,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
+
+                OutlinedButton(
+                    onClick = onSecondary,
+                    modifier = Modifier.fillMaxWidth().height(56.dp),
+                    shape = RoundedCornerShape(16.dp),
+                    enabled = !isLoading,
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = colors.celesteInk
+                    ),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, colors.celesteSoft)
+                ) {
+                    Text(
+                        text = stringResource(secondaryLabelRes),
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
+            }
         }
     }
 }

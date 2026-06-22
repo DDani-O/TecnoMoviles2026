@@ -3,6 +3,7 @@ package com.undef.fintrackmobile.ui.screens
 import androidx.compose.runtime.Composable
 import com.undef.fintrackmobile.R
 import com.undef.fintrackmobile.ui.components.AuthForm
+import com.undef.fintrackmobile.ui.viewmodel.AuthUiState
 
 /**
  * 2️⃣ JETPACK COMPOSE - Composición de Componentes
@@ -11,6 +12,7 @@ import com.undef.fintrackmobile.ui.components.AuthForm
  */
 @Composable
 fun LoginScreen(
+    uiState: AuthUiState,
     onLogin: (String, String) -> Unit,
     onRegister: () -> Unit,
 ) {
@@ -19,6 +21,7 @@ fun LoginScreen(
         primaryLabelRes = R.string.action_login,
         secondaryLabelRes = R.string.action_register,
         isRegister = false,
+        isLoading = uiState is AuthUiState.Loading,
         onPrimary = { _, email, password, _, _ -> onLogin(email, password) },
         onSecondary = onRegister,
     )
