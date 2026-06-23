@@ -19,8 +19,14 @@ class SincronizacionRepository(
         try {
             val mediaType = "image/jpeg".toMediaTypeOrNull()
             val requestBody = bytes.toRequestBody(mediaType)
-            storageApiService.uploadFile(fileName, requestBody)
-            // Assuming the bucket is public or we use the public URL format
+            storageApiService.uploadFile(
+                bucket = "tickets",
+                path = fileName,
+                file = requestBody,
+                contentType = "image/jpeg",
+                upsert = "true"
+            )
+            // URL pública de Supabase Storage
             val publicUrl = "https://ruqmvzmmuscalvihlcva.supabase.co/storage/v1/object/public/tickets/$fileName"
             Result.success(publicUrl)
         } catch (e: Exception) {
@@ -28,6 +34,26 @@ class SincronizacionRepository(
             Result.failure(e)
         }
     }
+    suspend fun getRemotePurchases(userId: String): Result<List<RemotePurchaseResponseDto>> = withContext(Dispatchers.IO) {
+        try {
+            val response = dataApiService.getPurchases("eq.$userId")
+            Result.success(response)
+        } catch (e: Exception) {
+            logError("getRemotePurchases", e)
+            Result.failure(e)
+        }
+    }
+
+    suspend fun getRemoteProducts(remotePurchaseId: Int): Result<List<RemoteProductResponseDto>> = withContext(Dispatchers.IO) {
+        try {
+            val response = dataApiService.getProducts("eq.$remotePurchaseId")
+            Result.success(response)
+        } catch (e: Exception) {
+            logError("getRemoteProducts", e)
+            Result.failure(e)
+        }
+    }
+
     suspend fun getRemoteSupermarkets(): Result<List<SupermarketDto>> = withContext(Dispatchers.IO) {
         try {
             val response = dataApiService.getSupermarkets()
@@ -69,6 +95,12 @@ class SincronizacionRepository(
         if (e is HttpException) {
             val errorBody = e.response()?.errorBody()?.string()
             Log.e("SincronizacionRepo", "$tag error: HTTP ${e.code()} - $errorBody")
+            // Intento de parsear si es un error de Supabase (PostgREST)
+            try {
+                if (!errorBody.isNullOrBlank()) {
+                    Log.e("SincronizacionRepo", "$tag - Detailed error from Supabase: $errorBody")
+                }
+            } catch (_: Exception) {}
         } else {
             Log.e("SincronizacionRepo", "$tag error: ${e.message}", e)
         }

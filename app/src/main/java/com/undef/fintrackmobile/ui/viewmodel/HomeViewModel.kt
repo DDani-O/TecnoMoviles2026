@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import java.util.Calendar
 import kotlinx.coroutines.Dispatchers
@@ -274,7 +275,16 @@ class HomeViewModel(
         // Lanzamos una corrutina bound al ciclo de vida del ViewModel.
         // Se cancelará automáticamente si el usuario sale de esta pantalla.
         viewModelScope.launch {
-            // Se eliminó la carga automática de datos semilla (seedIfEmpty)
+            // Sincronizar (Pull) al iniciar si la base de datos está vacía para este usuario
+            val prefs = userPreferencesRepository.preferencesFlow.first()
+            if (prefs.isLoggedIn && prefs.email.isNotBlank()) {
+                val currentCount = repository.observePurchases(prefs.email).first().size
+                if (currentCount == 0) {
+                    repository.pullFromRemote()
+                } else {
+                    repository.syncWithRemote() // Push normal
+                }
+            }
         }
     }
 }

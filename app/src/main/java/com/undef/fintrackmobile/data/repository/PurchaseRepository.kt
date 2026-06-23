@@ -92,6 +92,61 @@ class PurchaseRepository(
     }
 
     /**
+     * Descarga las compras de Supabase y las guarda localmente.
+     */
+    suspend fun pullFromRemote(): Result<Unit> = withContext(Dispatchers.IO) {
+        try {
+            val prefs = userPreferencesRepository.preferencesFlow.first()
+            val userId = prefs.userId
+            val email = prefs.email
+
+            if (userId.isBlank() || email.isBlank()) return@withContext Result.failure(Exception("Usuario no autenticado"))
+
+            val remotePurchasesResult = sincronizacionRepository.getRemotePurchases(userId)
+            remotePurchasesResult.onSuccess { remotePurchases ->
+                for (remotePurchase in remotePurchases) {
+                    // Para simplificar y dado el caso de uso (reinstalación), insertamos si no existe
+                    
+                    val dateParsed = try { dateFormat.parse(remotePurchase.purchaseDate)?.time ?: System.currentTimeMillis() } catch(_: Exception) { System.currentTimeMillis() }
+                    
+                    val purchaseId = purchaseDao.insertPurchase(
+                        PurchaseEntity(
+                            userEmail = email,
+                            supermarketName = remotePurchase.storeName,
+                            dateMillis = dateParsed,
+                            totalCents = (remotePurchase.totalAmount * 100).toLong(),
+                            reason = remotePurchase.reason ?: "",
+                            remoteId = remotePurchase.id,
+                            isSynced = true
+                        )
+                    )
+
+                    // Traer productos de esta compra
+                    val remoteProductsResult = sincronizacionRepository.getRemoteProducts(remotePurchase.id)
+                    remoteProductsResult.onSuccess { remoteProducts ->
+                        val entities = remoteProducts.map { rp ->
+                            ProductEntity(
+                                purchaseId = purchaseId,
+                                name = rp.name,
+                                code = rp.code ?: "",
+                                description = rp.description ?: "",
+                                quantity = rp.quantity,
+                                priceCents = rp.priceCents,
+                                discountCents = rp.discountCents ?: 0
+                            )
+                        }
+                        productDao.insertProducts(entities)
+                    }
+                }
+            }
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Log.e("PurchaseRepo", "Error in pullFromRemote", e)
+            Result.failure(e)
+        }
+    }
+
+    /**
      * Sincroniza las compras locales no sincronizadas con Supabase.
      */
     suspend fun syncWithRemote(): Result<Unit> = withContext(Dispatchers.IO) {
@@ -112,6 +167,8 @@ class PurchaseRepository(
             val unsynced = purchaseDao.getUnsyncedPurchasesByUser(email)
             Log.d("PurchaseRepo", "Found ${unsynced.size} unsynced purchases")
             
+            var anyError: Throwable? = null
+
             for (item in unsynced) {
                 val purchase = item.purchase
                 val products = item.products
@@ -125,6 +182,8 @@ class PurchaseRepository(
                     userId = userId
                 )
                 
+                Log.d("PurchaseRepo", "Syncing purchase DTO: $dto")
+
                 var remoteId = purchase.remoteId
                 val syncResult: Result<Int> = if (remoteId == null) {
                     // 1. Crear nueva compra
@@ -163,7 +222,8 @@ class PurchaseRepository(
                         val productsResult = sincronizacionRepository.syncProducts(remoteProducts)
                         if (productsResult.isFailure) {
                             productsSynced = false
-                            Log.e("PurchaseRepo", "Failed to sync products: ${productsResult.exceptionOrNull()?.message}")
+                            anyError = productsResult.exceptionOrNull()
+                            Log.e("PurchaseRepo", "Failed to sync products: ${anyError?.message}")
                         }
                     }
 
@@ -181,8 +241,13 @@ class PurchaseRepository(
                         purchaseDao.updatePurchase(purchase.copy(remoteId = remoteId))
                     }
                 }.onFailure { e ->
-                    Log.e("PurchaseRepo", "Failed to sync purchase header: ${e.message}")
+                    anyError = e
+                    Log.e("PurchaseRepo", "Failed to sync purchase header for local id ${purchase.id}: ${e.message}")
                 }
+            }
+            
+            if (anyError != null) {
+                return@withContext Result.failure(anyError)
             }
             Result.success(Unit)
         } catch (e: Exception) {

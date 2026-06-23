@@ -18,6 +18,16 @@ interface SupabaseDataApiService {
     @GET("offers")
     suspend fun getOffers(): List<OfferDto>
 
+    @GET("remote_purchases")
+    suspend fun getPurchases(
+        @Query("user_id") userIdFilter: String
+    ): List<RemotePurchaseResponseDto>
+
+    @GET("remote_products")
+    suspend fun getProducts(
+        @Query("purchase_id") purchaseIdFilter: String
+    ): List<com.undef.fintrackmobile.data.network.dto.RemoteProductResponseDto>
+
     @POST("remote_purchases")
     suspend fun syncPurchase(
         @Header("Prefer") prefer: String = "return=representation",
