@@ -1,8 +1,20 @@
 package com.undef.fintrackmobile.ui.components.records
 
+import android.content.Context
+import android.Manifest
+import android.content.pm.PackageManager
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CameraAlt
+import androidx.compose.material.icons.filled.UploadFile
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -12,16 +24,20 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
+import coil.compose.AsyncImage
 import com.undef.fintrackmobile.R
 import com.undef.fintrackmobile.data.local.entity.ProductEntity
 import com.undef.fintrackmobile.data.local.entity.PurchaseEntity
 import com.undef.fintrackmobile.data.local.entity.PurchaseWithProducts
 import com.undef.fintrackmobile.ui.components.*
+import com.undef.fintrackmobile.ui.components.purchase.PurchaseTicketSheet
 import com.undef.fintrackmobile.ui.theme.FintrackTheme
 import com.undef.fintrackmobile.ui.util.*
 import com.undef.fintrackmobile.ui.viewmodel.EditableProductDraft
 import kotlinx.coroutines.launch
 import java.util.*
+import java.io.File
 
 /**
  * EditPurchaseSheet: Hoja modal para modificar los datos de una compra y sus productos.
@@ -45,6 +61,40 @@ fun EditPurchaseSheet(
     var supermarket by rememberSaveable(purchase.purchase.id) { mutableStateOf(purchase.purchase.supermarketName) }
     var reason by rememberSaveable(purchase.purchase.id) { mutableStateOf(purchase.purchase.reason) }
     var dateMillis by rememberSaveable(purchase.purchase.id) { mutableLongStateOf(purchase.purchase.dateMillis) }
+    var ticketImageUrl by rememberSaveable(purchase.purchase.id) { mutableStateOf(purchase.purchase.ticketImageUrl) }
+
+    val showTicketSheetState = rememberSaveable { mutableStateOf(value = false) }
+    var pendingCameraUri by remember { mutableStateOf<Uri?>(null) }
+
+    val galleryLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.GetContent(),
+    ) { uri ->
+        uri?.let { ticketImageUrl = it.toString() }
+    }
+
+    val cameraLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.TakePicture(),
+    ) { success ->
+        val uri = pendingCameraUri
+        pendingCameraUri = null
+        if (success && (uri != null)) {
+            ticketImageUrl = uri.toString()
+        }
+    }
+
+    val launchCamera = remember(context) {
+        {
+            val uri = createTicketUri(context)
+            pendingCameraUri = uri
+            cameraLauncher.launch(uri)
+        }
+    }
+
+    val cameraPermissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        if (granted) launchCamera()
+    }
 
     val productStates = remember(purchase) {
         mutableStateListOf<EditableProductDraft>().apply {
@@ -98,6 +148,43 @@ fun EditPurchaseSheet(
                 onTimeClick = { showTimePicker(context, dateMillis) { dateMillis = it } }
             )
 
+            FintrackSectionHeader(title = R.string.purchase_ticket_title)
+            Card(
+                colors = CardDefaults.cardColors(containerColor = colors.neutralWhite),
+                shape = androidx.compose.foundation.shape.RoundedCornerShape(12.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .border(1.dp, colors.celesteSoft, androidx.compose.foundation.shape.RoundedCornerShape(12.dp))
+            ) {
+                if (ticketImageUrl != null) {
+                    AsyncImage(
+                        model = ticketImageUrl,
+                        contentDescription = "Ticket Image",
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(200.dp)
+                            .padding(8.dp)
+                    )
+                } else {
+                    Text(
+                        text = stringResource(R.string.purchase_ticket_empty),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = colors.celesteInk,
+                        modifier = Modifier.padding(12.dp)
+                    )
+                }
+            }
+            Button(
+                onClick = { showTicketSheetState.value = true },
+                modifier = Modifier.fillMaxWidth().height(48.dp),
+                shape = MaterialTheme.shapes.medium,
+                colors = ButtonDefaults.buttonColors(containerColor = colors.celesteBase)
+            ) {
+                Icon(imageVector = Icons.Default.UploadFile, contentDescription = null)
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(stringResource(R.string.purchase_ticket_load))
+            }
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -148,7 +235,8 @@ fun EditPurchaseSheet(
                         supermarketName = supermarket,
                         reason = reason,
                         dateMillis = dateMillis,
-                        totalCents = totals.totalCents
+                        totalCents = totals.totalCents,
+                        ticketImageUrl = ticketImageUrl
                     )
                     onSave(updatedPurchase, updatedProducts)
                 },
@@ -165,6 +253,27 @@ fun EditPurchaseSheet(
             Spacer(modifier = Modifier.height(32.dp))
         }
     }
+    if (showTicketSheetState.value) {
+        PurchaseTicketSheet(
+            sheetState = sheetState,
+            onDismiss = { showTicketSheetState.value = false },
+            onGalleryClick = {
+                showTicketSheetState.value = false
+                galleryLauncher.launch("image/*")
+            },
+            onCameraClick = {
+                showTicketSheetState.value = false
+                val hasPermission = ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED
+                if (hasPermission) launchCamera() else cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+            },
+        )
+    }
+}
+
+private fun createTicketUri(context: Context): Uri {
+    val ticketsDir = File(context.cacheDir, "tickets").apply { if (!exists()) mkdirs() }
+    val file = File(ticketsDir, "ticket_${System.currentTimeMillis()}.jpg")
+    return androidx.core.content.FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
 }
 
 private fun formatRawPrice(cents: Long): String {

@@ -160,6 +160,7 @@
     <string name="purchase_ticket_camera">Sacar foto</string>
     <string name="purchase_ticket_title">Ticket cargado</string>
     <string name="purchase_ticket_empty">Aun no se cargo un ticket</string>
+    <string name="purchase_ticket_load">Cargar ticket</string>
     <string name="purchase_add_inline">+ Agregar</string>
     <string name="purchase_adjust_confirm">Confirmar ajuste</string>
     <string name="purchase_product_title">Producto %1$d</string>

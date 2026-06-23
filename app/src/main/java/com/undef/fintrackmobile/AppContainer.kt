@@ -5,6 +5,7 @@ import android.content.Context
 import com.undef.fintrackmobile.data.local.AppDatabase
 import com.undef.fintrackmobile.data.network.NetworkModule
 import com.undef.fintrackmobile.data.preferences.UserPreferencesRepository
+import com.undef.fintrackmobile.data.repository.GroqRepository
 import com.undef.fintrackmobile.data.repository.PurchaseRepository
 import com.undef.fintrackmobile.data.repository.SincronizacionRepository
 
@@ -17,7 +18,15 @@ class AppContainer(context: Context) {
 
     val sincronizacionRepository = SincronizacionRepository(
         NetworkModule.supabaseDataApiService,
-        NetworkModule.supabaseAuthApiService
+        NetworkModule.supabaseAuthApiService,
+        NetworkModule.supabaseStorageApiService
+    )
+
+    val groqRepository = GroqRepository(
+        NetworkModule.groqApiService,
+        com.squareup.moshi.Moshi.Builder()
+            .add(com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory())
+            .build()
     )
 
     val purchaseRepository = PurchaseRepository(

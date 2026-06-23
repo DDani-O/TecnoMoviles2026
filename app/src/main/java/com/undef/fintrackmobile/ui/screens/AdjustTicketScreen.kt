@@ -6,8 +6,10 @@ import android.text.format.DateFormat
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -27,6 +29,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import coil.compose.AsyncImage
 import com.undef.fintrackmobile.R
 import com.undef.fintrackmobile.ui.components.EditableProductCard
 import com.undef.fintrackmobile.ui.components.PurchaseBreakdownCard
@@ -119,12 +122,23 @@ fun AdjustTicketScreen(
                         .fillMaxWidth()
                         .border(1.dp, colors.celesteSoft, androidx.compose.foundation.shape.RoundedCornerShape(12.dp))
                 ) {
-                    Text(
-                        text = ticketUri ?: stringResource(R.string.purchase_ticket_empty),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = colors.celesteInk,
-                        modifier = Modifier.padding(12.dp)
-                    )
+                    if (ticketUri != null) {
+                        AsyncImage(
+                            model = ticketUri,
+                            contentDescription = "Ticket Image",
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(200.dp)
+                                .padding(8.dp)
+                        )
+                    } else {
+                        Text(
+                            text = stringResource(R.string.purchase_ticket_empty),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = colors.celesteInk,
+                            modifier = Modifier.padding(12.dp)
+                        )
+                    }
                 }
             }
             item {

@@ -50,6 +50,7 @@ fun NewPurchaseScreen(
     val dateMillis by viewModel.dateMillis.collectAsStateWithLifecycle()
     val products by viewModel.products.collectAsStateWithLifecycle()
     val synchronizationState by viewModel.estadoSincronizacion.collectAsStateWithLifecycle()
+    val parsingTicket by viewModel.parsingTicket.collectAsStateWithLifecycle()
     val colors = FintrackTheme.colors
 
     val totals = calculatePurchaseTotals(products)
@@ -95,7 +96,7 @@ fun NewPurchaseScreen(
         ActivityResultContracts.GetContent(),
     ) { uri ->
         uri?.let {
-            viewModel.setTicketUri(it.toString())
+            viewModel.processTicketImage(it)
             onAdjustTicket()
         }
     }
@@ -107,7 +108,7 @@ fun NewPurchaseScreen(
         val uri = pendingCameraUri
         pendingCameraUri = null
         if (success && (uri != null)) {
-            viewModel.setTicketUri(uri.toString())
+            viewModel.processTicketImage(uri)
             onAdjustTicket()
         }
     }
@@ -229,6 +230,26 @@ fun NewPurchaseScreen(
             hostState = snackbarHostState,
             modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 8.dp)
         )
+
+        if (parsingTicket) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(colors.celesteDeep.copy(alpha = 0.5f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    CircularProgressIndicator(color = colors.neutralWhite)
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text(
+                        text = "Procesando ticket con IA...",
+                        color = colors.neutralWhite,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+        }
     }
     if (showTicketSheetState.value) {
         PurchaseTicketSheet(

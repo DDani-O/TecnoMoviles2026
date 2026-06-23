@@ -1,5 +1,7 @@
 package com.undef.fintrackmobile.data.repository
 
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.RequestBody.Companion.toRequestBody
 import android.util.Log
 import com.undef.fintrackmobile.data.network.SupabaseAuthApiService
 import com.undef.fintrackmobile.data.network.SupabaseDataApiService
@@ -10,8 +12,22 @@ import retrofit2.HttpException
 
 class SincronizacionRepository(
     private val dataApiService: SupabaseDataApiService,
-    private val authApiService: SupabaseAuthApiService
+    private val authApiService: SupabaseAuthApiService,
+    private val storageApiService: com.undef.fintrackmobile.data.network.SupabaseStorageApiService
 ) {
+    suspend fun uploadTicketImage(fileName: String, bytes: ByteArray): Result<String> = withContext(Dispatchers.IO) {
+        try {
+            val mediaType = "image/jpeg".toMediaTypeOrNull()
+            val requestBody = bytes.toRequestBody(mediaType)
+            storageApiService.uploadFile(fileName, requestBody)
+            // Assuming the bucket is public or we use the public URL format
+            val publicUrl = "https://ruqmvzmmuscalvihlcva.supabase.co/storage/v1/object/public/tickets/$fileName"
+            Result.success(publicUrl)
+        } catch (e: Exception) {
+            logError("uploadTicketImage", e)
+            Result.failure(e)
+        }
+    }
     suspend fun getRemoteSupermarkets(): Result<List<SupermarketDto>> = withContext(Dispatchers.IO) {
         try {
             val response = dataApiService.getSupermarkets()

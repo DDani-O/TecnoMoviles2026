@@ -13,6 +13,7 @@ data class PurchaseEntity(
     val totalCents: Long,
     val reason: String = "",
     val remoteId: Int? = null,
+    val ticketImageUrl: String? = null,
     val isSynced: Boolean = false,
     val lastUpdated: Long = System.currentTimeMillis()
 )

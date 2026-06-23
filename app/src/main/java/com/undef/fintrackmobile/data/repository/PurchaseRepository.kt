@@ -43,7 +43,8 @@ class PurchaseRepository(
         totalCents: Long,
         dateMillis: Long,
         reason: String,
-        products: List<NewProduct>
+        products: List<NewProduct>,
+        ticketImageUrl: String? = null
     ) = withContext(Dispatchers.IO) {
         val currentUserEmail = userPreferencesRepository.preferencesFlow.first().email
 
@@ -54,6 +55,7 @@ class PurchaseRepository(
                 dateMillis = dateMillis,
                 totalCents = totalCents,
                 reason = reason,
+                ticketImageUrl = ticketImageUrl,
                 isSynced = false
             )
         )
@@ -119,6 +121,7 @@ class PurchaseRepository(
                     totalAmount = purchase.totalCents.toDouble() / 100.0,
                     purchaseDate = dateFormat.format(Date(purchase.dateMillis)),
                     reason = purchase.reason,
+                    ticketImageUrl = purchase.ticketImageUrl,
                     userId = userId
                 )
                 
