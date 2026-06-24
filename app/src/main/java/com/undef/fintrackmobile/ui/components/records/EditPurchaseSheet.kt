@@ -6,14 +6,11 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.UploadFile
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -31,7 +28,6 @@ import com.undef.fintrackmobile.data.local.entity.ProductEntity
 import com.undef.fintrackmobile.data.local.entity.PurchaseEntity
 import com.undef.fintrackmobile.data.local.entity.PurchaseWithProducts
 import com.undef.fintrackmobile.ui.components.*
-import com.undef.fintrackmobile.ui.components.purchase.PurchaseTicketSheet
 import com.undef.fintrackmobile.ui.theme.FintrackTheme
 import com.undef.fintrackmobile.ui.util.*
 import com.undef.fintrackmobile.ui.viewmodel.EditableProductDraft
@@ -254,7 +250,8 @@ fun EditPurchaseSheet(
         }
     }
     if (showTicketSheetState.value) {
-        PurchaseTicketSheet(
+        ImagePickerSheet(
+            title = stringResource(R.string.purchase_ticket_sheet_title),
             sheetState = sheetState,
             onDismiss = { showTicketSheetState.value = false },
             onGalleryClick = {

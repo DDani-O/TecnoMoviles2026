@@ -75,7 +75,7 @@ fun NewPurchaseScreen(
             is SincronizacionEstado.Exito -> {
                 snackbarHostState.showSnackbar(
                     message = syncSuccessMsg,
-                    duration = SnackbarDuration.Short
+                    duration = SnackbarDuration.Short,
                 )
                 viewModel.resetSyncStatus()
             }
@@ -199,7 +199,7 @@ fun NewPurchaseScreen(
                     onClick = {
                         if (supermarket.isBlank()) {
                             scope.launch { snackbarHostState.showSnackbar(errorNoSupermarket) }
-                        } else if (products.isEmpty() || totals.totalCents <= 0L) {
+                        } else if (products.isEmpty() || (totals.totalCents <= 0L)) {
                             scope.launch { snackbarHostState.showSnackbar(errorNoProducts) }
                         } else {
                             // Guardado local y sincronización automática
@@ -242,7 +242,7 @@ fun NewPurchaseScreen(
                     CircularProgressIndicator(color = colors.neutralWhite)
                     Spacer(modifier = Modifier.height(16.dp))
                     Text(
-                        text = "Procesando ticket con IA...",
+                        text = stringResource(R.string.purchase_processing_ai),
                         color = colors.neutralWhite,
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold
@@ -252,19 +252,19 @@ fun NewPurchaseScreen(
         }
     }
     if (showTicketSheetState.value) {
-        PurchaseTicketSheet(
+        ImagePickerSheet(
+            title = stringResource(R.string.purchase_ticket_sheet_title),
             sheetState = sheetState,
             onDismiss = { showTicketSheetState.value = false },
             onGalleryClick = {
                 showTicketSheetState.value = false
                 galleryLauncher.launch("image/*")
-            },
-            onCameraClick = {
-                showTicketSheetState.value = false
-                val hasPermission = ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED
-                if (hasPermission) launchCamera() else cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
-            },
-        )
+            }
+        ) {
+            showTicketSheetState.value = false
+            val hasPermission = ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED
+            if (hasPermission) launchCamera() else cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+        }
     }
 }
 

@@ -7,12 +7,12 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.undef.fintrackmobile.R
+import com.undef.fintrackmobile.ui.components.FintrackScreenState
 import com.undef.fintrackmobile.ui.components.FintrackSectionHeader
 import com.undef.fintrackmobile.ui.components.home.*
 import com.undef.fintrackmobile.ui.util.formatCurrency
@@ -22,9 +22,7 @@ import com.undef.fintrackmobile.ui.viewmodel.HomeUiData
 
 /**
  * HomeScreen: Dashboard principal de la aplicación.
- * 2️⃣ JETPACK COMPOSE - UI Declarativa
- * HomeScreen es una función @Composable. En lugar de manipular vistas, 
- * describimos cómo se ve la UI para cada estado posible.
+ * Refactorizada para usar FintrackScreenState.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -37,11 +35,6 @@ fun HomeScreen(
     onNotificationsClick: () -> Unit = {},
     onProfileClick: () -> Unit = {},
 ) {
-    /**
-     * 9️⃣ OBSERVACIÓN DE ESTADO
-     * collectAsStateWithLifecycle() es consciente del ciclo de vida.
-     * Si la app está en background, deja de observar para ahorrar recursos.
-     */
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     // Estado para controlar la visibilidad del BottomSheet de notificaciones (State Hoisting).
@@ -55,25 +48,18 @@ fun HomeScreen(
     }
 
     Surface(modifier = modifier.fillMaxSize()) {
-        /**
-         * 1️⃣0️⃣ PATTERN MATCHING con Sealed Classes
-         * Usamos 'when' para renderizar diferentes UI según el estado del ViewModel.
-         */
-        when (val state = uiState) {
-            is HomeUiState.Loading -> {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator()
-                }
-            }
-            is HomeUiState.Error -> {
-                val errorMsg = state.messageRes?.let { stringResource(it) } ?: state.message ?: stringResource(R.string.unknown_error)
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text(text = stringResource(R.string.error_prefix, errorMsg), color = MaterialTheme.colorScheme.error)
-                }
-            }
-            is HomeUiState.Success -> {
+        FintrackScreenState(
+            isLoading = uiState is HomeUiState.Loading,
+            errorMessage = if (uiState is HomeUiState.Error) {
+                val state = uiState as HomeUiState.Error
+                state.messageRes?.let { stringResource(it) } ?: state.message
+            } else {
+                null
+            },
+        ) {
+            if (uiState is HomeUiState.Success) {
                 HomeScreenContent(
-                    data = state.data,
+                    data = (uiState as HomeUiState.Success).data,
                     displayName = displayName,
                     currencyCode = currencyCode,
                     profileImageUri = profileImageUri,
@@ -100,11 +86,6 @@ private fun HomeScreenContent(
 ) {
     val greetingName = displayName.ifBlank { stringResource(R.string.default_user_name) }
 
-    /**
-     * 🎯 COMPOSABLES Y LAZY LISTS
-     * LazyColumn es el equivalente moderno a RecyclerView. 
-     * Solo renderiza los items que están visibles en pantalla.
-     */
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
@@ -148,10 +129,6 @@ private fun HomeScreenContent(
                 subtitle = R.string.home_stats_history_subtitle
             )
             Spacer(modifier = Modifier.height(12.dp))
-            /**
-             * LazyRow permite listas horizontales eficientes.
-             * 'key' ayuda a Compose a optimizar las recomposiciones.
-             */
             LazyRow(
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                 contentPadding = PaddingValues(end = 16.dp)
@@ -173,4 +150,3 @@ private fun HomeScreenContent(
         }
     }
 }
-

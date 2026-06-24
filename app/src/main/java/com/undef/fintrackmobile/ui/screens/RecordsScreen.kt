@@ -19,6 +19,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.undef.fintrackmobile.R
 import com.undef.fintrackmobile.data.local.entity.PurchaseEntity
 import com.undef.fintrackmobile.data.local.entity.PurchaseWithProducts
+import com.undef.fintrackmobile.ui.components.FintrackScreenState
 import com.undef.fintrackmobile.ui.components.FintrackSectionHeader
 import com.undef.fintrackmobile.ui.components.records.*
 import com.undef.fintrackmobile.ui.theme.FintrackTheme
@@ -28,7 +29,7 @@ import java.util.Calendar
 
 /**
  * RecordsScreen: Pantalla que gestiona el historial de compras y estadísticas detalladas.
- * Refactorizada para usar componentes modulares y reutilizables.
+ * Refactorizada para usar FintrackScreenState y componentes modulares.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -44,30 +45,30 @@ fun RecordsScreen(
     var selectedTab by rememberSaveable { mutableIntStateOf(0) }
     val editingPurchaseState = remember { mutableStateOf<PurchaseWithProducts?>(null) }
     val deleteTargetState = remember { mutableStateOf<PurchaseEntity?>(null) }
-    val deleteTarget = deleteTargetState.value
 
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
     Box(
-        modifier = modifier.fillMaxSize().background(colors.celesteMist)
+        modifier = modifier
+            .fillMaxSize()
+            .background(colors.celesteMist),
     ) {
-        when (val state = uiState) {
-            is RecordsUiState.Loading -> {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator(color = colors.celesteDeep)
-                }
-            }
-            is RecordsUiState.Error -> {
-                val errorMsg = state.messageRes?.let { stringResource(it) } ?: state.message ?: stringResource(R.string.error_unknown)
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text(stringResource(R.string.error_prefix, errorMsg), color = MaterialTheme.colorScheme.error)
-                }
-            }
-            is RecordsUiState.Success -> {
-                Column(modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp)) {
+        FintrackScreenState(
+            isLoading = uiState is RecordsUiState.Loading,
+            errorMessage = if (uiState is RecordsUiState.Error) {
+                val state = uiState as RecordsUiState.Error
+                state.messageRes?.let { stringResource(it) } ?: state.message
+            } else null
+        ) {
+            if (uiState is RecordsUiState.Success) {
+                val state = uiState as RecordsUiState.Success
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(horizontal = 16.dp)
+                ) {
                     Spacer(modifier = Modifier.height(8.dp))
-                    // Título de la pantalla
                     Text(
                         text = stringResource(R.string.records_title),
                         style = MaterialTheme.typography.headlineMedium,
@@ -80,7 +81,12 @@ fun RecordsScreen(
                         selectedTabIndex = selectedTab,
                         containerColor = colors.celesteMist,
                         contentColor = colors.celesteDeep,
-                        indicator = { TabRowDefaults.PrimaryIndicator(modifier = Modifier.tabIndicatorOffset(selectedTab), color = colors.celesteDeep) }
+                        indicator = {
+                            TabRowDefaults.PrimaryIndicator(
+                                modifier = Modifier.tabIndicatorOffset(selectedTab),
+                                color = colors.celesteDeep
+                            )
+                        }
                     ) {
                         Tab(
                             selected = selectedTab == 0,
@@ -99,9 +105,8 @@ fun RecordsScreen(
                         HistoryTab(
                             purchases = state.purchases,
                             currencyCode = currencyCode,
-                            onEdit = { editingPurchaseState.value = it },
-                            onDelete = { deleteTargetState.value = it.purchase }
-                        )
+                            onEdit = { editingPurchaseState.value = it }
+                        ) { deleteTargetState.value = it.purchase }
                     } else {
                         StatsTab(
                             statsData = state.filteredStats,
@@ -112,10 +117,12 @@ fun RecordsScreen(
                 }
             }
         }
-        
+
         SnackbarHost(
             hostState = snackbarHostState,
-            modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 8.dp)
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 8.dp)
         )
     }
 
@@ -139,7 +146,7 @@ fun RecordsScreen(
     }
 
     // Diálogo de confirmación para eliminación
-    deleteTarget?.let { target ->
+    deleteTargetState.value?.let { target ->
         DeleteConfirmationDialog(
             onDismiss = { deleteTargetState.value = null },
             onConfirm = {
@@ -196,10 +203,12 @@ private fun StatsTab(
     
     val calendar = Calendar.getInstance()
     var selectedMonthIndex by rememberSaveable { mutableIntStateOf(calendar[Calendar.MONTH]) }
-    var selectedYear by rememberSaveable { mutableIntStateOf(calendar.get(Calendar.YEAR)) }
+    var selectedYear by rememberSaveable { mutableIntStateOf(calendar[Calendar.YEAR]) }
 
     Column(
-        modifier = Modifier.verticalScroll(rememberScrollState()).padding(bottom = 32.dp),
+        modifier = Modifier
+            .verticalScroll(rememberScrollState())
+            .padding(bottom = 32.dp),
         verticalArrangement = Arrangement.spacedBy(24.dp)
     ) {
         Column(
@@ -212,7 +221,10 @@ private fun StatsTab(
                 subtitle = stringResource(R.string.records_stats_period_subtitle)
             )
 
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+            Column(
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
                 PeriodFilterRow(selectedPeriod = selectedPeriod) {
                     selectedPeriod = it
                     viewModel.setPeriod(it)
@@ -254,7 +266,10 @@ private fun StatsTab(
             title = R.string.records_stats_distribution_title,
             subtitle = stringResource(R.string.records_stats_distribution_subtitle)
         )
-        SupermarketPieChartCard(distribution = statsData.supermarketDistribution, currencyCode = currencyCode)
+        SupermarketPieChartCard(
+            distribution = statsData.supermarketDistribution,
+            currencyCode = currencyCode
+        )
 
         FintrackSectionHeader(
             title = R.string.records_stats_ranking_title,
@@ -282,29 +297,4 @@ private fun EmptyHistoryCard() {
             )
         }
     }
-}
-
-@Composable
-private fun DeleteConfirmationDialog(
-    onDismiss: () -> Unit,
-    onConfirm: () -> Unit
-) {
-    val colors = FintrackTheme.colors
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.records_action_delete), fontWeight = FontWeight.Bold) },
-        text = { Text(stringResource(R.string.records_delete_confirm)) },
-        confirmButton = {
-            TextButton(onClick = onConfirm, colors = ButtonDefaults.textButtonColors(contentColor = colors.pastelRed)) {
-                Text(stringResource(R.string.records_action_delete), fontWeight = FontWeight.Bold)
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss, colors = ButtonDefaults.textButtonColors(contentColor = colors.celesteDeep)) {
-                Text(stringResource(R.string.records_cancel))
-            }
-        },
-        containerColor = colors.neutralWhite,
-        shape = RoundedCornerShape(28.dp)
-    )
 }

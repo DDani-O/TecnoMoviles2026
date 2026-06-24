@@ -441,6 +441,7 @@
     <string name="action_sync">Sincronizar</string>
     <string name="purchase_error_no_products">Agrega al menos un producto para guardar.</string>
     <string name="purchase_error_no_supermarket">Ingresa el nombre del supermercado.</string>
+    <string name="purchase_processing_ai">Procesando ticket con IA&#8230;</string>
 
     <!-- Fallbacks para Explore -->
     <string name="explore_fallback_location">Av. Siempre Viva %1$d</string>
