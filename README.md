@@ -6,7 +6,8 @@
 Aplicación Android para registrar, consultar y analizar gastos de supermercado, permitiendo al usuario llevar un mejor control de sus compras y detectar oportunidades de ahorro.
 
 Link demo v1: https://drive.google.com/file/d/1htavD_bSEjQ8O3MailvDOJT8khzOK8vE/view
-Link demo v2: 
+
+Link demo v2: https://drive.google.com/file/d/1hB5-7Jzt8AE3i2rVbFzvpz1rzoEbQ2-Q/view?usp=sharing
 
 ---
 
