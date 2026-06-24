@@ -122,10 +122,10 @@ Reemplaza a `SharedPreferences` con una API basada en corrutinas y `Flow`. Se pe
 Capa de abstracción sobre SQLite con acceso *type-safe* mediante anotaciones (`@Entity`, `@Dao`, `@Query`). El modelo implementa una relación **1:N** entre Compras y Productos. Las consultas retornan `Flow<List<T>>` para observación reactiva, y las operaciones de escritura usan `suspend fun` con soporte para `@Transaction`.
 
 ### 7️⃣ Networking — Retrofit + API REST
-`ExploreApiService` define la interfaz de la API con anotaciones Retrofit (`@GET`, `@Path`). El mapeo de JSON se realiza con Moshi. `ExploreRepository` ejecuta las llamadas en `Dispatchers.IO`, captura errores y aplica un *fallback* a valores locales cuando la red no está disponible. Los resultados se modelan con una `sealed class` (`RateResult`).
+`SupabaseDataApiService` define la interfaz de comunicación con Supabase mediante anotaciones Retrofit (`@GET`, `@POST`, `@PATCH`). El mapeo de JSON se realiza con Moshi. `SincronizacionRepository` ejecuta las llamadas en `Dispatchers.IO`, gestionando la persistencia remota de compras y la obtención de ofertas y supermercados en tiempo real.
 
 ### 8️⃣ Corrutinas — Asincronismo Estructurado
-Las operaciones de I/O se escriben de forma **secuencial y legible** gracias a `suspend fun` y `withContext(Dispatchers.IO)`. No hay callbacks ni bloqueo del hilo principal. El scope `viewModelScope` cancela automáticamente todas las corrutinas activas al destruir el ViewModel, previniendo memory leaks sin código adicional.
+Las operaciones de I/O se escriben de forma **secuencial y legible** gracias a `suspend fun` y `withContext(Dispatchers.IO)`. No hay callbacks ni bloqueo del hilo principal. El scope `viewModelScope` cancela automáticamente todas las corrutinas activas al destruir el ViewModel, previniendo memory leaks sin código adicional. Se utiliza en todos los repositorios para interactuar con Room y Retrofit.
 
 ### 9️⃣ ViewModel + StateFlow — Estado Reactivo
 Cada pantalla tiene su propio ViewModel que expone un único `StateFlow<UiState>`. El operador `combine()` orquesta múltiples flows (compras, productos, preferencias) en un **único estado coherente**, evitando sincronización manual. La estrategia `WhileSubscribed(5_000)` detiene el flujo cuando no hay observers activos, optimizando recursos. Los Composables observan el estado con `collectAsStateWithLifecycle()`, que pausa la recolección cuando la UI está en segundo plano.
@@ -162,7 +162,7 @@ Los estados de UI se modelan con `sealed class` (`Loading`, `Success`, `Error`),
 | **Intents** | Lanzamiento de `SettingsActivity` desde `ProfileScreen` | `FintrackApp.kt` |
 | **DataStore** | Sesión y datos del usuario | `UserPreferencesRepository.kt` |
 | **Room** | Compras y productos con relación 1:N | `AppDatabase.kt` · `PurchaseDao.kt` |
-| **Networking** | Consulta de datos externos vía API REST | `ExploreApiService.kt` |
+| **Networking** | Consulta de datos externos vía API REST | `SupabaseDataApiService.kt` |
 | **Corrutinas** | Todas las operaciones asincrónicas de I/O | `PurchaseRepository.kt` |
 
 ---
@@ -194,12 +194,13 @@ app/src/main/java/com/undef/fintrackmobile/
 │   │   └── dao/
 │   │       └── PurchaseDao.kt
 │   ├── network/
-│   │   └── ExploreApiService.kt
+│   │   ├── SupabaseDataApiService.kt
+│   │   └── SupabaseAuthApiService.kt
 │   ├── preferences/
 │   │   └── UserPreferencesRepository.kt
 │   └── repository/
 │       ├── PurchaseRepository.kt
-│       └── ExploreRepository.kt
+│       └── SincronizacionRepository.kt
 └── ui/
     ├── navigation/
     │   └── FintrackDestinations.kt

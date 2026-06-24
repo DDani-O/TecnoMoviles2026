@@ -14,7 +14,7 @@ La aplicación sigue los principios de **Clean Architecture** y el patrón de di
 | :--- | :--- | :--- |
 | **UI (Vista)** | Representación visual y captura de eventos del usuario. | Jetpack Compose, Screens, Components. |
 | **ViewModel** | Manejo del estado de la UI y lógica de presentación. | `StateFlow`, `viewModelScope`, `UiState`. |
-| **Repository (Data)** | Fuente de verdad de los datos. Abstrae el origen (Local/Remoto). | `PurchaseRepository`, `ExploreRepository`. |
+| **Repository (Data)** | Fuente de verdad de los datos. Abstrae el origen (Local/Remoto). | `PurchaseRepository`, `SincronizacionRepository`. |
 | **Data Source** | Acceso a la base de datos local o APIs externas. | Room DAO, SharedPreferences/DataStore. |
 
 ### Diagrama de Flujo de Datos
