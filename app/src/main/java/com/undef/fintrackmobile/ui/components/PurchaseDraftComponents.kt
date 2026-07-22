@@ -42,7 +42,6 @@ import com.undef.fintrackmobile.ui.viewmodel.EditableProductDraft
 data class PurchaseTotals(
     val subtotalCents: Long,
     val discountCents: Long,
-    val taxesCents: Long,
     val totalCents: Long,
 )
 
@@ -67,7 +66,6 @@ fun calculatePurchaseTotals(products: List<EditableProductDraft>): PurchaseTotal
     return PurchaseTotals(
         subtotalCents = subtotalCents,
         discountCents = discountCents,
-        taxesCents = 0L,
         totalCents = totalCents
     )
 }
@@ -301,10 +299,6 @@ fun PurchaseBreakdownCard(
             BreakdownRow(
                 label = R.string.purchase_breakdown_discount,
                 value = stringResource(R.string.discount_negative_value, formatCurrency(totals.discountCents, currencyCode))
-            )
-            BreakdownRow(
-                label = R.string.records_breakdown_taxes,
-                value = formatCurrency(totals.taxesCents, currencyCode)
             )
             HorizontalDivider(color = colors.celesteSoft.copy(alpha = 0.4f))
             BreakdownRow(

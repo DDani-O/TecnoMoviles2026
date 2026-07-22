@@ -271,8 +271,11 @@
     <string name="explore_map_title">Locales cercanos</string>
     <string name="explore_map_desc">Mapa de locales cercanos</string>
     <string name="explore_supermarkets_title">Supermercados amigos</string>
-    <string name="explore_offer_cta">¡Aprovechá!</string>
+    <string name="explore_offer_cta">¡Ver más!</string>
     <string name="explore_suggestions_title">Recomendados solo para vos</string>
+    <string name="explore_offer_tag">Oferta destacada</string>
+    <string name="explore_available_store">Disponible en %1$s</string>
+    <string name="explore_offer_cta_full">Ir a la oferta</string>
     <string name="explore_error_loading">¡Ups! Algo salió mal: %1$s</string>
 
     <string name="profile_prefs_subtitle">Personaliza tu experiencia en Fintrack</string>

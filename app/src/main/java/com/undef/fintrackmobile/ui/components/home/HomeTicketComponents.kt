@@ -143,6 +143,30 @@ private fun TicketCard(
 
             Spacer(modifier = Modifier.height(10.dp))
 
+            // Cálculo del descuento: subtotal (suma de productos) - total final
+            val subtotalCents = purchase.products.sumOf { it.priceCents * it.quantity.toLong() }
+            val discountCents = (subtotalCents - purchase.purchase.totalCents).coerceAtLeast(0)
+
+            if (discountCents > 0) {
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(start = 4.dp, end = 4.dp, bottom = 8.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = stringResource(R.string.purchase_breakdown_discount),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = brandColors.pastelRed,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        text = "- ${formatCurrency(discountCents, currencyCode)}",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = brandColors.pastelRed,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+
             Surface(
                 color = accentColor,
                 shape = RoundedCornerShape(12.dp),

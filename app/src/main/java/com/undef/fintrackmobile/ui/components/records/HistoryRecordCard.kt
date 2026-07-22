@@ -74,8 +74,7 @@ fun HistoryRecordCard(
     // Cálculos basados en los datos reales de la compra
     val subtotalCents = purchase.products.sumOf { it.priceCents * it.quantity.toLong() }
     val totalFinalCents = purchase.purchase.totalCents
-    val taxesCents = (totalFinalCents * (0.21f / 1.21f)).toLong()
-    val discountCents = (subtotalCents + (subtotalCents * 0.21f).toLong()) - totalFinalCents
+    val discountCents = (subtotalCents - totalFinalCents).coerceAtLeast(0)
     
     val accent = getSupermarketPastelColor(purchase.purchase.supermarketName, colors)
 
@@ -237,7 +236,6 @@ fun HistoryRecordCard(
                     currencyCode = currencyCode,
                     subtotalCents = subtotalCents,
                     discountCents = discountCents,
-                    taxesCents = taxesCents,
                     totalFinalCents = totalFinalCents
                 )
             }
@@ -251,7 +249,6 @@ private fun PurchaseDetailSection(
     currencyCode: String,
     subtotalCents: Long,
     discountCents: Long,
-    taxesCents: Long,
     totalFinalCents: Long,
 ) {
     val colors = FintrackTheme.colors
@@ -271,8 +268,9 @@ private fun PurchaseDetailSection(
             fontWeight = FontWeight.Bold
         )
         BreakdownRow(R.string.records_breakdown_subtotal, formatCurrency(subtotalCents, currencyCode))
-        BreakdownRow(R.string.records_breakdown_discount, "- ${formatCurrency(discountCents, currencyCode)}")
-        BreakdownRow(R.string.records_breakdown_taxes, formatCurrency(taxesCents, currencyCode))
+        if (discountCents > 0) {
+            BreakdownRow(R.string.records_breakdown_discount, "- ${formatCurrency(discountCents, currencyCode)}")
+        }
         HorizontalDivider(color = colors.celesteSoft.copy(alpha = 0.4f))
         BreakdownRow(
             label = R.string.records_breakdown_total,

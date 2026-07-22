@@ -1,5 +1,6 @@
 package com.undef.fintrackmobile.ui.components.explore
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
@@ -20,10 +21,13 @@ import com.undef.fintrackmobile.ui.viewmodel.OfferItemExplore
 fun OfferCardExplore(
     item: OfferItemExplore,
     modifier: Modifier = Modifier,
+    onClick: () -> Unit = {},
 ) {
     val colors = FintrackTheme.colors
     Card(
-        modifier = modifier.width(220.dp),
+        modifier = modifier
+            .width(220.dp)
+            .clickable { onClick() },
         shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(containerColor = colors.neutralWhite),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
