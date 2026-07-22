@@ -66,6 +66,10 @@ class ProfileViewModel(
 
     fun logout() {
         viewModelScope.launch {
+            // 1. Limpiar base de datos local (Room) para evitar "datos fantasma" en el próximo login
+            purchaseRepository.clearAllLocalData()
+            
+            // 2. Limpiar preferencias y sesión
             repository.setLoggedIn(false)
             repository.updateAccessToken("")
             repository.updateUserId("")
