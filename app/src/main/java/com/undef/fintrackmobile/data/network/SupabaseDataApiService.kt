@@ -61,4 +61,13 @@ interface SupabaseDataApiService {
         @Query("id") id: String,
         @Body profile: Map<String, String>
     )
+    @retrofit2.http.DELETE("remote_purchases")
+    suspend fun deleteAllPurchases(
+        @Query("user_id") filter: String
+    )
+
+    @retrofit2.http.DELETE("users")
+    suspend fun deleteUser(
+        @Query("id") filter: String
+    )
 }

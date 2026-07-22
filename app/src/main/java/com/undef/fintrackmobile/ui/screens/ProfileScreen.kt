@@ -67,6 +67,7 @@ fun ProfileScreen(
     var isCurrencyExpanded by rememberSaveable { mutableStateOf(value = false) }
     var isEditing by rememberSaveable { mutableStateOf(value = false) }
     var areNotificationsEnabled by rememberSaveable { mutableStateOf(true) }
+    val showDeleteConfirm = remember { mutableStateOf(false) }
 
     val currencies = remember {
         listOf(
@@ -221,10 +222,49 @@ fun ProfileScreen(
                 }
             }
 
+            // ELIMINAR CUENTA
+            item {
+                TextButton(
+                    onClick = { showDeleteConfirm.value = true },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.textButtonColors(contentColor = colors.pastelRed)
+                ) {
+                    Text(
+                        text = "Eliminar todos mis datos",
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
+            }
+
             item {
                 Spacer(modifier = Modifier.height(16.dp))
             }
         }
+    }
+
+    if (showDeleteConfirm.value) {
+        AlertDialog(
+            onDismissRequest = { showDeleteConfirm.value = false },
+            title = { Text("¿Eliminar todos tus datos?") },
+            text = { Text("Esta acción borrará todas tus compras y productos de forma permanente. Tu cuenta de acceso se mantendrá, pero sin historial. No se puede deshacer.") },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        showDeleteConfirm.value = false
+                        viewModel.deleteUserData { /* Datos borrados */ }
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = colors.pastelRed)
+                ) {
+                    Text("Sí, borrar datos", color = colors.neutralWhite)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteConfirm.value = false }) {
+                    Text("Cancelar")
+                }
+            }
+        )
     }
 
     if (showPhotoSheetState.value) {

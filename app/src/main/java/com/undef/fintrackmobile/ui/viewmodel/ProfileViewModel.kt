@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.undef.fintrackmobile.data.preferences.UserPreferences
 import com.undef.fintrackmobile.data.preferences.UserPreferencesRepository
+import com.undef.fintrackmobile.data.repository.PurchaseRepository
 import com.undef.fintrackmobile.data.repository.SincronizacionRepository
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -13,7 +14,8 @@ import kotlinx.coroutines.launch
 
 class ProfileViewModel(
     private val repository: UserPreferencesRepository,
-    private val sincronizacionRepository: SincronizacionRepository
+    private val sincronizacionRepository: SincronizacionRepository,
+    private val purchaseRepository: PurchaseRepository
 ) : ViewModel() {
     val preferences: StateFlow<UserPreferences> = repository.preferencesFlow
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), UserPreferences.DEFAULT)
@@ -67,6 +69,24 @@ class ProfileViewModel(
             repository.setLoggedIn(false)
             repository.updateAccessToken("")
             repository.updateUserId("")
+        }
+    }
+
+    fun deleteUserData(onComplete: () -> Unit) {
+        viewModelScope.launch {
+            val prefs = repository.preferencesFlow.first()
+            if (prefs.userId.isNotBlank()) {
+                // 1. Borrar datos remotos (Purchases y Products)
+                sincronizacionRepository.deleteRemoteAccount(prefs.userId)
+            }
+            
+            // 2. Borrar datos locales (Room)
+            purchaseRepository.clearAllLocalData()
+            
+            // 3. Opcional: Podrías resetear ciertos campos del perfil si quisieras, 
+            // pero mantenemos la sesión abierta.
+            
+            onComplete()
         }
     }
 }

@@ -177,4 +177,18 @@ class SincronizacionRepository(
             Result.failure(e)
         }
     }
+
+    suspend fun deleteRemoteAccount(userId: String): Result<Unit> = withContext(Dispatchers.IO) {
+        try {
+            // 1. Borrar todas las compras del usuario
+            dataApiService.deleteAllPurchases("eq.$userId")
+            // 2. Borrar el perfil del usuario (public.users)
+            dataApiService.deleteUser("eq.$userId")
+
+            Result.success(Unit)
+        } catch (e: Exception) {
+            logError("deleteRemoteAccount", e)
+            Result.failure(e)
+        }
+    }
 }

@@ -91,6 +91,11 @@ class PurchaseRepository(
         }
     }
 
+    suspend fun clearAllLocalData() = withContext(Dispatchers.IO) {
+        productDao.deleteAllProducts()
+        purchaseDao.deleteAllPurchases()
+    }
+
     /**
      * Descarga las compras de Supabase y las guarda localmente.
      */
