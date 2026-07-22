@@ -143,7 +143,10 @@ class RecordsViewModel(
 
     fun syncPurchases() {
         viewModelScope.launch {
-            repository.syncWithRemote()
+            val result = repository.syncWithRemote()
+            result.onFailure { e ->
+                android.util.Log.e("RecordsVM", "Sync failed: ${e.message}")
+            }
         }
     }
 }

@@ -6,7 +6,8 @@ data class GroqRequest(
     val model: String,
     val messages: List<GroqMessage>,
     val temperature: Double = 0.0,
-    @Json(name = "response_format") val responseFormat: GroqResponseFormat? = null
+    @Json(name = "max_completion_tokens") val maxTokens: Int? = null,
+    @Json(name = "response_format") val responseFormat: GroqResponseFormat? = null,
 )
 
 data class GroqResponseFormat(
@@ -41,14 +42,15 @@ data class GroqChoiceMessage(
 )
 
 data class TicketParsedResponse(
-    val supermarket: String,
+    val supermarket: String?,
     val date: String?, // yyyy-MM-dd
+    val total: Double?,
     val products: List<ParsedProduct>
 )
 
 data class ParsedProduct(
     val name: String,
-    val quantity: Int,
+    val quantity: Double,
     val price: Double,
     val discount: Double = 0.0
 )

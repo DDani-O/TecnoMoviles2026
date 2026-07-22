@@ -50,22 +50,24 @@ data class PurchaseTotals(
  * calculatePurchaseTotals: Función de utilidad para calcular subtotales y totales a partir de borradores de productos.
  */
 fun calculatePurchaseTotals(products: List<EditableProductDraft>): PurchaseTotals {
-    val subtotalCents = products.sumOf { product ->
-        val qty = product.quantity.toIntOrNull()?.coerceAtLeast(0) ?: 0
-        parseCents(product.price).coerceAtLeast(0) * qty.toLong()
+    var subtotalCents = 0L
+    var discountCents = 0L
+
+    products.forEach { product ->
+        val qty = product.quantity.toDoubleOrNull()?.coerceAtLeast(0.0) ?: 0.0
+        val priceCents = parseCents(product.price).coerceAtLeast(0)
+        val discCents = parseCents(product.discount).coerceAtLeast(0)
+
+        subtotalCents += (priceCents * qty).toLong()
+        discountCents += (discCents * qty).toLong()
     }
-    val discountCents = products.sumOf { product ->
-        val qty = product.quantity.toIntOrNull()?.coerceAtLeast(0) ?: 0
-        parseCents(product.discount).coerceAtLeast(0) * qty.toLong()
-    }.coerceAtLeast(0)
-    val taxableCents = (subtotalCents - discountCents).coerceAtLeast(0)
-    val taxesCents = (taxableCents * 0.21f).toLong()
-    val totalCents = taxableCents + taxesCents
+
+    val totalCents = (subtotalCents - discountCents).coerceAtLeast(0)
 
     return PurchaseTotals(
         subtotalCents = subtotalCents,
         discountCents = discountCents,
-        taxesCents = taxesCents,
+        taxesCents = 0L,
         totalCents = totalCents
     )
 }

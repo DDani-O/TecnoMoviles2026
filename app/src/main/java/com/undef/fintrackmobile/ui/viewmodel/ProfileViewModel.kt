@@ -41,7 +41,10 @@ class ProfileViewModel(
     private suspend fun syncRemoteProfile(data: Map<String, String>) {
         val prefs = repository.preferencesFlow.first()
         if (prefs.userId.isNotBlank()) {
-            sincronizacionRepository.updateRemoteProfile(prefs.userId, data)
+            val result = sincronizacionRepository.updateRemoteProfile(prefs.userId, data)
+            result.onFailure { e ->
+                android.util.Log.e("ProfileVM", "Failed to sync remote profile: ${e.message}")
+            }
         }
     }
 

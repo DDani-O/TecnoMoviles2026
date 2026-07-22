@@ -39,7 +39,7 @@ class PurchaseViewModel(
     private val repository: PurchaseRepository,
     private val groqRepository: GroqRepository,
     private val sincronizacionRepository: SincronizacionRepository,
-    private val application: Application
+    private val application: Application,
 ) : ViewModel() {
     // Estado para los datos generales de la compra
     private val _supermarket = MutableStateFlow("")
@@ -63,7 +63,7 @@ class PurchaseViewModel(
     private val _estadoSincronizacion = MutableStateFlow<SincronizacionEstado>(SincronizacionEstado.Inactivo)
     val estadoSincronizacion: StateFlow<SincronizacionEstado> = _estadoSincronizacion.asStateFlow()
 
-    private val _parsingTicket = MutableStateFlow(false)
+    private val _parsingTicket = MutableStateFlow(value = false)
     val parsingTicket: StateFlow<Boolean> = _parsingTicket.asStateFlow()
 
     private var nextProductId = 1L
@@ -95,7 +95,7 @@ class PurchaseViewModel(
                     val result = groqRepository.parseTicket(bytes)
                     result.onSuccess { parsed ->
                         Log.d("PurchaseVM", "IA parsing success: ${parsed.supermarket}")
-                        _supermarket.value = parsed.supermarket
+                        _supermarket.value = parsed.supermarket ?: ""
                         parsed.date?.let { dateStr ->
                             try {
                                 val format = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
@@ -115,7 +115,17 @@ class PurchaseViewModel(
                         }
                     }.onFailure { e ->
                         Log.e("PurchaseVM", "IA parsing failed: ${e.message}", e)
-                        _estadoSincronizacion.value = SincronizacionEstado.Error("Error IA: ${e.message}")
+                        val errorMessage = when {
+                            e.message?.contains("401") == true -> "Error de API Key: Verificá tu clave de Groq en secrets.properties."
+                            e.message?.contains("404") == true -> "Error de IA: El modelo configurado no fue encontrado (404). Contactá a soporte."
+                            e.message?.contains("model_decommissioned") == true -> 
+                                "El modelo de IA ha sido retirado. Por favor, actualiza la app."
+                            e.message?.contains("json_validate_failed") == true ->
+                                "Error de formato: La IA no pudo generar un JSON válido. Reintentá con una foto más clara."
+                            e.message?.contains("429") == true -> "Límite de peticiones de IA excedido. Reintentá en un momento."
+                            else -> "Error al analizar el ticket: ${e.message}"
+                        }
+                        _estadoSincronizacion.value = SincronizacionEstado.Error(errorMessage)
                     }
 
                     // 2. Subir imagen a Supabase
@@ -191,7 +201,7 @@ class PurchaseViewModel(
                 result.onSuccess {
                     _estadoSincronizacion.value = SincronizacionEstado.Exito
                 }.onFailure { e ->
-                    val msg = if (e is retrofit2.HttpException && e.code() == 401) {
+                    val msg = if ((e is retrofit2.HttpException) && (e.code() == 401)) {
                         "Sesión expirada. Por favor, cierra sesión y vuelve a entrar."
                     } else {
                         e.message ?: "Sync failed"

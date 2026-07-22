@@ -29,13 +29,28 @@ object NetworkModule {
 
     private val okHttpClient = OkHttpClient.Builder()
         .addInterceptor { chain ->
-            val token = if (authToken.isNullOrBlank()) SUPABASE_ANON_KEY else authToken
-            android.util.Log.d("NetworkModule", "Interceptor: Using token ${if (authToken.isNullOrBlank()) "ANON" else "USER"}")
-            val request = chain.request().newBuilder()
-                .addHeader("apikey", SUPABASE_ANON_KEY)
-                .addHeader("Authorization", "Bearer $token")
-                .build()
-            chain.proceed(request)
+            val requestBuilder = chain.request().newBuilder()
+            
+            // Siempre enviamos la apikey de Supabase
+            requestBuilder.addHeader("apikey", SUPABASE_ANON_KEY)
+            
+            // Solo enviamos Authorization si tenemos un token de usuario real
+            // Esto evita que peticiones públicas fallen con 401 si el token expiró
+            if (!authToken.isNullOrBlank()) {
+                android.util.Log.d("NetworkModule", "Interceptor: Adding Authorization header with User Token")
+                requestBuilder.addHeader("Authorization", "Bearer $authToken")
+            } else {
+                android.util.Log.d("NetworkModule", "Interceptor: No user token, sending only apikey")
+            }
+
+            val request = requestBuilder.build()
+            val response = chain.proceed(request)
+            
+            if (response.code == 401 && !authToken.isNullOrBlank()) {
+                android.util.Log.e("NetworkModule", "401 Unauthorized detected! Token might be expired.")
+            }
+            
+            response
         }
         .addInterceptor(
             HttpLoggingInterceptor().apply {

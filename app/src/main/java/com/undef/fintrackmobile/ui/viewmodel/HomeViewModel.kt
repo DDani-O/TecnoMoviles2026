@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.undef.fintrackmobile.data.local.entity.PurchaseWithProducts
 import com.undef.fintrackmobile.data.repository.PurchaseRepository
 import com.undef.fintrackmobile.data.preferences.UserPreferencesRepository
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
@@ -70,6 +71,8 @@ class HomeViewModel(
     private val userPreferencesRepository: UserPreferencesRepository
 ) : ViewModel() {
 
+    private val _syncError = MutableStateFlow<String?>(null)
+
     /**
      * flatMapLatest permite reaccionar al cambio de usuario (email) y reiniciar
      * la observación de las compras filtradas por ese email.
@@ -80,20 +83,27 @@ class HomeViewModel(
             val email = userPrefs.email
             combine(
                 repository.observePurchasesWithProducts(email),
-                repository.observePurchases(email)
-            ) { purchasesWithProducts, allPurchases ->
-                purchasesWithProducts to allPurchases
+                repository.observePurchases(email),
+                _syncError
+            ) { purchasesWithProducts, allPurchases, syncErr ->
+                Triple(purchasesWithProducts, allPurchases, syncErr)
             }
-        }.transformLatest { (purchasesWithProducts, allPurchases) ->
+        }.transformLatest { (purchasesWithProducts, allPurchases, syncErr) ->
         emit(HomeUiState.Loading)
+        
+        if (syncErr != null && allPurchases.isEmpty()) {
+            emit(HomeUiState.Error(message = syncErr))
+            return@transformLatest
+        }
+
         try {
             // Lógica de Negocio: Filtramos solo las compras del mes actual
             val calendar = Calendar.getInstance()
             val currentMonth = calendar[Calendar.MONTH]
             val currentYear = calendar[Calendar.YEAR]
 
-            val monthPurchases = allPurchases.filter {
-                val pCal = Calendar.getInstance().apply { timeInMillis = it.dateMillis }
+            val monthPurchases = allPurchases.filter { purchase ->
+                val pCal = Calendar.getInstance().apply { timeInMillis = purchase.dateMillis }
                 (pCal[Calendar.MONTH] == currentMonth && pCal[Calendar.YEAR] == currentYear)
             }
 
@@ -279,10 +289,19 @@ class HomeViewModel(
             val prefs = userPreferencesRepository.preferencesFlow.first()
             if (prefs.isLoggedIn && prefs.email.isNotBlank()) {
                 val currentCount = repository.observePurchases(prefs.email).first().size
-                if (currentCount == 0) {
+                val syncResult = if (currentCount == 0) {
                     repository.pullFromRemote()
                 } else {
                     repository.syncWithRemote() // Push normal
+                }
+                
+                syncResult.onFailure { e ->
+                    android.util.Log.e("HomeViewModel", "Initial sync failed: ${e.message}")
+                    if (e is retrofit2.HttpException && e.code() == 401) {
+                        _syncError.value = "Sesión expirada. Por favor, re-ingresa."
+                    } else {
+                        _syncError.value = "Error de conexión: ${e.message}"
+                    }
                 }
             }
         }
